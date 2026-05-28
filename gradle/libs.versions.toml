@@ -8,11 +8,13 @@ junit-v4-v13-v2-v13 = "3.2.19.1"
 scala-library = "3.3.7"
 scala-xml = "2.4.0"
 scalatest = "3.2.20"
+cats-core = "2.12.0"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit = { module = "junit:junit", version.ref = "junit" }
-junit-v4-v13-v2-v13 = { module = "org.scalatestplus:junit-4-13_2.13", version.ref = "junit-v4-v13-v2-v13" }
+junit-v4-v13-v2-v13 = { module = "org.scalatestplus:junit-4-13_3", version.ref = "junit-v4-v13-v2-v13" }
 scala-library = { module = "org.scala-lang:scala3-library_3", version.ref = "scala-library" }
 scala-xml = { module = "org.scala-lang.modules:scala-xml_3", version.ref = "scala-xml" }
 scalatest = { module = "org.scalatest:scalatest_3", version.ref = "scalatest" }
+cats-core = { module = "org.typelevel:cats-core_3", version.ref = "cats-core" }

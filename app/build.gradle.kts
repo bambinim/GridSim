@@ -19,8 +19,11 @@ repositories {
 }
 
 dependencies {
-    // Use Scala 2.13 in our library project
+    // Use Scala 3 library
     implementation(libs.scala.library)
+
+    // Cats for functional programming constructs
+    implementation(libs.cats.core)
 
     // This dependency is used by the application.
     implementation(libs.guava)
