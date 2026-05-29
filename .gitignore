@@ -2,3 +2,6 @@
 build
 .kotlin
 .idea
+.bloop
+.metals
+.vscode
