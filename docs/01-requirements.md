@@ -25,15 +25,18 @@ Il dominio del simulatore è composto dalle seguenti entità concettuali:
     *   *Livello di carica corrente* (kWh).
     *   *Velocità massima di carica* e *velocità massima di scarica* (kW per tick).
 *   **Rete Esterna (External Grid):** Funge da sorgente o pozzo infinito a cui la micro-grid fa riferimento per assorbire l'energia in eccesso non accumulata o per attingere energia in caso di deficit non coperto dai produttori.
-*   **Micro-Grid (Micro-rete):** L'infrastruttura che collega tutte le case, i produttori standalone e la rete esterna, coordinando i flussi energetici ad ogni tick.
+*   **Micro-Grid (Micro-rete):** L'infrastruttura complessiva che modella i nodi e i collegamenti della rete elettrica locale.
+*   **Cavo di collegamento (Cable):** Collegamento elettrico (arco) tra due nodi della micro-grid. È caratterizzato da una *capacità di trasporto massima* (kW) e dal *carico corrente* (potenza effettivamente trasferita in quel tick).
+
 
 
 ## Requisiti funzionali
 
 ### Utente
-*   **Definizione della rete tramite DSL:** L'utente deve poter definire la struttura della micro-grid (numero di case, presenza di batterie e pannelli locali, generatori standalone, parametri iniziali e granularità del tempo) attraverso un linguaggio specifico del dominio (DSL) embedded scritto in Scala.
+*   **Definizione della rete tramite DSL:** L'utente deve poter definire la struttura della micro-grid (numero di case, presenza di batterie e pannelli locali, generatori standalone, parametri iniziali, i cavi di collegamento tra di essi con le relative portate massime, e la granularità del tempo) attraverso un linguaggio specifico del dominio (DSL) embedded scritto in Scala.
 *   **Controllo dell'esecuzione:** L'utente deve poter avviare la simulazione, metterla in pausa e riprenderla in qualsiasi momento.
-*   **Visualizzazione in tempo reale:** L'utente deve poter visualizzare lo stato istantaneo della micro-grid durante l'esecuzione (es. flussi energetici correnti, stato di carica delle batterie, condizioni ambientali).
+*   **Visualizzazione in tempo reale:** L'utente deve poter visualizzare lo stato istantaneo della micro-grid sotto forma di **grafo dinamico**, in cui i nodi rappresentano le utenze/produttori e gli archi rappresentano i cavi (mostrando graficamente i flussi e colorando in rosso eventuali cavi in sovraccarico).
+
 *   **Interrogazione delle statistiche:** L'utente deve poter richiedere report e statistiche sull'andamento storico dell'intera simulazione, specificamente:
     *   Energia totale immessa ed estratta dalla Rete Esterna.
     *   Picchi di carico massimo registrati sulla micro-grid.
@@ -50,9 +53,8 @@ Il dominio del simulatore è composto dalle seguenti entità concettuali:
     5. Calcolare il surplus o deficit residuo da scambiare con la micro-grid.
 *   **Risoluzione produttori standalone:** Calcolare l'energia prodotta da ciascun generatore standalone in base alle condizioni meteorologiche correnti.
 *   **Bilanciamento globale della Micro-Grid:** Calcolare la somma algebrica di tutti i flussi energetici delle case e dei generatori standalone. L'eventuale deficit/surplus globale viene scambiato con la Rete Esterna.
+*   **Calcolo dei Flussi nei Cavi:** Ad ogni tick, il sistema deve calcolare la potenza di carico transitata su ciascun cavo in base al bilancio energetico dei nodi collegati, rilevando se la capacità massima del cavo è stata superata (segnalazione di sovraccarico).
 *   **Storicizzazione dello stato:** Il sistema deve registrare in modo immutabile l'intera sequenza di stati passati della simulazione per consentire l'analisi delle statistiche.
-
-
 
 ## Requisiti non funzionali
 
@@ -65,7 +67,7 @@ Il dominio del simulatore è composto dalle seguenti entità concettuali:
 
 *   **Linguaggio di Programmazione:** Scala 3 (v3.3.7).
 *   **Build Tool:** Gradle (con Kotlin DSL per la configurazione dei moduli).
-*   **Architettura e Pattern Funzionali Custom:** È vietato l'uso di librerie per la programmazione funzionale avanzata (es. Cats, Cats Effect, Scalaz, ZIO). Costrutti come Monade (es. `State`), Applicative, Functor e pattern come il Tagless Final devono essere implementati a mano da zero.
+*   **Uso di Librerie Funzionali:** Utilizzo della libreria Cats per i costrutti funzionali standard (es. `State` monad, Type Classes, Functor, Applicative). Framework complessi per gli effetti (es. Cats Effect, ZIO) rimangono esclusi, delegando la gestione degli effetti e dell'asincronismo a costrutti standard di Scala.
 *   **Librerie di Test:** Uso di ScalaTest per test unitari e di integrazione.
 *   **Interfaccia Grafica:** JavaFX / ScalaFX, per supportare la visualizzazione di grafici ad andamento temporale in tempo reale ed elementi grafici avanzati.
 *   **Concorrenza e Asincronismo:** Costrutti standard della libreria di Scala (`Future`, `Promise` ed `ExecutionContext` per la gestione asincrona dei tick senza blocco della GUI).
