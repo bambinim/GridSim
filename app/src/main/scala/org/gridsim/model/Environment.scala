@@ -1,0 +1,16 @@
+package org.gridsim.model
+
+import org.gridsim.common.Units.Tick.Tick
+import org.gridsim.common.Units.Power.Power
+import org.gridsim.common.Units.GeographicPoint
+
+// TODO: to verify if ok
+case class WeatherConditions(
+  irradiance: Power,  // kW/m²
+  windSpeed: Double,  // m/s
+  temperature: Double // °C
+)
+
+trait Environment:
+  def tick: Tick
+  def irradiance(point: GeographicPoint): Power

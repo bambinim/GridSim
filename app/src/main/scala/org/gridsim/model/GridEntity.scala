@@ -1,7 +1,4 @@
 package org.gridsim.model
 
-
-trait GridEntity {
+trait GridEntity:
   def id: String
-}
-
