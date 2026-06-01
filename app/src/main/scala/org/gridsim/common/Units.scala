@@ -1,49 +1,70 @@
 package org.gridsim.common
 
+import cats.{Order, Show}
+import cats.kernel.CommutativeMonoid
+import cats.instances.double.*
 import com.google.common.primitives.UnsignedLong
-import org.gridsim.common.Units.Energy.{Energy, fromKWh}
-import org.gridsim.common.Units.Power.{Power, fromKW}
 
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import scala.annotation.targetName
 import scala.concurrent.duration.FiniteDuration
 
 object Units:
 
-  object Energy:
-    // Total amount of energy used over time
-    opaque type Energy = Double
-
-    def fromKWh(energy: Double): Energy =
-      require(energy >= 0)
-      energy
-
-    def fromPower(power: Power, duration: FiniteDuration): Energy = power * duration
-
-    extension (energy: Energy)
-      def /(duration: FiniteDuration): Power = fromKW(energy / duration.toHours)
-      // NOTE: It is better to not expose internal implementation, instead define operators
-      //def kWh: Double = energy
+  opaque type Power = Double
 
   object Power:
-    // Instantaneous rate of energy use or production
-    opaque type Power = Double
+    def apply(v: Double): Power = v
+    val Zero: Power = 0.0
 
-    def fromKW(power: Double): Power =
-      require(power >= 0)
-      power
+    given CommutativeMonoid[Power] = cats.instances.double.catsKernelStdGroupForDouble
+    given Order[Power] = cats.instances.double.catsKernelStdOrderForDouble
+    given Show[Power] = Show.show(p => String.format(Locale.US, "%.2f kW", p))
 
-    def fromEnergy(energy: Energy, duration: FiniteDuration): Power = energy / duration
+  opaque type Energy = Double
 
-    extension (power: Power)
-      def *(duration: FiniteDuration): Energy = fromKWh(power * duration.toHours)
-      // NOTE: It is better to not expose internal implementation, instead define operators
-      //def kw: Double = power
+  object Energy:
+    def apply(v: Double): Energy = v
+    val Zero: Energy = 0.0
+
+    given CommutativeMonoid[Energy] = cats.instances.double.catsKernelStdGroupForDouble
+    given Order[Energy] = cats.instances.double.catsKernelStdOrderForDouble
+    given Show[Energy] = Show.show(e => String.format(Locale.US, "%.2f kWh", e))
+
+
+  extension (p: Power)
+    @targetName("powerToDouble")
+    def toDouble: Double = p
+    @targetName("powerPlus")
+    def +(o: Power): Power = p + o
+    @targetName("powerMinus")
+    def -(o: Power): Power = p - o
+    @targetName("powerTimes")
+    def *(scalar: Double): Power = p * scalar
+    def toEnergy(using tick: FiniteDuration): Energy =
+      p * tick.toUnit(TimeUnit.HOURS)
+
+  extension (e: Energy)
+    @targetName("energyToDouble")
+    def toDouble: Double = e
+    @targetName("energyPlus")
+    def +(o: Energy): Energy = e + o
+    @targetName("energyMinus")
+    def -(o: Energy): Energy = e - o
+    @targetName("energyTimes")
+    def *(scalar: Double): Energy = e * scalar
+    def toPower(using tick: FiniteDuration): Power =
+      e / tick.toUnit(TimeUnit.HOURS)
+
+  extension (d: Double)
+    def kw: Power = Power(d)
+    def kwh: Energy = Energy(d)
 
   // TODO: Will be more complex, an ADT (abstract data type) should be implemented
   object Tick:
     opaque type Tick = UnsignedLong
-
     def start: Tick = UnsignedLong.ZERO
-
     extension (tick: Tick)
       def next: Tick = tick.plus(UnsignedLong.ONE)
 
