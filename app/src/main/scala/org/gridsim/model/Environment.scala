@@ -13,5 +13,7 @@ case class WeatherConditions(
 
 trait Environment:
   def tick: Tick
+  def hour: Int
   def irradiance(point: GeographicPoint): WeatherConditions
   def update(): Unit
+
