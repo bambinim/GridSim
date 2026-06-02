@@ -1,19 +1,16 @@
-package org.gridsim.behaviour
+package org.gridsim.core.behaviour
 
-import org.gridsim.common.Units.Energy
-import org.gridsim.model.Occupancy.*
-import org.gridsim.model.Size.*
-import org.gridsim.model.{Occupancy, Size}
+import org.gridsim.core.common.Units.Energy
+import org.gridsim.core.model.Occupancy.*
+import org.gridsim.core.model.Size.*
+import org.gridsim.core.model.{Occupancy, Size}
 
 import scala.concurrent.duration.FiniteDuration
 
 object ConsumptionProfile:
 
   def calculateConsume(size: Size, occupancy: Occupancy, hour: Int): Energy =
-    val sizeMultiplier = size match
-      case Small => 1.0
-      case Medium => 1.5
-      case Large => 2.0
+    val sizeMultiplier = size.multiplier
       
     val occupancyDemand = occupancy match
       case Vacant => 1.0

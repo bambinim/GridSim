@@ -1,8 +1,8 @@
-package org.gridsim.model
+package org.gridsim.core.model
 
-import org.gridsim.common.Units.Tick.Tick
-import org.gridsim.common.Units.Power
-import org.gridsim.common.Units.GeographicPoint
+import org.gridsim.core.common.Units.Tick.Tick
+import org.gridsim.core.common.Units.Power
+import org.gridsim.core.common.Units.GeographicPoint
 
 // TODO: to verify if ok
 case class WeatherConditions(

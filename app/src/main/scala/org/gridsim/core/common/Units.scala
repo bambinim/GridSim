@@ -1,4 +1,4 @@
-package org.gridsim.common
+package org.gridsim.core.common
 
 import cats.{Order, Show}
 import cats.kernel.CommutativeMonoid
