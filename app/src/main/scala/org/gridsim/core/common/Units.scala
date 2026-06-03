@@ -22,6 +22,22 @@ object Units:
     given Order[Power] = cats.instances.double.catsKernelStdOrderForDouble
     given Show[Power] = Show.show(p => String.format(Locale.US, "%.2f kW", p))
 
+    extension (p: Power)
+      @targetName("powerToDouble")
+      def toDouble: Double = p
+      @targetName("powerPlus")
+      def +(o: Power): Power = p.toDouble + o.toDouble
+      @targetName("powerMinus")
+      def -(o: Power): Power = p.toDouble - o.toDouble
+      @targetName("powerTimes")
+      def *(scalar: Double): Power = p.toDouble * scalar
+      @targetName("powerDiv")
+      def /(o: Power): Double = p.toDouble / o.toDouble
+      @targetName("powerDivScalar")
+      def /(scalar: Double): Power = p / scalar
+      def toEnergy(using tick: FiniteDuration): Energy =
+        Energy(p.toDouble * tick.toUnit(TimeUnit.HOURS))
+
   opaque type Energy = Double
 
   object Energy:
@@ -32,36 +48,26 @@ object Units:
     given Order[Energy] = cats.instances.double.catsKernelStdOrderForDouble
     given Show[Energy] = Show.show(e => String.format(Locale.US, "%.2f kWh", e))
 
-
-  extension (p: Power)
-    @targetName("powerToDouble")
-    def toDouble: Double = p
-    @targetName("powerPlus")
-    def +(o: Power): Power = p + o
-    @targetName("powerMinus")
-    def -(o: Power): Power = p - o
-    @targetName("powerTimes")
-    def *(scalar: Double): Power = p * scalar
-    def toEnergy(using tick: FiniteDuration): Energy =
-      p * tick.toUnit(TimeUnit.HOURS)
-
-  extension (e: Energy)
-    @targetName("energyToDouble")
-    def toDouble: Double = e
-    @targetName("energyPlus")
-    def +(o: Energy): Energy = e + o
-    @targetName("energyMinus")
-    def -(o: Energy): Energy = e - o
-    @targetName("energyTimes")
-    def *(scalar: Double): Energy = e * scalar
-    def toPower(using tick: FiniteDuration): Power =
-      e / tick.toUnit(TimeUnit.HOURS)
+    extension (e: Energy)
+      @targetName("energyToDouble")
+      def toDouble: Double = e
+      @targetName("energyPlus")
+      def +(o: Energy): Energy = e.toDouble + o.toDouble
+      @targetName("energyMinus")
+      def -(o: Energy): Energy = e.toDouble - o.toDouble
+      @targetName("energyTimes")
+      def *(scalar: Double): Energy = e.toDouble * scalar
+      @targetName("energyDiv")
+      def /(o: Energy): Double = e.toDouble / o.toDouble
+      @targetName("energyDivScalar")
+      def /(scalar: Double): Energy = e / scalar
+      def toPower(using tick: FiniteDuration): Power =
+        Power(e.toDouble / tick.toUnit(TimeUnit.HOURS))
 
   extension (d: Double)
     def kw: Power = Power(d)
     def kwh: Energy = Energy(d)
 
-  // TODO: Will be more complex, an ADT (abstract data type) should be implemented
   object Tick:
     opaque type Tick = UnsignedLong
     def start: Tick = UnsignedLong.ZERO
@@ -70,7 +76,6 @@ object Units:
 
   case class GeographicPoint(latitude: Double, longitude: Double)
 
-  // TODO: the following code will be necessary later...
   trait Coordinate[T]:
     def latitude(point: T): Double
     def longitude(point: T): Double
