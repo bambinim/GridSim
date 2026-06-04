@@ -7,7 +7,7 @@ import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatterySta
 
 import scala.math.Fractional.Implicits.infixFractionalOps
 
-case class Battery (spec: BatterySpecification, state: BatteryState)
+case class Battery private[core](spec: BatterySpecification, state: BatteryState)
 
 object Battery:
   type ValidationResult[A] = ValidatedNec[String, A]
@@ -18,13 +18,13 @@ object Battery:
       BatteryState.validate(state, spec)
     ).mapN((sp, st) => Battery(sp, st))
   }
-  
+
 extension (battery: Battery)
   def getBatteryLevel: Double =
     val charge = battery.state.currentCharge
     val capacity = battery.spec.capacity
     charge / capacity
-    
+
 
 
 

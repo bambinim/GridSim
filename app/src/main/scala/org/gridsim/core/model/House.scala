@@ -17,16 +17,16 @@ sealed trait House extends GridEntity:
   def size: Size
   def occupancy: Occupancy
 
-case class BaseHouse private[model] (id: String, size: Size, occupancy: Occupancy) extends House
+case class BaseHouse private[core] (id: String, size: Size, occupancy: Occupancy) extends House
 
-case class HouseWithBattery (id: String, size: Size, occupancy: Occupancy, battery: Battery) extends House
+case class HouseWithBattery private[core](id: String, size: Size, occupancy: Occupancy, battery: Battery) extends House
 
 object House:
   type ValidationResult[A] = ValidatedNec[String, A]
 
   def makeBaseHouse(id: String, size: Size, occupancy: Occupancy): ValidationResult[BaseHouse] =
     validateId(id).map(vId => BaseHouse(vId, size, occupancy))
-    
+
   def makeHouseWithBattery(id: String, size: Size, occupancy: Occupancy, battery: Battery): ValidationResult[HouseWithBattery] =
     validateId(id).map(vId => HouseWithBattery(vId, size, occupancy, battery))
 
