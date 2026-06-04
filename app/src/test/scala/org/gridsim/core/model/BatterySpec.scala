@@ -52,49 +52,55 @@ class BatterySpec extends AnyFlatSpec with Matchers {
 
   "BatteryBehaviour" should "charge correctly when within limits" in {
     val battery = Battery(spec, BatteryState(5.0.kwh))
-    val (newBattery, residue) = BatteryBehaviour.update(battery, 2.0.kw, 1.hour)
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(battery, Flow.Surplus(2.0.kwh))
 
     newBattery.state.currentCharge shouldBe 7.0.kwh
-    residue shouldBe 0.0.kwh
+    residue shouldBe Flow.Balanced
   }
 
   it should "handle excess energy when hitting maxPowerCharge limit" in {
     val battery = Battery(spec, BatteryState(5.0.kwh))
-    val (newBattery, residue) = BatteryBehaviour.update(battery, 10.0.kw, 1.hour)
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(battery, Flow.Surplus(10.0.kwh))
 
     newBattery.state.currentCharge shouldBe 10.0.kwh
-    residue shouldBe 5.0.kwh
+    residue shouldBe Flow.Surplus(5.0.kwh)
   }
 
   it should "handle excess energy when hitting capacity limit" in {
     val battery = Battery(spec, BatteryState(9.0.kwh))
-    val (newBattery, residue) = BatteryBehaviour.update(battery, 5.0.kw, 1.hour)
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(battery, Flow.Surplus(5.0.kwh))
 
     newBattery.state.currentCharge shouldBe 10.0.kwh
-    residue shouldBe 4.0.kwh
+    residue shouldBe Flow.Surplus(4.0.kwh)
   }
 
   it should "discharge correctly when within limits" in {
     val battery = Battery(spec, BatteryState(5.0.kwh))
-    val (newBattery, residue) = BatteryBehaviour.update(battery, -2.0.kw, 1.hour)
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(battery, Flow.Deficit(2.0.kwh))
 
     newBattery.state.currentCharge shouldBe 3.0.kwh
-    residue shouldBe Energy.Zero
+    residue shouldBe Flow.Balanced
   }
 
   it should "handle deficit when hitting maxPowerDischarge limit" in {
     val battery = Battery(spec, BatteryState(10.0.kwh))
-    val (newBattery, residue) = BatteryBehaviour.update(battery, -10.0.kw, 1.hour)
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(battery, Flow.Deficit(10.0.kwh))
 
     newBattery.state.currentCharge shouldBe 5.0.kwh
-    residue shouldBe -5.0.kwh
+    residue shouldBe Flow.Deficit(5.0.kwh)
   }
 
   it should "handle deficit when hitting minSoC limit" in {
     val battery = Battery(spec, BatteryState(3.0.kwh))
-    val (newBattery, residue) = BatteryBehaviour.update(battery, -5.0.kw, 1.hour)
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(battery, Flow.Deficit(5.0.kwh))
 
     newBattery.state.currentCharge shouldBe 2.0.kwh
-    residue shouldBe -4.0.kwh
+    residue shouldBe Flow.Deficit(4.0.kwh)
   }
 }

@@ -13,6 +13,7 @@ import org.gridsim.core.common.Units.Tick.Tick
 import org.gridsim.core.common.Units
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.gridsim.core.model.{Environment, House, Size, WeatherConditions}
+import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
 class HouseSpec extends AnyFlatSpec with Matchers {
@@ -22,6 +23,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val env = new Environment:
       override def tick: Tick = ???
       override def hour: Int = 11
+      override def delta: FiniteDuration = 1.hour
       override def irradiance(point: GeographicPoint): WeatherConditions = ???
       override def update(): Unit = ???
 
@@ -31,7 +33,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     )
 
     val (newHouse, energyRequest) = house.solve(env)
-    energyRequest shouldBe -4.0.kwh
+    energyRequest shouldBe Flow.Deficit(4.0.kwh)
 
   }
 
@@ -54,6 +56,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def tick: Tick = ???
 
       override def hour: Int = 11
+      override def delta: FiniteDuration = 1.hour
 
       override def irradiance(point: GeographicPoint): WeatherConditions = ???
 
@@ -65,6 +68,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     )
 
     val (newHouse, energy) = house.solve(env)
-    energy shouldBe -2.0.kwh
+    energy shouldBe Flow.Deficit(2.0.kwh)
   }
 }

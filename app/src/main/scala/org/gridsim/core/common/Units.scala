@@ -53,6 +53,11 @@ object Units:
     def <=(o: Power): Boolean = p.toDouble <= o.toDouble
     @targetName("powerGE")
     def >=(o: Power): Boolean = p.toDouble >= o.toDouble
+    @targetName("flowPower")
+    def flow: Flow[Power] =
+      if p > Power.Zero then Flow.Surplus(p)
+      else if p < Power.Zero then Flow.Deficit(p.abs)
+      else Flow.Balanced
 
   opaque type Energy = Double
 
@@ -95,10 +100,20 @@ object Units:
     def <=(o: Energy): Boolean = e.toDouble <= o.toDouble
     @targetName("energyGE")
     def >=(o: Energy): Boolean = e.toDouble >= o.toDouble
+    @targetName("flowEnergy")
+    def flow: Flow[Energy] =
+      if e > Energy.Zero then Flow.Surplus(e)
+      else if e < Energy.Zero then Flow.Deficit(e.abs)
+      else Flow.Balanced
 
   extension (d: Double)
     def kw: Power = Power(d)
     def kwh: Energy = Energy(d)
+
+  enum Flow[+A]:
+    case Surplus(amount: A)
+    case Deficit(amount: A)
+    case Balanced
 
   object Tick:
     opaque type Tick = UnsignedLong
