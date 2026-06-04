@@ -8,5 +8,5 @@ case class BatteryState(currentCharge: Energy)
 
 object BatteryState:
   def validate(state: BatteryState, spec: BatterySpecification): ValidationResult[BatteryState] =
-    if state.currentCharge.toDouble >= 0 && state.currentCharge <= spec.capacity then state.validNec
+    if state.currentCharge >= Energy.Zero && state.currentCharge <= spec.capacity then state.validNec
     else "Error: current charge of the battery must be between 0 and Capacity".invalidNec

@@ -22,21 +22,37 @@ object Units:
     given Order[Power] = cats.instances.double.catsKernelStdOrderForDouble
     given Show[Power] = Show.show(p => String.format(Locale.US, "%.2f kW", p))
 
-    extension (p: Power)
-      @targetName("powerToDouble")
-      def toDouble: Double = p
-      @targetName("powerPlus")
-      def +(o: Power): Power = p.toDouble + o.toDouble
-      @targetName("powerMinus")
-      def -(o: Power): Power = p.toDouble - o.toDouble
-      @targetName("powerTimes")
-      def *(scalar: Double): Power = p.toDouble * scalar
-      @targetName("powerDiv")
-      def /(o: Power): Double = p.toDouble / o.toDouble
-      @targetName("powerDivScalar")
-      def /(scalar: Double): Power = p / scalar
-      def toEnergy(using tick: FiniteDuration): Energy =
-        Energy(p.toDouble * tick.toUnit(TimeUnit.HOURS))
+  extension (p: Power)
+    @targetName("powerToDouble")
+    def toDouble: Double = p
+    @targetName("powerPlus")
+    def +(o: Power): Power = p.toDouble + o.toDouble
+    @targetName("powerMinus")
+    def -(o: Power): Power = p.toDouble - o.toDouble
+    @targetName("powerUnaryMinus")
+    def unary_- : Power = -p.toDouble
+    @targetName("powerTimes")
+    def *(scalar: Double): Power = p.toDouble * scalar
+    @targetName("powerDiv")
+    def /(o: Power): Double = p.toDouble / o.toDouble
+    @targetName("powerDivScalar")
+    def /(scalar: Double): Power = p.toDouble / scalar
+    def toEnergy(using tick: FiniteDuration): Energy =
+      Energy(p.toDouble * tick.toUnit(TimeUnit.HOURS))
+    @targetName("powerMin")
+    def min(o: Power): Power = if p.toDouble <= o.toDouble then p else o
+    @targetName("powerMax")
+    def max(o: Power): Power = if p.toDouble >= o.toDouble then p else o
+    @targetName("powerAbs")
+    def abs: Power = p.toDouble.abs
+    @targetName("powerLT")
+    def <(o: Power): Boolean = p.toDouble < o.toDouble
+    @targetName("powerGT")
+    def >(o: Power): Boolean = p.toDouble > o.toDouble
+    @targetName("powerLE")
+    def <=(o: Power): Boolean = p.toDouble <= o.toDouble
+    @targetName("powerGE")
+    def >=(o: Power): Boolean = p.toDouble >= o.toDouble
 
   opaque type Energy = Double
 
@@ -48,21 +64,37 @@ object Units:
     given Order[Energy] = cats.instances.double.catsKernelStdOrderForDouble
     given Show[Energy] = Show.show(e => String.format(Locale.US, "%.2f kWh", e))
 
-    extension (e: Energy)
-      @targetName("energyToDouble")
-      def toDouble: Double = e
-      @targetName("energyPlus")
-      def +(o: Energy): Energy = e.toDouble + o.toDouble
-      @targetName("energyMinus")
-      def -(o: Energy): Energy = e.toDouble - o.toDouble
-      @targetName("energyTimes")
-      def *(scalar: Double): Energy = e.toDouble * scalar
-      @targetName("energyDiv")
-      def /(o: Energy): Double = e.toDouble / o.toDouble
-      @targetName("energyDivScalar")
-      def /(scalar: Double): Energy = e / scalar
-      def toPower(using tick: FiniteDuration): Power =
-        Power(e.toDouble / tick.toUnit(TimeUnit.HOURS))
+  extension (e: Energy)
+    @targetName("energyToDouble")
+    def toDouble: Double = e
+    @targetName("energyPlus")
+    def +(o: Energy): Energy = e.toDouble + o.toDouble
+    @targetName("energyMinus")
+    def -(o: Energy): Energy = e.toDouble - o.toDouble
+    @targetName("energyUnaryMinus")
+    def unary_- : Energy = -e.toDouble
+    @targetName("energyTimes")
+    def *(scalar: Double): Energy = e.toDouble * scalar
+    @targetName("energyDiv")
+    def /(o: Energy): Double = e.toDouble / o.toDouble
+    @targetName("energyDivScalar")
+    def /(scalar: Double): Energy = e.toDouble / scalar
+    def toPower(using tick: FiniteDuration): Power =
+      Power(e.toDouble / tick.toUnit(TimeUnit.HOURS))
+    @targetName("energyMin")
+    def min(o: Energy): Energy = if e.toDouble <= o.toDouble then e else o
+    @targetName("energyMax")
+    def max(o: Energy): Energy = if e.toDouble >= o.toDouble then e else o
+    @targetName("energyAbs")
+    def abs: Energy = e.toDouble.abs
+    @targetName("energyLT")
+    def <(o: Energy): Boolean = e.toDouble < o.toDouble
+    @targetName("energyGT")
+    def >(o: Energy): Boolean = e.toDouble > o.toDouble
+    @targetName("energyLE")
+    def <=(o: Energy): Boolean = e.toDouble <= o.toDouble
+    @targetName("energyGE")
+    def >=(o: Energy): Boolean = e.toDouble >= o.toDouble
 
   extension (d: Double)
     def kw: Power = Power(d)

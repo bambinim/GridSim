@@ -9,41 +9,32 @@ object BatteryBehaviour:
     val state = battery.state
     val spec = battery.spec
     
-    val req = requestedPower.toDouble
+    given FiniteDuration = delta
 
-    req match
-      case p if p > 0 =>
-        val offeredEnergy = Power(p).toEnergy(using delta)
-        val maxAbsorbable = spec.maxPowerCharge.toEnergy(using delta)
-        val energyAvailableRoom = spec.capacity - state.currentCharge
+    if requestedPower > Power.Zero then
+      val offeredEnergy = requestedPower.toEnergy
+      val maxAbsorbable = spec.maxPowerCharge.toEnergy
+      val energyAvailableRoom = spec.capacity - state.currentCharge
 
-        val energyStored = Energy(
-          offeredEnergy.toDouble
-            .min(maxAbsorbable.toDouble)
-            .min(energyAvailableRoom.toDouble)
-        )
+      val energyStored = offeredEnergy.min(maxAbsorbable).min(energyAvailableRoom)
 
-        val remainingExcess = offeredEnergy - energyStored
-        val newState = state.copy(currentCharge = state.currentCharge + energyStored)
+      val remainingExcess = offeredEnergy - energyStored
+      val newState = state.copy(currentCharge = state.currentCharge + energyStored)
 
-        (battery.copy(state = newState), remainingExcess)
+      (battery.copy(state = newState), remainingExcess)
 
-      case p if p < 0 =>
-        val neededEnergy = Power(p.toDouble.abs).toEnergy(using delta)
-        val maxDeliverable = spec.maxPowerDischarge.toEnergy(using delta)
+    else if requestedPower < Power.Zero then
+      val neededEnergy = requestedPower.abs.toEnergy
+      val maxDeliverable = spec.maxPowerDischarge.toEnergy
 
-        val minCharge = spec.capacity * spec.minSoC
-        val usableEnergy = (state.currentCharge - minCharge).toDouble.max(0.0).kwh
+      val minCharge = spec.capacity * spec.minSoC
+      val usableEnergy = (state.currentCharge - minCharge).max(Energy.Zero)
 
-        val energyDischarged = Energy(
-          neededEnergy.toDouble
-            .min(maxDeliverable.toDouble)
-            .min(usableEnergy.toDouble)
-        )
+      val energyDischarged = neededEnergy.min(maxDeliverable).min(usableEnergy)
 
-        val remainingDeficit = neededEnergy - energyDischarged
-        val newState = state.copy(currentCharge = state.currentCharge - energyDischarged)
+      val remainingDeficit = neededEnergy - energyDischarged
+      val newState = state.copy(currentCharge = state.currentCharge - energyDischarged)
 
-        (battery.copy(state = newState), remainingDeficit)
+      (battery.copy(state = newState), -remainingDeficit)
 
-      case _ => (battery, Energy.Zero)
+    else (battery, Energy.Zero)

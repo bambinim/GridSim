@@ -65,6 +65,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     )
 
     val (newHouse, energy) = house.solve(env)
-    energy shouldBe 2.0.kwh
+    energy shouldBe -2.0.kwh
   }
 }

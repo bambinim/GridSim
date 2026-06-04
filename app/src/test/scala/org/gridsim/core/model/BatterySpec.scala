@@ -79,7 +79,7 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     val (newBattery, residue) = BatteryBehaviour.update(battery, -2.0.kw, 1.hour)
 
     newBattery.state.currentCharge shouldBe 3.0.kwh
-    residue shouldBe 0.0.kwh
+    residue shouldBe Energy.Zero
   }
 
   it should "handle deficit when hitting maxPowerDischarge limit" in {
@@ -87,7 +87,7 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     val (newBattery, residue) = BatteryBehaviour.update(battery, -10.0.kw, 1.hour)
 
     newBattery.state.currentCharge shouldBe 5.0.kwh
-    residue shouldBe 5.0.kwh
+    residue shouldBe -5.0.kwh
   }
 
   it should "handle deficit when hitting minSoC limit" in {
@@ -95,6 +95,6 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     val (newBattery, residue) = BatteryBehaviour.update(battery, -5.0.kw, 1.hour)
 
     newBattery.state.currentCharge shouldBe 2.0.kwh
-    residue shouldBe 4.0.kwh
+    residue shouldBe -4.0.kwh
   }
 }

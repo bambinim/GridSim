@@ -12,12 +12,14 @@ trait EnergyResolver[T]:
 object EnergyResolver:
   given EnergyResolver[BaseHouse] with
     def solve(house: BaseHouse, env: Environment): (BaseHouse, Energy) =
-      (house, ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour))
+      (house, -ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour))
 
   given EnergyResolver[HouseWithBattery] with
     def solve(house: HouseWithBattery, env: Environment): (HouseWithBattery, Energy) =
-      val requestedPower = Power(-ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour).toDouble)
-      val (newBattery, energyExceed) = BatteryBehaviour.update(battery = house.battery, requestedPower = Power(requestedPower.toDouble), delta = 1.hour)
+      val delta = 1.hour
+      val consume = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)
+      val requestedPower = -consume.toPower(using delta)
+      val (newBattery, energyExceed) = BatteryBehaviour.update(battery = house.battery, requestedPower = requestedPower, delta = delta)
 
       (house.copy(battery = newBattery), energyExceed)
 

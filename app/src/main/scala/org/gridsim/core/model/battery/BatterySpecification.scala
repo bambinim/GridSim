@@ -18,11 +18,11 @@ object BatterySpecification:
 
   // TODO can be done better
   private def validateEnergy(v: Energy, field: String): ValidationResult[Energy] =
-    if v.toDouble > 0 then v.validNec
+    if v > Energy.Zero then v.validNec
     else s"$field must be greater than zero".invalidNec
 
   private def validatePower(v: Power, field: String): ValidationResult[Power] =
-    if v.toDouble > 0 then v.validNec
+    if v > Power.Zero then v.validNec
     else s"$field must be greater than zero".invalidNec
 
   private def validatePercentuage(v: Double, field: String): ValidationResult[Double] =
