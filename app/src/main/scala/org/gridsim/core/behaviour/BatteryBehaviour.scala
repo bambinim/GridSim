@@ -1,40 +1,58 @@
 package org.gridsim.core.behaviour
 
+import cats.data.State
 import org.gridsim.core.common.Units.*
+import org.gridsim.core.common.Units.Flow.{Balanced, Deficit, Surplus}
 import org.gridsim.core.model.battery.{Battery, BatteryState}
 
 import scala.concurrent.duration.FiniteDuration
 
 object BatteryBehaviour:
-  def update(battery: Battery, requested: Flow[Energy])(using delta: FiniteDuration): (Battery, Flow[Energy]) =
-    val state = battery.state
-    val spec = battery.spec
-    
+  def update(requested: Flow[Energy])(using delta: FiniteDuration): State[Battery, Flow[Energy]] =
     requested match
-      case Flow.Surplus(offeredEnergy) =>
-        val maxAbsorbable = spec.maxPowerCharge.toEnergy
-        val energyAvailableRoom = spec.capacity - state.currentCharge
+      case Surplus(energy) => charge(energy)
+      case Deficit(energy) => discharge(energy)
+      case _ => State.pure(Balanced)
 
-        val energyStored = offeredEnergy.min(maxAbsorbable).min(energyAvailableRoom)
+  private def charge(offeredEnergy: Energy)(using delta: FiniteDuration): State[Battery, Flow[Energy]] =
+    for {
+      battery <- State.get[Battery]
 
-        val remainingExcess = offeredEnergy - energyStored
-        val newState = state.copy(currentCharge = state.currentCharge + energyStored)
+      state = battery.state
+      spec = battery.spec
 
-        val residue = if remainingExcess > Energy.Zero then Flow.Surplus(remainingExcess) else Flow.Balanced
-        (battery.copy(state = newState), residue)
+      maxAbsorbable = spec.maxPowerCharge.toEnergy
+      energyAvailableRoom = spec.capacity - state.currentCharge
 
-      case Flow.Deficit(neededEnergy) =>
-        val maxDeliverable = spec.maxPowerDischarge.toEnergy
+      energyStored = offeredEnergy.min(maxAbsorbable).min(energyAvailableRoom)
 
-        val minCharge = spec.capacity * spec.minSoC
-        val usableEnergy = (state.currentCharge - minCharge).max(Energy.Zero)
+      remainingExcess = offeredEnergy - energyStored
+      residue = if remainingExcess > Energy.Zero then Flow.Surplus(remainingExcess) else Flow.Balanced
 
-        val energyDischarged = neededEnergy.min(maxDeliverable).min(usableEnergy)
+      newState = state.copy(currentCharge = state.currentCharge + energyStored)
 
-        val remainingDeficit = neededEnergy - energyDischarged
-        val newState = state.copy(currentCharge = state.currentCharge - energyDischarged)
+      _ <- State.modify[Battery](b => b.copy(state = newState))
+    } yield residue
 
-        val residue = if remainingDeficit > Energy.Zero then Flow.Deficit(remainingDeficit) else Flow.Balanced
-        (battery.copy(state = newState), residue)
+  private def discharge(neededEnergy: Energy)(using delta: FiniteDuration): State[Battery, Flow[Energy]] =
+    for {
+      battery <- State.get[Battery]
 
-      case Flow.Balanced => (battery, Flow.Balanced)
+      state = battery.state
+      spec = battery.spec
+
+      maxDeliverable = spec.maxPowerDischarge.toEnergy
+
+      minCharge = spec.capacity * spec.minSoC
+      usableEnergy = (state.currentCharge - minCharge).max(Energy.Zero)
+
+      energyDischarged = neededEnergy.min(maxDeliverable).min(usableEnergy)
+
+      remainingDeficit = neededEnergy - energyDischarged
+      residue = if remainingDeficit > Energy.Zero then Flow.Deficit(remainingDeficit) else Flow.Balanced
+
+      newState = state.copy(currentCharge = state.currentCharge - energyDischarged)
+
+      _ <- State.modify[Battery](b => b.copy(state = newState))
+    } yield residue
+
