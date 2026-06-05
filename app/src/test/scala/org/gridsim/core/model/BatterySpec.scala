@@ -3,6 +3,7 @@ package org.gridsim.core.model
 import org.gridsim.core.behaviour.BatteryBehaviour
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.model.battery.*
+import org.gridsim.core.validation.Validator
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -21,7 +22,7 @@ class BatterySpec extends AnyFlatSpec with Matchers {
 
   "A Battery" should "be correctly initialized with its specs and state" in {
     val state = BatteryState(currentCharge = 5.0.kwh)
-    val result = Battery.makeBattery(spec, state)
+    val result = Battery.make(spec, state)
 
     result.isValid shouldBe true
   }
@@ -35,13 +36,13 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     )
 
     val state = BatteryState(currentCharge = 5.kwh)
-    val result = Battery.makeBattery(specEr, state)
+    val result = Battery.make(specEr, state)
     result.isInvalid shouldBe true
   }
 
   it should "be invalid if state is invalid" in {
     val state = BatteryState(currentCharge = 20.kwh)
-    val result = Battery.makeBattery(spec, state)
+    val result = Battery.make(spec, state)
     result.isInvalid shouldBe true
   }
 

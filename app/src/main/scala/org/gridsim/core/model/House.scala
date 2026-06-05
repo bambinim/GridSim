@@ -6,6 +6,9 @@ import org.gridsim.core.behaviour.BatteryBehaviour
 import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.model.battery.Battery
 import cats.data.State
+import org.gridsim.core.model.error.DomainError
+import org.gridsim.core.validation.{HouseValidator, Validator}
+import org.gridsim.core.validation.Validator.*
 
 enum Size(val multiplier: Double):
   case Small  extends Size(1.0)
@@ -26,11 +29,9 @@ case class House(
 ) extends GridEntity
 
 object House:
-  type ValidationResult[A] = ValidatedNec[String, A]
+  def makeHouse(id: String, size: Size, occupancy: Occupancy, components: List[HouseComponent] = Nil): ValidatedNec[DomainError, House] =
+    House(id, size, occupancy, components).validate
 
-  def makeHouse(id: String, size: Size, occupancy: Occupancy, components: List[HouseComponent] = Nil): ValidationResult[House] =
-    validateId(id).map(vId => House(vId, size, occupancy, components))
+  given Validator[House] = HouseValidator
 
-  private def validateId(str: String): ValidationResult[String] =
-    if str.length >= 3 then str.validNec
-    else "Error: the id must have at least 3 characters".invalidNec
+
