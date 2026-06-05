@@ -2,7 +2,10 @@ package org.gridsim.core.model
 
 import cats.data.ValidatedNec
 import cats.implicits.*
+import org.gridsim.core.behaviour.BatteryBehaviour
+import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.model.battery.Battery
+import cats.data.State
 
 enum Size(val multiplier: Double):
   case Small  extends Size(1.0)
@@ -12,23 +15,21 @@ enum Size(val multiplier: Double):
 enum Occupancy:
   case Traditional, SmartWorker, Vacant
 
-sealed trait House extends GridEntity:
-  def id: String
-  def size: Size
-  def occupancy: Occupancy
+enum HouseComponent:
+  case BatteryComponent(battery: Battery)
 
-case class BaseHouse private[core] (id: String, size: Size, occupancy: Occupancy) extends House
-
-case class HouseWithBattery private[core](id: String, size: Size, occupancy: Occupancy, battery: Battery) extends House
+case class House(
+  id: String,
+  size: Size,
+  occupancy: Occupancy,
+  components: List[HouseComponent] = Nil
+) extends GridEntity
 
 object House:
   type ValidationResult[A] = ValidatedNec[String, A]
 
-  def makeBaseHouse(id: String, size: Size, occupancy: Occupancy): ValidationResult[BaseHouse] =
-    validateId(id).map(vId => BaseHouse(vId, size, occupancy))
-
-  def makeHouseWithBattery(id: String, size: Size, occupancy: Occupancy, battery: Battery): ValidationResult[HouseWithBattery] =
-    validateId(id).map(vId => HouseWithBattery(vId, size, occupancy, battery))
+  def makeHouse(id: String, size: Size, occupancy: Occupancy, components: List[HouseComponent] = Nil): ValidationResult[House] =
+    validateId(id).map(vId => House(vId, size, occupancy, components))
 
   private def validateId(str: String): ValidationResult[String] =
     if str.length >= 3 then str.validNec
