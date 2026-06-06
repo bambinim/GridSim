@@ -1,8 +1,8 @@
-package org.gridsim.common
+package org.gridsim.core.common
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.gridsim.common.Units.*
+import org.gridsim.core.common.Units.*
 import cats.syntax.all.*
 import scala.concurrent.duration.*
 import org.junit.runner.RunWith
