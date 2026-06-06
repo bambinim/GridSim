@@ -1,9 +1,9 @@
 package org.gridsim.core.behaviour
 
 import org.gridsim.core.common.Units.{Energy, Flow, Power}
-import org.gridsim.core.model.Occupancy.*
-import org.gridsim.core.model.Size.*
-import org.gridsim.core.model.{Occupancy, Size}
+import org.gridsim.core.model.house.Occupancy.*
+import org.gridsim.core.model.house.Size.*
+import org.gridsim.core.model.house.{Occupancy, Size}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -21,5 +21,5 @@ object ConsumptionProfile:
 
     val demandPower = Power(occupancyDemandRate) * sizeMultiplier
     val amount = demandPower.toEnergy
-    
+
     if amount > Energy.Zero then Flow.Deficit(amount) else Flow.Balanced

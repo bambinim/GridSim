@@ -51,6 +51,32 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     battery.getBatteryLevel shouldBe 0.5
   }
 
+  it should "handle extreme power/energy values without crashing" in {
+    val extremeSpec = BatterySpecification(1e-10.kwh, 1e10.kw, 1e10.kw, 0.0)
+    val battery = Battery(extremeSpec, BatteryState(0.kwh))
+    given FiniteDuration = 1.second
+    val (newBattery, residue) = BatteryBehaviour.update(Flow.Surplus(1.kwh)).run(battery).value
+    newBattery.state.currentCharge shouldBe extremeSpec.capacity
+  }
+
+  it should "not charge if already at capacity" in {
+    val fullBattery = Battery(spec, BatteryState(10.0.kwh))
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(Flow.Surplus(1.0.kwh)).run(fullBattery).value
+    
+    newBattery.state.currentCharge shouldBe 10.0.kwh
+    residue shouldBe Flow.Surplus(1.0.kwh)
+  }
+
+  it should "not discharge if already at minSoC" in {
+    val emptyBattery = Battery(spec, BatteryState(2.0.kwh)) // minSoC = 0.2, cap = 10 -> 2.0
+    given FiniteDuration = 1.hour
+    val (newBattery, residue) = BatteryBehaviour.update(Flow.Deficit(1.0.kwh)).run(emptyBattery).value
+
+    newBattery.state.currentCharge shouldBe 2.0.kwh
+    residue shouldBe Flow.Deficit(1.0.kwh)
+  }
+
   "BatteryBehaviour" should "charge correctly when within limits" in {
     val battery = Battery(spec, BatteryState(5.0.kwh))
     given FiniteDuration = 1.hour
