@@ -10,20 +10,31 @@ import org.gridsim.core.model.battery.Battery
 
 import scala.concurrent.duration.*
 
+/**
+ * A type class for resolving energy flows for a specific type T.
+ *
+ * Implementations of this trait define how an entity (like a House or a Battery)
+ * interacts with an incoming energy flow and updates its internal state.
+ *
+ * @tparam T The type of entity being resolved.
+ */
 trait EnergyResolver[T]:
+  /**
+   * Resolves the energy balance for the given entity.
+   *
+   * @param flow The incoming energy flow (surplus or deficit).
+   * @param env  The current environmental conditions.
+   * @return A State transition that returns the residual energy flow after the entity has processed it.
+   */
   def solve(flow: Flow[Energy], env: Environment): State[T, Flow[Energy]]
-
 object EnergyResolver:
   given EnergyResolver[House] with
     def solve(flow: Flow[Energy], env: Environment): State[House, Flow[Energy]] =
       for {
         house <- State.get[House]
-        // The house starts by calculating its own consumption/production balance
-        internalResidue = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
-        // Combine with incoming flow from grid
-        initialResidue = internalResidue + flow
 
-        // Traverse through components, threading the flow residue
+        internalResidue = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
+        initialResidue = internalResidue + flow
 
         (totalResidue, updatedComponents) = house.components.traverse { comp =>
           State[Flow[Energy], HouseComponent] { currentFlow =>
@@ -46,8 +57,6 @@ object EnergyResolver:
           val (newB, residue) = summon[EnergyResolver[Battery]].solve(residueEnergy, env).run(b).value
           (newB, residue)
       }
-
-
 
 object EnergyResolverSyntax:
   extension [A](node: A)(using resolver: EnergyResolver[A])

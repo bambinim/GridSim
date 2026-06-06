@@ -8,6 +8,16 @@ import org.gridsim.core.model.house.HouseComponent
 import org.gridsim.core.validation.{BatteryValidator, Validator}
 import org.gridsim.core.validation.Validator.validate
 
+/**
+ * A Battery is a [[HouseComponent]] capable of storing and releasing energy.
+ * 
+ * It is defined by a static specification (physical limits) and a dynamic state (current charge).
+ * The battery's behavior is managed by the [[EnergyResolver]], which applies
+ * charging and discharging logic based on available surplus or deficit.
+ *
+ * @param spec  The physical specifications of the battery.
+ * @param state The current runtime state of the battery.
+ */
 case class Battery private[core](spec: BatterySpecification, state: BatteryState) extends HouseComponent
 
 object Battery:

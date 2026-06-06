@@ -10,14 +10,31 @@ import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator.*
 import org.gridsim.core.validation.{HouseValidator, Validator}
 
+/**
+ * Represents the size of a house, which acts as a multiplier for base energy consumption.
+ */
 enum Size(val multiplier: Double):
   case Small  extends Size(1.0)
   case Medium extends Size(1.5)
   case Large  extends Size(2.0)
 
+/**
+ * Represents the occupancy profile of a house, determining the base energy demand pattern.
+ */
 enum Occupancy:
   case Traditional, SmartWorker, Vacant
 
+/**
+ * A House is a complex [[GridEntity]] that can contain multiple [[HouseComponent]]s.
+ * 
+ * It resolves its internal energy balance by first calculating a base consumption
+ * based on its size and occupancy, and then delegating the residue to its components.
+ *
+ * @param id        Unique identifier for the house.
+ * @param size      The physical size/scale of the house.
+ * @param occupancy The behavior pattern of the inhabitants.
+ * @param components List of internal components (e.g., Batteries, Solar Panels).
+ */
 case class House(
   id: String,
   size: Size,

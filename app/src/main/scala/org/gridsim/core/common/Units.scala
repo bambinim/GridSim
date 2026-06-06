@@ -12,6 +12,9 @@ import scala.concurrent.duration.FiniteDuration
 
 object Units:
 
+  /**
+   * Represents electrical power (kW).
+   */
   opaque type Power = Double
 
   object Power:
@@ -54,6 +57,9 @@ object Units:
     @targetName("powerGE")
     def >=(o: Power): Boolean = p.toDouble >= o.toDouble
 
+  /**
+   * Represents electrical energy (kWh).
+   */
   opaque type Energy = Double
 
   object Energy:
@@ -105,17 +111,32 @@ object Units:
     def kw: Power = Power(d)
     def kwh: Energy = Energy(d)
 
+  /**
+   * Represents an energy or power flow in the grid.
+   * 
+   * @tparam A The unit type of the flow (e.g., Energy or Power).
+   */
   enum Flow[+A]:
+    /** A surplus of energy/power available to be consumed or stored. */
     case Surplus(amount: A)
+    /** A deficit of energy/power that needs to be supplied. */
     case Deficit(amount: A)
+    /** A perfectly balanced state with no net flow. */
     case Balanced
 
   extension (f: Flow[Energy])
+    /**
+     * Returns a signed numeric representation of the flow.
+     * Surplus is positive, Deficit is negative, Balanced is zero.
+     */
     def value: Double = f match
       case Flow.Surplus(e) => e.toDouble
       case Flow.Deficit(e) => -e.toDouble
       case Flow.Balanced => 0.0
 
+    /**
+     * Combines two energy flows.
+     */
     @targetName("combineFlows")
     def +(o: Flow[Energy]): Flow[Energy] =
       (f.value + o.value).kwh.toFlow
