@@ -28,6 +28,18 @@ trait EnergyResolver[T]:
    */
   def solve(flow: Flow[Energy], env: Environment): State[T, Flow[Energy]]
 object EnergyResolver:
+  extension [A](node: A)(using resolver: EnergyResolver[A])
+    def solve(flow: Flow[Energy], env: Environment): State[A, Flow[Energy]] =
+      resolver.solve(flow, env)
+
+    def runSolve(flow: Flow[Energy], env: Environment): (A, Flow[Energy]) =
+      resolver.solve(flow, env).run(node).value
+
+    def solve(env: Environment): State[A, Flow[Energy]] =
+      resolver.solve(Balanced, env)
+
+    def runSolve(env: Environment): (A, Flow[Energy]) =
+      resolver.solve(Balanced, env).run(node).value
   given EnergyResolver[House] with
     def solve(flow: Flow[Energy], env: Environment): State[House, Flow[Energy]] =
       for {
@@ -38,7 +50,7 @@ object EnergyResolver:
 
         (totalResidue, updatedComponents) = house.components.traverse { comp =>
           State[Flow[Energy], HouseComponent] { currentFlow =>
-            val (newComp, nextResidue) = summon[EnergyResolver[HouseComponent]].solve(currentFlow, env).run(comp).value
+            val (newComp, nextResidue) = comp.solve(currentFlow, env).run(comp).value
             (nextResidue, newComp)
           }
         }.run(initialResidue).value
@@ -52,22 +64,10 @@ object EnergyResolver:
 
   given EnergyResolver[HouseComponent] with
     def solve(residueEnergy: Flow[Energy], env: Environment): State[HouseComponent, Flow[Energy]] =
-      State {
-        case b: Battery =>
-          val (newB, residue) = summon[EnergyResolver[Battery]].solve(residueEnergy, env).run(b).value
-          (newB, residue)
+      State { comp =>
+        comp match
+          case b: Battery =>
+            val (newB, residue) = b.solve(residueEnergy, env).run(b).value
+            (newB, residue)
       }
 
-object EnergyResolverSyntax:
-  extension [A](node: A)(using resolver: EnergyResolver[A])
-    def solve(flow: Flow[Energy], env: Environment): State[A, Flow[Energy]] =
-      resolver.solve(flow, env)
-
-    def runSolve(flow: Flow[Energy], env: Environment): (A, Flow[Energy]) =
-      resolver.solve(flow, env).run(node).value
-
-    def solve(env: Environment): State[A, Flow[Energy]] =
-      resolver.solve(Balanced, env)
-
-    def runSolve(env: Environment): (A, Flow[Energy]) =
-      resolver.solve(Balanced, env).run(node).value

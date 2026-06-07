@@ -2,7 +2,6 @@ package org.gridsim.core.model
 
 import cats.implicits.*
 import org.gridsim.core.behaviour.EnergyResolver.*
-import org.gridsim.core.behaviour.EnergyResolverSyntax.runSolve
 import org.gridsim.core.model.house.Occupancy.Traditional
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
@@ -72,7 +71,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val b1 = Battery(spec, BatteryState(1.kwh))
     val b2 = Battery(spec, BatteryState(1.kwh))
     val components = List(b1, b2)
-    
+
     val house = House("MultiBattery", Size.Large, Traditional, components)
     val env = new Environment:
       override def tick: Tick = ???
@@ -83,7 +82,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
 
     // 4.0 deficit. B1 gives 1.0 (empty). B2 gives 1.0 (empty). Residual 2.0.
     val (updatedHouse, residue) = house.runSolve(env)
-    
+
     residue shouldBe Flow.Deficit(2.0.kwh)
     updatedHouse.components.foreach {
       case b: Battery => b.state.currentCharge shouldBe 0.kwh
