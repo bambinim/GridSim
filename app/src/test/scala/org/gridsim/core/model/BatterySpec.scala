@@ -4,6 +4,7 @@ import org.gridsim.core.behaviour.BatteryBehaviour
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.model.battery.*
 import org.gridsim.core.validation.Validator
+import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -63,7 +64,7 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     val fullBattery = Battery(spec, BatteryState(10.0.kwh))
     given FiniteDuration = 1.hour
     val (newBattery, residue) = BatteryBehaviour.update(Flow.Surplus(1.0.kwh)).run(fullBattery).value
-    
+
     newBattery.state.currentCharge shouldBe 10.0.kwh
     residue shouldBe Flow.Surplus(1.0.kwh)
   }

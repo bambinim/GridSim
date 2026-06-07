@@ -9,6 +9,7 @@ import org.gridsim.core.model.*
 import org.gridsim.core.model.battery.Battery
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator.*
+import org.gridsim.core.validation.HouseComponentValidator.given
 import org.gridsim.core.validation.{HouseValidator, Validator}
 
 /**
@@ -51,7 +52,7 @@ object House:
   def makeEmptyHouse(id: String, size: Size, occupancy: Occupancy): ValidatedNec[DomainError, House[List]] =
     makeHouse[List](id, size, occupancy, List.empty)
 
-  given [F[_] : Traverse]: Validator[House[F]] with
+  given [F[_] : Traverse](using Validator[HouseComponent]): Validator[House[F]] with
     def validate(h: House[F]): ValidatedNec[DomainError, House[F]] =
       HouseValidator.validate(h)
 
