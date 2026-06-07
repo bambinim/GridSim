@@ -1,6 +1,7 @@
 package org.gridsim.core.behaviour
 
-import cats.data.State
+import cats.data.{State, ValidatedNec}
+import cats.Traverse
 import cats.implicits.*
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.Balanced
@@ -40,10 +41,10 @@ object EnergyResolver:
 
     def runSolve(env: Environment): (A, Flow[Energy]) =
       resolver.solve(Balanced, env).run(node).value
-  given EnergyResolver[House] with
-    def solve(flow: Flow[Energy], env: Environment): State[House, Flow[Energy]] =
+  given [F[_]: Traverse]: EnergyResolver[House[F]] with
+    def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
       for {
-        house <- State.get[House]
+        house <- State.get[House[F]]
 
         internalResidue = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
         initialResidue = internalResidue + flow
@@ -55,7 +56,7 @@ object EnergyResolver:
           }
         }.run(initialResidue).value
 
-        _ <- State.modify[House](_.copy(components = updatedComponents))
+        _ <- State.modify[House[F]](_.copy(components = updatedComponents))
       } yield totalResidue
 
   given EnergyResolver[Battery] with

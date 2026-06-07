@@ -18,7 +18,7 @@ import scala.concurrent.duration.*
 class HouseSpec extends AnyFlatSpec with Matchers {
 
   "A House" should "calculate correctly its base energy request" in {
-    val result = House.makeHouse("House 1", Size.Large, Traditional)
+    val result = House.makeEmptyHouse("House 1", Size.Large, Traditional)
     val env = new Environment:
       override def tick: Tick = ???
       override def hour: Int = 11
@@ -112,7 +112,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "not crash with zero-duration ticks" in {
-    val house = House("ZeroTick", Size.Small, Traditional, List(Battery(
+    val house = House("ZeroTick", Size.Small, Traditional, Seq(Battery(
       BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(5.kwh)
     )))
     val env = new Environment:
@@ -140,7 +140,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "fail validation if the ID is too short" in {
-    val result = House.makeHouse("H1", Size.Small, Traditional)
+    val result = House.makeEmptyHouse("H1", Size.Small, Traditional)
     result.isInvalid shouldBe true
   }
 }
