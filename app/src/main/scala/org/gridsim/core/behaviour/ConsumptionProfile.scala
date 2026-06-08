@@ -9,17 +9,17 @@ import scala.concurrent.duration.FiniteDuration
 
 object ConsumptionProfile:
 
+  private val strategies: Map[Occupancy, ConsumptionStrategy] = Map(
+    Occupancy.Traditional -> TraditionalStrategy,
+    Occupancy.SmartWorker -> SmartWorkerStrategy,
+    Occupancy.Vacant      -> VacantStrategy
+  )
+
   def calculateConsume(size: Size, occupancy: Occupancy, hour: Int)(using delta: FiniteDuration): Flow[Energy] =
     val sizeMultiplier = size.multiplier
+    val strategy = strategies.getOrElse(occupancy, VacantStrategy)
 
-    val occupancyDemandRate = occupancy match
-      case Vacant => 1.0
-      case Traditional =>
-        if (hour >= 7 && hour <= 9) || (hour >= 18 && hour <= 22) then 8.0 else 2.0
-      case SmartWorker =>
-        if hour >= 8 && hour <= 23 then 5.0 else 2.0
-
-    val demandPower = Power(occupancyDemandRate) * sizeMultiplier
+    val demandPower = strategy.demandAt(hour) * sizeMultiplier
     val amount = demandPower.toEnergy
 
     if amount > Energy.Zero then Flow.Deficit(amount) else Flow.Balanced

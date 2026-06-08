@@ -3,7 +3,6 @@ package org.gridsim.core.model.house
 import cats.data.{State, ValidatedNec}
 import cats.Traverse
 import cats.implicits.*
-import org.gridsim.core.behaviour.BatteryBehaviour
 import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.model.*
 import org.gridsim.core.model.battery.Battery
