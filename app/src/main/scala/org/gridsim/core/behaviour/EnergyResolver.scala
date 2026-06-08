@@ -1,6 +1,7 @@
 package org.gridsim.core.behaviour
 
-import cats.data.State
+import cats.data.{State, ValidatedNec}
+import cats.Traverse
 import cats.implicits.*
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.Balanced
@@ -28,37 +29,6 @@ trait EnergyResolver[T]:
    */
   def solve(flow: Flow[Energy], env: Environment): State[T, Flow[Energy]]
 object EnergyResolver:
-  given EnergyResolver[House] with
-    def solve(flow: Flow[Energy], env: Environment): State[House, Flow[Energy]] =
-      for {
-        house <- State.get[House]
-
-        internalResidue = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
-        initialResidue = internalResidue + flow
-
-        (totalResidue, updatedComponents) = house.components.traverse { comp =>
-          State[Flow[Energy], HouseComponent] { currentFlow =>
-            val (newComp, nextResidue) = summon[EnergyResolver[HouseComponent]].solve(currentFlow, env).run(comp).value
-            (nextResidue, newComp)
-          }
-        }.run(initialResidue).value
-
-        _ <- State.modify[House](_.copy(components = updatedComponents))
-      } yield totalResidue
-
-  given EnergyResolver[Battery] with
-    def solve(residueEnergy: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
-      BatteryBehaviour.update(residueEnergy)(using env.delta)
-
-  given EnergyResolver[HouseComponent] with
-    def solve(residueEnergy: Flow[Energy], env: Environment): State[HouseComponent, Flow[Energy]] =
-      State {
-        case b: Battery =>
-          val (newB, residue) = summon[EnergyResolver[Battery]].solve(residueEnergy, env).run(b).value
-          (newB, residue)
-      }
-
-object EnergyResolverSyntax:
   extension [A](node: A)(using resolver: EnergyResolver[A])
     def solve(flow: Flow[Energy], env: Environment): State[A, Flow[Energy]] =
       resolver.solve(flow, env)
@@ -71,3 +41,34 @@ object EnergyResolverSyntax:
 
     def runSolve(env: Environment): (A, Flow[Energy]) =
       resolver.solve(Balanced, env).run(node).value
+  given [F[_]: Traverse]: EnergyResolver[House[F]] with
+    def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
+      for {
+        house <- State.get[House[F]]
+
+        internalResidue = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
+        initialResidue = internalResidue + flow
+
+        (totalResidue, updatedComponents) = house.components.traverse { comp =>
+          State[Flow[Energy], HouseComponent] { currentFlow =>
+            val (newComp, nextResidue) = comp.solve(currentFlow, env).run(comp).value
+            (nextResidue, newComp)
+          }
+        }.run(initialResidue).value
+
+        _ <- State.modify[House[F]](_.copy(components = updatedComponents))
+      } yield totalResidue
+
+  given EnergyResolver[Battery] with
+    def solve(residueEnergy: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
+      BatteryBehaviour.update(residueEnergy)(using env.delta)
+
+  given EnergyResolver[HouseComponent] with
+    def solve(residueEnergy: Flow[Energy], env: Environment): State[HouseComponent, Flow[Energy]] =
+      State { comp =>
+        comp match
+          case b: Battery =>
+            val (newB, residue) = b.solve(residueEnergy, env).run(b).value
+            (newB, residue)
+      }
+
