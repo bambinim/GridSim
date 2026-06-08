@@ -12,12 +12,15 @@ import org.gridsim.core.model.battery.Battery
 import scala.concurrent.duration.*
 
 /**
- * A type class for resolving energy flows for a specific type T.
+ * Defines the contract for resolving energy flows across domain entities.
  *
- * Implementations of this trait define how an entity (like a House or a Battery)
- * interacts with an incoming energy flow and updates its internal state.
+ * An [[EnergyResolver]] encapsulates the physics of energy propagation:
+ * - It takes an input energy flow (surplus or deficit).
+ * - It evaluates local consumption/production based on the [[Environment]].
+ * - It propagates the residual flow through nested components.
+ * - It returns a [[State]] transition, effectively treating the entity as a state machine.
  *
- * @tparam T The type of entity being resolved.
+ * @tparam T The type of entity (e.g., House, Battery).
  */
 trait EnergyResolver[T]:
   /**
@@ -29,18 +32,39 @@ trait EnergyResolver[T]:
    */
   def solve(flow: Flow[Energy], env: Environment): State[T, Flow[Energy]]
 object EnergyResolver:
+  /**
+   * Provides syntax for solving energy flows.
+   */
   extension [A](node: A)(using resolver: EnergyResolver[A])
+    /**
+     * Resolves the energy flow and return the state transition.
+     */
     def solve(flow: Flow[Energy], env: Environment): State[A, Flow[Energy]] =
       resolver.solve(flow, env)
-
+    /**
+     * Executes the resolution and return the updated entity and the resulting Residue
+     */
     def runSolve(flow: Flow[Energy], env: Environment): (A, Flow[Energy]) =
       resolver.solve(flow, env).run(node).value
-
+    /**
+     * Resolves the flow assuming a [[Balanced]] (zero) flow.
+     */
     def solve(env: Environment): State[A, Flow[Energy]] =
       resolver.solve(Balanced, env)
-
+    /**
+     * Executes the resolution assuming a [[Balanced]] input.
+     */
     def runSolve(env: Environment): (A, Flow[Energy]) =
       resolver.solve(Balanced, env).run(node).value
+
+  /**
+   * Resolver instance for a [[House]].
+   * Logic flow:
+   * 1. Calculate internal base consupmtion based on house attributes.
+   * 2. Accumulate this consumption with the external input flow.
+   * 3. Use [[Traverse]] to propagate the residue sequentially through all house components.
+   * 4. Update the house with the new component configuration.
+   */
   given [F[_]: Traverse]: EnergyResolver[House[F]] with
     def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
       for {
@@ -59,10 +83,21 @@ object EnergyResolver:
         _ <- State.modify[House[F]](_.copy(components = updatedComponents))
       } yield totalResidue
 
+  /**
+   * Resolver instance for a [[Battery]].
+   * Delegates specific physical behaviour to [[BatteryBehaviour]].
+   */
   given EnergyResolver[Battery] with
     def solve(residueEnergy: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
       BatteryBehaviour.update(residueEnergy)(using env.delta)
 
+  /**
+   * Dispatches the energy resolution to the concrete implementation of the component.
+   *
+   * @dev Maintance Note:
+   * When introducing a new type of [[HouseComponent]] you
+   * must add the new component case to dispatch to the correct implementation.
+   */
   given EnergyResolver[HouseComponent] with
     def solve(residueEnergy: Flow[Energy], env: Environment): State[HouseComponent, Flow[Energy]] =
       State { comp =>

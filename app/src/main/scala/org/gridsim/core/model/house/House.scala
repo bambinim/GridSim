@@ -27,15 +27,9 @@ enum Occupancy:
   case Traditional, SmartWorker, Vacant
 
 /**
- * A House is a complex [[GridEntity]] that can contain multiple [[HouseComponent]]s.
- *
- * It resolves its internal energy balance by first calculating a base consumption
- * based on its size and occupancy, and then delegating the residue to its components.
- *
- * @param id        Unique identifier for the house.
- * @param size      The physical size/scale of the house.
- * @param occupancy The behavior pattern of the inhabitants.
- * @param components List of internal components (e.g., Batteries, Solar Panels).
+ * A House is a complex [[GridEntity]] that aggregates multiple [[HouseComponent]].
+
+ * @tparam F F The container type for components.
  */
 case class House[F[_]](
   id: String,
@@ -45,13 +39,25 @@ case class House[F[_]](
 ) extends GridEntity
 
 object House:
+  /**
+   * Smart constructor for a generic House.
+   * Ensures that the [[House]] entity is valid upon instantiation.
+   *
+   * @return A [[ValidatedNec]] containing the house or accumulated [[DomainError]]s.
+   */
   def makeHouse[F[_]: Traverse](id: String, size: Size, occupancy: Occupancy, components: F[HouseComponent]): ValidatedNec[DomainError, House[F]] =
     House(id, size, occupancy, components).validate
 
-
+  /**
+   * Helper to instantiate a House with no components.
+   */
   def makeEmptyHouse(id: String, size: Size, occupancy: Occupancy): ValidatedNec[DomainError, House[List]] =
     makeHouse[List](id, size, occupancy, List.empty)
 
+  /**
+   * Given instance to allow House entities to be validated recursively.
+   * Delegates the logic to the [[HouseValidator]].
+   */
   given [F[_] : Traverse](using Validator[HouseComponent]): Validator[House[F]] with
     def validate(h: House[F]): ValidatedNec[DomainError, House[F]] =
       HouseValidator.validate(h)
