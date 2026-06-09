@@ -10,7 +10,7 @@ import org.scalatestplus.junit.JUnitRunner
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Tick.Tick
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
-import org.gridsim.core.model.house.{House, HouseComponent, Size}
+import org.gridsim.core.model.house.{House, Size}
 
 import scala.concurrent.duration.*
 
@@ -40,7 +40,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       minSoC = 0.2
     )
     val state = BatteryState(currentCharge = 5.0.kwh)
-    val battery = Battery(spec, state)
+    val battery = Battery("Battery 1", spec, state)
     val components = List(battery)
 
     val result = House.makeHouse("House 1", Size.Large, Traditional, components)
@@ -68,8 +68,8 @@ class HouseSpec extends AnyFlatSpec with Matchers {
 
   it should "handle multiple batteries in sequence threading the flow" in {
     val spec = BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0)
-    val b1 = Battery(spec, BatteryState(1.kwh))
-    val b2 = Battery(spec, BatteryState(1.kwh))
+    val b1 = Battery("B1", spec, BatteryState(1.kwh))
+    val b2 = Battery("B2", spec, BatteryState(1.kwh))
     val components = List(b1, b2)
 
     val house = House("MultiBattery", Size.Large, Traditional, components)
@@ -91,7 +91,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "correctly charge batteries when external surplus is injected" in {
-    val b = Battery(BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(0.kwh))
+    val b = Battery("B1", BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(0.kwh))
     val house = House("SurplusHouse", Size.Small, Traditional, List(b))
     val env = new Environment:
       override def tick: Tick = ???
@@ -113,7 +113,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
 
   it should "not crash with zero-duration ticks" in {
     val house = House("ZeroTick", Size.Small, Traditional, Seq(Battery(
-      BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(5.kwh)
+      "B1", BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(5.kwh)
     )))
     val env = new Environment:
       override def tick: Tick = ???

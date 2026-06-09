@@ -4,8 +4,9 @@ import cats.Traverse
 import cats.data.ValidatedNec
 import cats.syntax.all.*
 import cats.implicits.*
+import org.gridsim.core.model.*
 import org.gridsim.core.model.error.DomainError
-import org.gridsim.core.model.house.{House, HouseComponent}
+import org.gridsim.core.model.house.House
 import org.gridsim.core.validation.Validator.*
 
 /**
@@ -18,11 +19,11 @@ object HouseValidator:
    * Validate a [[House]] and its internal components.
    *
    * @param h The [[House]] instance to validate.
-   * @param compVal The implicit dispatcher used to validate the individual [[HouseComponent]].
+   * @param compVal The implicit dispatcher used to validate the individual components.
    * @tparam F The traversable container type holding the components.
    * @return A [[ValidatedNec]] containing all accumulated errors or the validated [[House]]
    */
-  def validate[F[_]: Traverse](h: House[F])(using compVal: Validator[HouseComponent]): ValidatedNec[DomainError, House[F]] =
+  def validate[F[_]: Traverse](h: House[F])(using compVal: Validator[GridEntity & CanBeInHouse]): ValidatedNec[DomainError, House[F]] =
     (
       h.id.mustBeValid("House Id"),
       h.components.traverse(compVal.validate)

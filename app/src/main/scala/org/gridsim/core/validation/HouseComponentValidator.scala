@@ -1,31 +1,24 @@
 package org.gridsim.core.validation
 
 import cats.data.ValidatedNec
+import org.gridsim.core.model.*
 import org.gridsim.core.model.error.DomainError
-import org.gridsim.core.model.house.{HouseComponent, House}
 import org.gridsim.core.model.battery.Battery
 import org.gridsim.core.validation.Validator.validate
 import org.gridsim.core.validation.BatteryValidator.given
 
 /**
- * Acts as a dispatcher for all [[House]] components.
- * This object decouples the [[House]] validation logic from the specific rules
- * of individual devices.
+ * Acts as a dispatcher for all entities that can be in a house.
  */
 object HouseComponentValidator:
   /**
-   * The implicit [[Validator]] instance for the generic HouseComponent trait.
-   * It routes the validation request to the specific component validator.
-   *
-   * @dev Maintance Note:
-   * When introducing a new type of [[HouseComponent]] you
-   * must add a new case here and import its specific 'given'
-   * [[Validator]].
+   * The implicit [[Validator]] instance for components that can be in a house.
    */
-  given Validator[HouseComponent] with
-    def validate(c: HouseComponent): ValidatedNec[DomainError, HouseComponent] =
+  given houseComponentValidator: Validator[GridEntity & CanBeInHouse] with
+    def validate(c: GridEntity & CanBeInHouse): ValidatedNec[DomainError, GridEntity & CanBeInHouse] =
       c match
         case b: Battery =>
           b.validate
-        //TODO add SolarPanel for example.
+        case other =>
+          cats.data.Validated.Valid(other)
 

@@ -1,6 +1,6 @@
-package org.gridsim.core.behaviour
+package org.gridsim.core.behaviour.house
 
-import org.gridsim.core.common.Units.{kw, Power}
+import org.gridsim.core.common.Units.{Power, kw}
 
 /**
  * Defines the contract for an energy consumption strategy.
