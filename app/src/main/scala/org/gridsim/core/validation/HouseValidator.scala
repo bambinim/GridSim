@@ -8,7 +8,20 @@ import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.model.house.{House, HouseComponent}
 import org.gridsim.core.validation.Validator.*
 
+/**
+ * Orchestrates the validation of a House entity.
+ * It ensures the structural integrity of the house and recursively
+ * delegates validation to all its internal components.
+ */
 object HouseValidator:
+  /**
+   * Validate a [[House]] and its internal components.
+   *
+   * @param h The [[House]] instance to validate.
+   * @param compVal The implicit dispatcher used to validate the individual [[HouseComponent]].
+   * @tparam F The traversable container type holding the components.
+   * @return A [[ValidatedNec]] containing all accumulated errors or the validated [[House]]
+   */
   def validate[F[_]: Traverse](h: House[F])(using compVal: Validator[HouseComponent]): ValidatedNec[DomainError, House[F]] =
     (
       h.id.mustBeValid("House Id"),
