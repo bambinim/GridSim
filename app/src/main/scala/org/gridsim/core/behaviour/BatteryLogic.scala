@@ -13,6 +13,13 @@ import scala.concurrent.duration.FiniteDuration
  * Encapsulates the physical constraints of charging and discharging.
  */
 object BatteryLogic:
+  /**
+   * Provides the [[EnergyLogic]] for the [[Battery]] entity.
+   * Dispatch the incoming flow to the appropriate behaviour([[charge()]] or
+   * [[discharge()]].
+   * Return a [[State]] transition that updates the [[Battery]] instance and
+   * calculates the residual [[Energy]].
+   */
   given EnergyLogic[Battery] with
     def process(flow: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
       given delta: FiniteDuration = env.delta
