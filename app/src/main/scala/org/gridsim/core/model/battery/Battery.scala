@@ -3,6 +3,7 @@ package org.gridsim.core.model.battery
 import cats.data.ValidatedNec
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.model.house.HouseComponent
+import org.gridsim.core.model.battery.{BatteryModel, BatterySpecification, BatteryState}
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.given
 import org.gridsim.core.validation.Validator.validate
@@ -17,8 +18,13 @@ import org.gridsim.core.validation.BatteryValidator.given
  *
  * @param spec  The physical specifications of the battery.
  * @param state The current runtime state of the battery.
+ * @param model The specific battery model determining its behaviour.
  */
-case class Battery private[core](spec: BatterySpecification, state: BatteryState) extends HouseComponent
+case class Battery private[core](
+  spec: BatterySpecification,
+  state: BatteryState,
+  model: BatteryModel = BatteryModel.Standard
+) extends HouseComponent
 
 object Battery:
   /**
@@ -26,8 +32,13 @@ object Battery:
    * By making the default constructor private and forcing creation through this method,
    * we guarantee that it is impossible to instantiate an invalid [[Battery]] in the system.
    */
-  def make(spec: BatterySpecification, state: BatteryState)(using Validator[Battery]): ValidatedNec[DomainError, Battery] =
-    Battery(spec, state).validate
+  def make(
+    spec: BatterySpecification,
+    state: BatteryState,
+    model: BatteryModel = BatteryModel.Standard
+  )(using Validator[Battery]): ValidatedNec[DomainError, Battery] =
+    Battery(spec, state, model).validate
+
 
 extension (battery: Battery)
   /**

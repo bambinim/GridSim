@@ -1,12 +1,12 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.behaviour.ConsumptionProfile
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Tick.Tick
 import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.*
-import org.gridsim.core.behaviour.BatteryLogic.given
+import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.EnergyResolver.*
+import org.gridsim.core.behaviour.house.ConsumptionProfile
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith

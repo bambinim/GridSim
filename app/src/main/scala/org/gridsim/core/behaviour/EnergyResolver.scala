@@ -8,7 +8,8 @@ import org.gridsim.core.common.Units.Flow.Balanced
 import org.gridsim.core.model.*
 import org.gridsim.core.model.house.{House, HouseComponent}
 import org.gridsim.core.model.battery.Battery
-import org.gridsim.core.behaviour.BatteryLogic.given
+import org.gridsim.core.behaviour.battery.BatteryLogic.given
+import org.gridsim.core.behaviour.house.ConsumptionProfile
 
 import scala.concurrent.duration.*
 
@@ -22,13 +23,13 @@ object EnergyResolver:
   extension [A](node: A)(using resolver: EnergyResolver[A])
     def solve(flow: Flow[Energy], env: Environment): State[A, Flow[Energy]] =
       resolver.solve(flow, env)
-    
+
     def runSolve(flow: Flow[Energy], env: Environment): (A, Flow[Energy]) =
       resolver.solve(flow, env).run(node).value
-    
+
     def solve(env: Environment): State[A, Flow[Energy]] =
       resolver.solve(Balanced, env)
-    
+
     def runSolve(env: Environment): (A, Flow[Energy]) =
       resolver.solve(Balanced, env).run(node).value
 
