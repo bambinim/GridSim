@@ -63,7 +63,7 @@ object EnergyResolver:
   /**
    * Dispatches the energy resolution to house components.
    */
-  given EnergyResolver[GridEntity & CanBeInHouse] with
+  given houseComponentResolver: EnergyResolver[GridEntity & CanBeInHouse] with
     def solve(residueEnergy: Flow[Energy], env: Environment): State[GridEntity & CanBeInHouse, Flow[Energy]] =
       State {
         case b: Battery => b.runSolve(residueEnergy, env)

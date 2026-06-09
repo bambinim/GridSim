@@ -14,7 +14,7 @@ object HouseComponentValidator:
   /**
    * The implicit [[Validator]] instance for components that can be in a house.
    */
-  given Validator[GridEntity & CanBeInHouse] with
+  given houseComponentValidator: Validator[GridEntity & CanBeInHouse] with
     def validate(c: GridEntity & CanBeInHouse): ValidatedNec[DomainError, GridEntity & CanBeInHouse] =
       c match
         case b: Battery =>
