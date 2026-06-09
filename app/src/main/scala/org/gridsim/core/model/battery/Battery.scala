@@ -1,30 +1,28 @@
 package org.gridsim.core.model.battery
 
 import cats.data.ValidatedNec
+import org.gridsim.core.model.{CanBeInHouse, CanBeStandalone, GridEntity}
 import org.gridsim.core.model.error.DomainError
-import org.gridsim.core.model.house.HouseComponent
-import org.gridsim.core.model.battery.{BatteryModel, BatterySpecification, BatteryState}
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.given
 import org.gridsim.core.validation.Validator.validate
 import org.gridsim.core.validation.BatteryValidator.given
 
 /**
- * A Battery is a [[HouseComponent]] capable of storing and releasing energy.
+ * A Battery is an entity capable of storing and releasing energy.
+ * It can be used both inside a house and as a standalone grid component.
  *
- * It is defined by a static specification (physical limits) and a dynamic state (current charge).
- * The battery's behavior is managed by the [[EnergyResolver]], which applies
- * charging and discharging logic based on available surplus or deficit.
- *
+ * @param id    The unique identifier for the battery.
  * @param spec  The physical specifications of the battery.
  * @param state The current runtime state of the battery.
  * @param model The specific battery model determining its behaviour.
  */
 case class Battery private[core](
+  id: String,
   spec: BatterySpecification,
   state: BatteryState,
   model: BatteryModel = BatteryModel.Standard
-) extends HouseComponent
+) extends GridEntity with CanBeInHouse with CanBeStandalone
 
 object Battery:
   /**
@@ -33,12 +31,12 @@ object Battery:
    * we guarantee that it is impossible to instantiate an invalid [[Battery]] in the system.
    */
   def make(
+    id: String,
     spec: BatterySpecification,
     state: BatteryState,
     model: BatteryModel = BatteryModel.Standard
   )(using Validator[Battery]): ValidatedNec[DomainError, Battery] =
-    Battery(spec, state, model).validate
-
+    Battery(id, spec, state, model).validate
 
 extension (battery: Battery)
   /**

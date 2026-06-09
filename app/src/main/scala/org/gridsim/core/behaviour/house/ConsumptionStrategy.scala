@@ -1,6 +1,5 @@
 package org.gridsim.core.behaviour.house
 
-import org.gridsim.core.behaviour.ConsumptionStrategy
 import org.gridsim.core.common.Units.{Power, kw}
 
 /**

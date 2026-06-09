@@ -1,15 +1,15 @@
 package org.gridsim.core.model.house
 
-import cats.data.{State, ValidatedNec}
 import cats.Traverse
+import cats.data.ValidatedNec
 import cats.implicits.*
 import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.model.*
-import org.gridsim.core.model.battery.Battery
 import org.gridsim.core.model.error.DomainError
+import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.*
+import org.gridsim.core.validation.HouseValidator
 import org.gridsim.core.validation.HouseComponentValidator.given
-import org.gridsim.core.validation.{HouseValidator, Validator}
 
 /**
  * Represents the size of a house, which acts as a multiplier for base energy consumption.
@@ -26,16 +26,17 @@ enum Occupancy:
   case Traditional, SmartWorker, Vacant
 
 /**
- * A House is a complex [[GridEntity]] that aggregates multiple [[HouseComponent]].
-
- * @tparam F F The container type for components.
+ * A House is a complex [[GridEntity]] that aggregates multiple components.
+ * It can only contain entities that are marked with [[CanBeInHouse]].
+ *
+ * @tparam F The container type for components.
  */
 case class House[F[_]](
   id: String,
   size: Size,
   occupancy: Occupancy,
-  components: F[HouseComponent]
-) extends GridEntity
+  components: F[GridEntity & CanBeInHouse]
+) extends GridEntity with CanBeStandalone
 
 object House:
   /**
@@ -44,7 +45,7 @@ object House:
    *
    * @return A [[ValidatedNec]] containing the house or accumulated [[DomainError]]s.
    */
-  def makeHouse[F[_]: Traverse](id: String, size: Size, occupancy: Occupancy, components: F[HouseComponent]): ValidatedNec[DomainError, House[F]] =
+  def makeHouse[F[_]: Traverse](id: String, size: Size, occupancy: Occupancy, components: F[GridEntity & CanBeInHouse]): ValidatedNec[DomainError, House[F]] =
     House(id, size, occupancy, components).validate
 
   /**
@@ -55,10 +56,7 @@ object House:
 
   /**
    * Given instance to allow House entities to be validated recursively.
-   * Delegates the logic to the [[HouseValidator]].
    */
-  given [F[_] : Traverse](using Validator[HouseComponent]): Validator[House[F]] with
+  given [F[_] : Traverse]: Validator[House[F]] with
     def validate(h: House[F]): ValidatedNec[DomainError, House[F]] =
       HouseValidator.validate(h)
-
-

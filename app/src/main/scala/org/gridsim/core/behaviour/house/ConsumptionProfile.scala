@@ -1,6 +1,5 @@
 package org.gridsim.core.behaviour.house
 
-import org.gridsim.core.behaviour.{ConsumptionStrategy, VacantStrategy}
 import org.gridsim.core.common.Units.{Energy, Flow, Power}
 import org.gridsim.core.model.house.Occupancy.*
 import org.gridsim.core.model.house.Size.*

@@ -1,12 +1,12 @@
 package org.gridsim.core.behaviour
 
-import cats.data.{State, ValidatedNec}
+import cats.data.State
 import cats.Traverse
 import cats.implicits.*
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.Balanced
 import org.gridsim.core.model.*
-import org.gridsim.core.model.house.{House, HouseComponent}
+import org.gridsim.core.model.house.House
 import org.gridsim.core.model.battery.Battery
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.house.ConsumptionProfile
@@ -44,7 +44,7 @@ object EnergyResolver:
         initialResidue = internalFlow + flow
 
         (totalResidue, updatedComponents) = house.components.traverse { comp =>
-          State[Flow[Energy], HouseComponent] { currentFlow =>
+          State[Flow[Energy], GridEntity & CanBeInHouse] { currentFlow =>
             val (newComp, nextResidue) = comp.runSolve(currentFlow, env)
             (nextResidue, newComp)
           }
@@ -61,10 +61,10 @@ object EnergyResolver:
       summon[EnergyLogic[Battery]].process(residueEnergy, env)
 
   /**
-   * Dispatches the energy resolution to components.
+   * Dispatches the energy resolution to house components.
    */
-  given EnergyResolver[HouseComponent] with
-    def solve(residueEnergy: Flow[Energy], env: Environment): State[HouseComponent, Flow[Energy]] =
+  given EnergyResolver[GridEntity & CanBeInHouse] with
+    def solve(residueEnergy: Flow[Energy], env: Environment): State[GridEntity & CanBeInHouse, Flow[Energy]] =
       State {
         case b: Battery => b.runSolve(residueEnergy, env)
         case other      => (other, residueEnergy)

@@ -1,7 +1,7 @@
 package org.gridsim.core.behaviour.battery
 
 import cats.data.State
-import org.gridsim.core.behaviour.{BatteryStrategy, EnergyLogic}
+import org.gridsim.core.behaviour.EnergyLogic
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.*
 import org.gridsim.core.model.Environment
@@ -16,8 +16,7 @@ import scala.concurrent.duration.FiniteDuration
 object BatteryLogic:
   /**
    * Provides the [[EnergyLogic]] for the [[Battery]] entity.
-   * Dispatch the incoming flow to the appropriate behaviour([[charge()]] or
-   * [[discharge()]].
+   * Dispatch the incoming flow to the appropriate strategy.
    * Return a [[State]] transition that updates the [[Battery]] instance and
    * calculates the residual [[Energy]].
    */
@@ -34,4 +33,3 @@ object BatteryLogic:
         (nextState, residue) = action.run(b.state).value
         _ <- State.modify[Battery](_.copy(state = nextState))
       } yield residue
-

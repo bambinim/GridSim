@@ -1,7 +1,6 @@
 package org.gridsim.core.behaviour.battery
 
 import cats.data.State
-import org.gridsim.core.behaviour.{BatteryStrategy, StandardBatteryStrategy}
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.*
 import org.gridsim.core.model.battery.{BatteryModel, BatterySpecification, BatteryState}
