@@ -1,7 +1,7 @@
 package org.gridsim.core.model.battery
 
 import cats.data.ValidatedNec
-import org.gridsim.core.model.{CanBeInHouse, CanBeStandalone, GridEntity}
+import org.gridsim.core.model.{Storage, GridEntity}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.given
@@ -22,7 +22,7 @@ case class Battery private[core](
   spec: BatterySpecification,
   state: BatteryState,
   model: BatteryModel = BatteryModel.Standard
-) extends GridEntity with CanBeInHouse with CanBeStandalone
+) extends GridEntity with Storage
 
 object Battery:
   /**

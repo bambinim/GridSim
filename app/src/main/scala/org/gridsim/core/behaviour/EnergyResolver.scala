@@ -35,6 +35,10 @@ object EnergyResolver:
 
   /**
    * Resolver instance for a [[House]].
+   * Follows a multi-pass approach:
+   * 1. Internal consumption is calculated.
+   * 2. Producers are processed to cover demand or create surplus.
+   * 3. Storages are processed to store surplus or cover remaining deficit.
    */
   given [F[_]: Traverse]: EnergyResolver[House[F]] with
     def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
@@ -43,15 +47,22 @@ object EnergyResolver:
         internalFlow = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
         initialResidue = internalFlow + flow
 
-        (totalResidue, updatedComponents) = house.components.traverse { comp =>
-          State[Flow[Energy], GridEntity & CanBeInHouse] { currentFlow =>
-            val (newComp, nextResidue) = comp.runSolve(currentFlow, env)
-            (nextResidue, newComp)
+        (afterProducersResidue, updatedProducers) = house.producers.traverse { prod =>
+          State[Flow[Energy], Producer] { currentFlow =>
+            val (newProd, nextResidue) = prod.runSolve(currentFlow, env)
+            (nextResidue, newProd)
           }
         }.run(initialResidue).value
 
-        _ <- State.modify[House[F]](_.copy(components = updatedComponents))
-      } yield totalResidue
+        (afterStoragesResidue, updatedStorages) = house.storages.traverse { stor =>
+          State[Flow[Energy], Storage] { currentFlow =>
+            val (newStor, nextResidue) = stor.runSolve(currentFlow, env)
+            (nextResidue, newStor)
+          }
+        }.run(afterProducersResidue).value
+
+        _ <- State.modify[House[F]](_.copy(producers = updatedProducers, storages = updatedStorages))
+      } yield afterStoragesResidue
 
   /**
    * Resolver instance for a [[Battery]].
@@ -61,11 +72,21 @@ object EnergyResolver:
       summon[EnergyLogic[Battery]].process(residueEnergy, env)
 
   /**
-   * Dispatches the energy resolution to house components.
+   * Dispatches the energy resolution to storage components.
    */
-  given houseComponentResolver: EnergyResolver[GridEntity & CanBeInHouse] with
-    def solve(residueEnergy: Flow[Energy], env: Environment): State[GridEntity & CanBeInHouse, Flow[Energy]] =
+  given storageResolver: EnergyResolver[Storage] with
+    def solve(residueEnergy: Flow[Energy], env: Environment): State[Storage, Flow[Energy]] =
       State {
         case b: Battery => b.runSolve(residueEnergy, env)
         case other      => (other, residueEnergy)
+      }
+
+  /**
+   * Dispatches the energy resolution to producer components.
+   */
+  given producerResolver: EnergyResolver[Producer] with
+    def solve(residueEnergy: Flow[Energy], env: Environment): State[Producer, Flow[Energy]] =
+      State {
+        // Here we will add cases for SolarPanel, WindTurbine, etc.
+        case other => (other, residueEnergy)
       }

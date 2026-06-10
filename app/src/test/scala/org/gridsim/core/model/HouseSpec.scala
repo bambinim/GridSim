@@ -43,7 +43,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val battery = Battery("Battery 1", spec, state)
     val components = List(battery)
 
-    val result = House.makeHouse("House 1", Size.Large, Traditional, components)
+    val result = House.makeHouseWithStorages("House 1", Size.Large, Traditional, components)
     val env = new Environment:
       override def tick: Tick = ???
       override def hour: Int = 11
@@ -59,7 +59,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     energy shouldBe Flow.Deficit(2.0.kwh)
 
     // Verify battery state updated
-    val finalBattery = newHouse.components.head match
+    val finalBattery = newHouse.storages.head match
       case b: Battery => b
       case _ => fail("Should be a battery")
 
@@ -72,7 +72,9 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val b2 = Battery("B2", spec, BatteryState(1.kwh))
     val components = List(b1, b2)
 
-    val house = House("MultiBattery", Size.Large, Traditional, components)
+    val result = House.makeHouseWithStorages("MultiBattery", Size.Large, Traditional, components)
+    val house = result.getOrElse(fail("Validation failed"))
+
     val env = new Environment:
       override def tick: Tick = ???
       override def hour: Int = 11 // Consumption 4.0 kWh
@@ -84,7 +86,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val (updatedHouse, residue) = house.runSolve(env)
 
     residue shouldBe Flow.Deficit(2.0.kwh)
-    updatedHouse.components.foreach {
+    updatedHouse.storages.foreach {
       case b: Battery => b.state.currentCharge shouldBe 0.kwh
       case _ => fail("Should be a battery")
     }
@@ -92,7 +94,8 @@ class HouseSpec extends AnyFlatSpec with Matchers {
 
   it should "correctly charge batteries when external surplus is injected" in {
     val b = Battery("B1", BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(0.kwh))
-    val house = House("SurplusHouse", Size.Small, Traditional, List(b))
+    val result = House.makeHouseWithStorages("SurplusHouse", Size.Small, Traditional, List(b))
+    val house = result.getOrElse(fail("Validation failed"))
     val env = new Environment:
       override def tick: Tick = ???
       override def hour: Int = 11 // Consumption 2.0 kWh
@@ -105,16 +108,17 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val (updatedHouse, residue) = house.runSolve(Flow.Surplus(10.kwh), env)
 
     residue shouldBe Flow.Surplus(3.0.kwh)
-    val finalBattery = updatedHouse.components.head match
+    val finalBattery = updatedHouse.storages.head match
       case b: Battery => b
       case _ => fail("Should be a battery")
     finalBattery.state.currentCharge shouldBe 5.0.kwh
   }
 
   it should "not crash with zero-duration ticks" in {
-    val house = House("ZeroTick", Size.Small, Traditional, Seq(Battery(
+    val result = House.makeHouseWithStorages("ZeroTick", Size.Small, Traditional, Seq(Battery(
       "B1", BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(5.kwh)
     )))
+    val house = result.getOrElse(fail("Validation failed"))
     val env = new Environment:
       override def tick: Tick = ???
       override def hour: Int = 11
@@ -127,7 +131,8 @@ class HouseSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "work with an empty components list" in {
-    val house = House("Empty", Size.Small, Traditional, Nil)
+    val result = House.makeHouseWithStorages("Empty", Size.Small, Traditional, Nil)
+    val house = result.getOrElse(fail("Validation failed"))
     val env = new Environment:
       override def tick: Tick = ???
       override def hour: Int = 11 // 2.0 kWh
