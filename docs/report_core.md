@@ -1,68 +1,55 @@
-# 📑 Report Tecnico: Evoluzione Architetturale GridSim Core
+# 📘 Report Tecnico e Guida Operativa: GridSim Core
 
-## 1. Pilastri del Design
-
-### A. Role-Based Modeling (Marker Traits)
-Ho definito **Marker Traits** che definiscono le "capacità" delle entità:
-- `CanBeInHouse`: Indica che l'entità può essere contenuta in una casa.
-- `CanBeStandalone`: Indica che l'entità può esistere autonomamente sulla grid.
-- **Intersection Types:** La `House` accetta componenti di tipo `GridEntity & CanBeInHouse`, garantendo strutturalmente che una casa non possa contenere un'altra casa.
-
-### B. Gestione dello Stato (State Monad)
-La simulazione fisica è modellata tramite `cats.data.State[S, A]`.
-- Ogni trasformazione energetica riceve un flusso, aggiorna lo stato interno dell'entità e restituisce il residuo.
-- Il "threading" dello stato è gestito in modo deterministico e senza effetti collaterali.
-
-### C. Pattern Strategy per la Fisica
-La logica delle batterie è disaccoppiata tramite il pattern **Strategy**:
-- `BatteryModel`: Enum per la scelta della tecnologia.
-- `BatteryStrategy`: Interfaccia intercambiabile per gli algoritmi di carica/scarica.
-- Questo permette di iniettare logiche di invecchiamento (aging) o efficienza variabile senza toccare il motore di calcolo.
+Benvenuto in GridSim. Questo documento funge da guida tecnica per comprendere l'architettura del simulatore e come estenderlo mantenendo l'alta qualità del codice funzionale.
 
 ---
 
-## 3. Organizzazione del Modulo `behaviour`
-Il codice è stato suddiviso in "Vertical Slices" per facilitare la manutenzione:
-- `behaviour/battery/`: Logiche e strategie specifiche per l'accumulo.
-- `behaviour/house/`: Profili di consumo e strategie di carico.
-- `EnergyResolver.scala`: Orchestratore universale dei flussi energetici.
+## 1. Il Linguaggio Energetico: Units e Flow
+
+Il sistema utilizza un sistema di tipi protetto per evitare errori di calcolo fisici (es. sommare potenza ed energia).
+
+*   **Power vs Energy:** Distinguiamo tra Potenza (`Power`, es. kW) ed Energia (`Energy`, es. kWh). Tramite estensioni, puoi scrivere `10.kw` o `5.kwh`. Il passaggio avviene tramite la durata del passo di simulazione (`delta`).
+*   **Flow[T]:** Rappresenta il bilancio energetico:
+    *   `Surplus(energy)`: Energia in eccesso (Produzione > Consumo).
+    *   `Deficit(energy)`: Bisogno di energia (Consumo > Produzione).
+    *   `Balanced`: Equilibrio perfetto.
 
 ---
 
-## 4. Diagramma Architetturale (UML)
+## 2. Il Motore Energetico: EnergyResolver
 
-```mermaid
-classDiagram
-    class GridEntity { <<trait>> +id: String }
-    class CanBeInHouse { <<marker>> }
-    class CanBeStandalone { <<marker>> }
-    
-    class Battery { +spec +state +model }
-    class House { +components: F[GridEntity & CanBeInHouse] }
+In GridSim, tutto ciò che partecipa alla simulazione è un **EnergyResolver[T]**. È l'interfaccia universale per la risoluzione energetica:
 
-    GridEntity <|-- Battery
-    GridEntity <|-- House
-    CanBeInHouse <.. Battery
-    CanBeStandalone <.. Battery
-    CanBeStandalone <.. House
-
-    class EnergyResolver~T~ {
-        <<TypeClass>>
-        +solve(Flow): State[T, Flow]
-    }
-
-    EnergyResolver ..> Battery : Gestisce
-    EnergyResolver ..> House : Gestisce
-```
+*   **Componenti Atomici (es. Battery):** Implementano il resolver per definire la loro fisica (carica/scarica).
+*   **Aggregatori (es. House):** Coordinano i componenti interni secondo un ordine fisico preciso:
+    1.  Calcolo del consumo interno della casa.
+    2.  Interrogazione dei **Producers** (es. fotovoltaico) per coprire il carico.
+    3.  Interrogazione degli **Storages** (es. batterie) per gestire il residuo.
 
 ---
 
-## 5. Linee Guida per lo Sviluppo
-1.  **Immutabilità:** Mai usare `var`. Le entità si aggiornano tramite `.copy()`.
-2.  **Purezza:** Ogni nuova logica deve restituire un'azione `State`.
-3.  **Validazione:** Ogni entità deve essere creata tramite Smart Constructor (`make`) per garantire la validità fisica dei dati.
-4.  **Estensione:** Per un nuovo componente, definire il dato in `model`, la logica in `behaviour` e registrarlo nel dispatcher di `EnergyResolver`.
+## 3. Gestione dello Stato: State Monad
+
+Il simulatore è **puramente funzionale** e non usa stati mutabili. Utilizziamo la monade **`State[S, A]`**:
+*   **S (Stato):** L'entità che stiamo trasformando (es. `BatteryState`).
+*   **A (Risultato):** L'output dell'operazione (il `Flow` residuo).
+
+Ogni operazione energetica è una "ricetta" pura che descrive come passare dallo stato vecchio allo stato nuovo, delegando al sistema il compito di "cucire" insieme le varie transizioni.
 
 ---
 
-**Stato attuale:** Il core è stabile, testato (BatterySpec, HouseSpec) e pronto per l'implementazione di nuove fonti (Solar, Wind) o logiche di mercato.
+## 4. Modellazione delle Entità
+
+Le entità sono **case class immutabili** che agiscono come meri contenitori di dati. Il loro ruolo nel sistema è definito da Marker Traits:
+*   **Producer:** Entità che generano energia (Fotovoltaico, Eolico).
+*   **Storage:** Entità che accumulano energia (Batterie, ...).
+Questa separazione permette al resolver della casa di applicare le priorità fisiche corrette indipendentemente dall'ordine della lista.
+
+---
+
+## 5. Il Modulo di Validation
+
+Garantiamo l'integrità fisica tramite **Smart Constructors**:
+*   Non è possibile creare entità con dati assurdi (es. capacità negativa).
+*   Metodi come `Battery.make(...)` restituiscono un **`ValidatedNec`**, che accumula tutti gli errori di validazione invece di lanciare eccezioni.
+
