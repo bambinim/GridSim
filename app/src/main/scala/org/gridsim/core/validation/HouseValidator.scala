@@ -19,12 +19,17 @@ object HouseValidator:
    * Validate a [[House]] and its internal components.
    *
    * @param h The [[House]] instance to validate.
-   * @param compVal The implicit dispatcher used to validate the individual components.
+   * @param prodVal The implicit dispatcher used to validate the producers.
+   * @param storVal The implicit dispatcher used to validate the storages.
    * @tparam F The traversable container type holding the components.
    * @return A [[ValidatedNec]] containing all accumulated errors or the validated [[House]]
    */
-  def validate[F[_]: Traverse](h: House[F])(using compVal: Validator[GridEntity & CanBeInHouse]): ValidatedNec[DomainError, House[F]] =
+  def validate[F[_]: Traverse](h: House[F])(using 
+    prodVal: Validator[Producer], 
+    storVal: Validator[Storage]
+  ): ValidatedNec[DomainError, House[F]] =
     (
       h.id.mustBeValid("House Id"),
-      h.components.traverse(compVal.validate)
-    ).mapN((id, comps) => h.copy(id = id, components = comps))
+      h.producers.traverse(prodVal.validate),
+      h.storages.traverse(storVal.validate)
+    ).mapN((id, prods, stors) => h.copy(id = id, producers = prods, storages = stors))

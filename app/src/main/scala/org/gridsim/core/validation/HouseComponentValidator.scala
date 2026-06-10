@@ -11,14 +11,23 @@ import org.gridsim.core.validation.BatteryValidator.given
  * Acts as a dispatcher for all entities that can be in a house.
  */
 object HouseComponentValidator:
+
   /**
-   * The implicit [[Validator]] instance for components that can be in a house.
+   * The implicit [[Validator]] instance for storage components.
    */
-  given houseComponentValidator: Validator[GridEntity & CanBeInHouse] with
-    def validate(c: GridEntity & CanBeInHouse): ValidatedNec[DomainError, GridEntity & CanBeInHouse] =
-      c match
+  given storageValidator: Validator[Storage] with
+    def validate(s: Storage): ValidatedNec[DomainError, Storage] =
+      s match
         case b: Battery =>
           b.validate
         case other =>
-          cats.data.Validated.Valid(other)
+          cats.data.Validated.validNec(other)
 
+  /**
+   * The implicit [[Validator]] instance for producer components.
+   */
+  given producerValidator: Validator[Producer] with
+    def validate(p: Producer): ValidatedNec[DomainError, Producer] =
+      p match
+        case other =>
+          cats.data.Validated.validNec(other)

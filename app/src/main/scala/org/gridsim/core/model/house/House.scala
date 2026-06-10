@@ -1,10 +1,11 @@
 package org.gridsim.core.model.house
 
-import cats.Traverse
+import cats.{Alternative, Traverse}
 import cats.data.ValidatedNec
 import cats.implicits.*
 import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.model.*
+import org.gridsim.core.model.{GridEntity, Producer, Storage}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.*
@@ -31,12 +32,13 @@ enum Occupancy:
  *
  * @tparam F The container type for components.
  */
-case class House[F[_]](
+case class House[F[_]] private[core](
   id: String,
   size: Size,
   occupancy: Occupancy,
-  components: F[GridEntity & CanBeInHouse]
-) extends GridEntity with CanBeStandalone
+  producers: F[Producer],
+  storages: F[Storage]
+) extends GridEntity
 
 object House:
   /**
@@ -45,14 +47,21 @@ object House:
    *
    * @return A [[ValidatedNec]] containing the house or accumulated [[DomainError]]s.
    */
-  def makeHouse[F[_]: Traverse](id: String, size: Size, occupancy: Occupancy, components: F[GridEntity & CanBeInHouse]): ValidatedNec[DomainError, House[F]] =
-    House(id, size, occupancy, components).validate
+  def makeHouse[F[_]: Traverse](id: String, size: Size, occupancy: Occupancy, producers: F[Producer], storages: F[Storage]): ValidatedNec[DomainError, House[F]] =
+    House(id, size, occupancy, producers, storages).validate
 
   /**
-   * Helper to instantiate a House with no components.
+   * Helper to instantiate a House with no components (defaults to List).
    */
   def makeEmptyHouse(id: String, size: Size, occupancy: Occupancy): ValidatedNec[DomainError, House[List]] =
-    makeHouse[List](id, size, occupancy, List.empty)
+    makeHouse[List](id, size, occupancy, Nil, Nil)
+
+  /**
+   * Helper to instantiate a House with a collection of storages and no producers.
+   */
+  def makeHouseWithStorages[F[_]: Traverse : Alternative](id: String, size: Size, occupancy: Occupancy, storages: F[Storage]): ValidatedNec[DomainError, House[F]] =
+    makeHouse[F](id, size, occupancy, Alternative[F].empty, storages)
+
 
   /**
    * Given instance to allow House entities to be validated recursively.

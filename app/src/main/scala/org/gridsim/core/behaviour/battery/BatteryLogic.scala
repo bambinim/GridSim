@@ -1,7 +1,7 @@
 package org.gridsim.core.behaviour.battery
 
 import cats.data.State
-import org.gridsim.core.behaviour.EnergyLogic
+import org.gridsim.core.behaviour.EnergyResolver
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.*
 import org.gridsim.core.model.Environment
@@ -10,18 +10,18 @@ import org.gridsim.core.model.battery.Battery
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Implementation of [[EnergyLogic]] for [[Battery]].
+ * Implementation of [[EnergyResolver]] for [[Battery]].
  * Encapsulates the physical constraints of charging and discharging.
  */
 object BatteryLogic:
   /**
-   * Provides the [[EnergyLogic]] for the [[Battery]] entity.
+   * Provides the [[EnergyResolver]] for the [[Battery]] entity.
    * Dispatch the incoming flow to the appropriate strategy.
    * Return a [[State]] transition that updates the [[Battery]] instance and
    * calculates the residual [[Energy]].
    */
-  given EnergyLogic[Battery] with
-    def process(flow: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
+  given EnergyResolver[Battery] with
+    def solve(flow: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
       for {
         b <- State.get[Battery]
         strategy = BatteryStrategy.forModel(b.model)

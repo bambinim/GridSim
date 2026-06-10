@@ -1,17 +1,11 @@
 package org.gridsim.core.behaviour
 
 import cats.data.State
-import cats.Traverse
-import cats.implicits.*
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.Balanced
 import org.gridsim.core.model.*
-import org.gridsim.core.model.house.House
 import org.gridsim.core.model.battery.Battery
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
-import org.gridsim.core.behaviour.house.ConsumptionProfile
-
-import scala.concurrent.duration.*
 
 /**
  * Defines the contract for resolving energy flows across domain entities.
@@ -34,38 +28,21 @@ object EnergyResolver:
       resolver.solve(Balanced, env).run(node).value
 
   /**
-   * Resolver instance for a [[House]].
+   * Dispatches the energy resolution to storage components.
    */
-  given [F[_]: Traverse]: EnergyResolver[House[F]] with
-    def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
-      for {
-        house <- State.get[House[F]]
-        internalFlow = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
-        initialResidue = internalFlow + flow
-
-        (totalResidue, updatedComponents) = house.components.traverse { comp =>
-          State[Flow[Energy], GridEntity & CanBeInHouse] { currentFlow =>
-            val (newComp, nextResidue) = comp.runSolve(currentFlow, env)
-            (nextResidue, newComp)
-          }
-        }.run(initialResidue).value
-
-        _ <- State.modify[House[F]](_.copy(components = updatedComponents))
-      } yield totalResidue
-
-  /**
-   * Resolver instance for a [[Battery]].
-   */
-  given EnergyResolver[Battery] with
-    def solve(residueEnergy: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
-      summon[EnergyLogic[Battery]].process(residueEnergy, env)
-
-  /**
-   * Dispatches the energy resolution to house components.
-   */
-  given houseComponentResolver: EnergyResolver[GridEntity & CanBeInHouse] with
-    def solve(residueEnergy: Flow[Energy], env: Environment): State[GridEntity & CanBeInHouse, Flow[Energy]] =
+  given storageResolver: EnergyResolver[Storage] with
+    def solve(residueEnergy: Flow[Energy], env: Environment): State[Storage, Flow[Energy]] =
       State {
         case b: Battery => b.runSolve(residueEnergy, env)
         case other      => (other, residueEnergy)
+      }
+
+  /**
+   * Dispatches the energy resolution to producer components.
+   */
+  given producerResolver: EnergyResolver[Producer] with
+    def solve(residueEnergy: Flow[Energy], env: Environment): State[Producer, Flow[Energy]] =
+      State {
+        // Here we will add cases for SolarPanel, WindTurbine, etc.
+        case other => (other, residueEnergy)
       }

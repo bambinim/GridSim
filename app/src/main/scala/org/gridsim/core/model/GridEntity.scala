@@ -7,11 +7,11 @@ trait GridEntity:
   def id: String
 
 /**
- * Role trait for entities that can be placed inside a house.
+ * Role trait for entities that can produce energy
  */
-trait CanBeInHouse
+trait Producer
 
 /**
- * Role trait for entities that can exist directly on the grid.
+ * Role trait for entities that can storage and release Energy.
  */
-trait CanBeStandalone
+trait Storage
