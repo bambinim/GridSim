@@ -2,6 +2,8 @@ package org.gridsim.core.model
 
 import cats.implicits.*
 import org.gridsim.core.behaviour.EnergyResolver.*
+import org.gridsim.core.behaviour.house.HouseLogic.given
+import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.model.house.Occupancy.Traditional
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
