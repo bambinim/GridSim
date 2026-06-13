@@ -1,6 +1,9 @@
 package org.gridsim.core.behaviour.house
 
 import org.gridsim.core.common.Units.{Power, kw}
+import org.gridsim.core.conf.{VacantConfig, TraditionalConfig, SmartWorkerConfig}
+import pureconfig.ConfigSource
+import org.gridsim.core.conf.given
 
 /**
  * Defines the contract for an energy consumption strategy.
@@ -22,21 +25,24 @@ trait ConsumptionStrategy:
  * in the early morning and evening.
  */
 object TraditionalStrategy extends ConsumptionStrategy:
+  private val cfg = ConfigSource.default.at("gridsim.consumption-profile.traditional").loadOrThrow[TraditionalConfig]
   override def demandAt(h: Int): Power = h match
-    case h if (h >= 7 && h <= 9) || (h >= 18 && h <= 22) => 8.0.kw
-    case _ => 2.0.kw
+    case h if (h >= cfg.morningPeakStart && h <= cfg.morningPeakEnd) || (h >= cfg.eveningPeakStart && h <= cfg.eveningPeakEnd) => cfg.peakPowerKw
+    case _ => cfg.basePowerKw
 
 /**
  * Smart Worker profile: represents residents working from home,
  * with sustained high demand throughout the day.
  */
 object SmartWorkerStrategy extends ConsumptionStrategy:
+  private val cfg = ConfigSource.default.at("gridsim.consumption-profile.smart-worker").loadOrThrow[SmartWorkerConfig]
   override def demandAt(h: Int): Power = h match
-    case h if h >= 8 && h <= 23 => 5.0.kw
-    case _ => 2.0.kw
+    case h if h >= cfg.workStart && h <= cfg.workEnd => cfg.workPowerKw
+    case _ => cfg.basePowerKw
 
 /**
  * Vacant profile: represents a house with minimal, constant baseline demand.
  */
 object VacantStrategy extends ConsumptionStrategy:
-  override def demandAt(h: Int): Power = 1.0.kw
+  private val cfg = ConfigSource.default.at("gridsim.consumption-profile.vacant").loadOrThrow[VacantConfig]
+  override def demandAt(h: Int): Power = cfg.basePowerKw

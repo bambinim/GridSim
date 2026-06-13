@@ -28,6 +28,9 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
 
+    implementation(libs.pureconfig.core)
+    implementation(libs.pureconfig.generic)
+
     // Use Scalatest for testing our library
     testImplementation(libs.junit)
     testImplementation(libs.scalatest)
