@@ -22,7 +22,7 @@ case class Battery private[core](
   spec: BatterySpecification,
   state: BatteryState,
   model: BatteryModel = BatteryModel.Standard
-) extends GridEntity with Storage
+) extends Storage
 
 object Battery:
   /**
