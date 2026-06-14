@@ -16,7 +16,6 @@ case class TestEntity(id: String) extends GridEntity
 @RunWith(classOf[JUnitRunner])
 class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
 
-  private val solver = SimplePowerFlowSolver
   private val tolerance = 1e-9
 
   // ─── Helpers ──────────────────────────────────────────────────────────
@@ -43,7 +42,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, house), List(cable))
     val flows = Map("h1" -> surplus(10.0))
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 10.0)
   }
@@ -55,7 +54,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, house), List(cable))
     val flows = Map("h1" -> deficit(7.5))
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 7.5)
   }
@@ -69,7 +68,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, house), List(cable))
     val flows = Map("h1" -> Flow.Balanced)
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 0.0)
   }
@@ -84,7 +83,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     // h1 produces +10, h2 consumes -10 → net = 0, but cables still carry individual flows
     val flows = Map("h1" -> surplus(10.0), "h2" -> deficit(10.0))
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     // Each cable carries the flow of the entity it connects (not zero!)
     assertCableLoad(result, c1, 10.0)
@@ -108,7 +107,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h3" -> surplus(8.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, c1, 5.0)
     assertCableLoad(result, c2, 3.0)
@@ -129,7 +128,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h2" -> surplus(7.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     // c2 carries only h2's flow (7.0)
     assertCableLoad(result, c2, 7.0)
@@ -149,7 +148,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h2" -> deficit(4.0) // h2 consumes -4
     )
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     // c2 carries h2's flow: |-4| = 4
     assertCableLoad(result, c2, 4.0)
@@ -174,7 +173,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "c" -> surplus(1.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     // cBC carries subtree(c) = |1| = 1
     assertCableLoad(result, cBC, 1.0)
@@ -201,7 +200,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h2" -> deficit(2.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cH1, 6.0)
     assertCableLoad(result, cH2, 2.0)
@@ -221,7 +220,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     // Only h2 has a flow; h1 is absent from the map
     val flows = Map("h2" -> surplus(5.0))
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, c2, 5.0)
     // c1 carries 0 (h1) + 5 (h2) = 5
@@ -241,7 +240,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h1" -> surplus(3.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     // Cable should carry only h1's flow, not grid's
     assertCableLoad(result, cable, 3.0)
@@ -256,7 +255,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(h1, h2), List(cable))
 
     an[IllegalArgumentException] should be thrownBy {
-      solver.solve(Map.empty, graph)
+      SimplePowerFlowSolver(graph).solve(Map.empty)
     }
   }
 
@@ -270,7 +269,7 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, h1), List(cable))
     val flows = Map("h1" -> deficit(4.0))
 
-    val result = solver.solve(flows, graph)
+    val result = SimplePowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 4.0)
   }

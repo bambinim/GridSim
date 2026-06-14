@@ -16,7 +16,6 @@ case class KTestEntity(id: String) extends GridEntity
 @RunWith(classOf[JUnitRunner])
 class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
 
-  private val solver = KirchhoffPowerFlowSolver
   private val tolerance = 1e-9
 
   // ─── Helpers ──────────────────────────────────────────────────────────
@@ -41,7 +40,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, house), List(cable))
     val flows = Map("h1" -> surplus(10.0))
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 10.0)
   }
@@ -53,7 +52,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, house), List(cable))
     val flows = Map("h1" -> deficit(7.5))
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 7.5)
   }
@@ -65,7 +64,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, house), List(cable))
     val flows = Map("h1" -> Flow.Balanced)
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 0.0)
   }
@@ -85,7 +84,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h3" -> surplus(8.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, c1, 5.0)
     assertCableLoad(result, c2, 3.0)
@@ -104,7 +103,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h2" -> surplus(7.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, c2, 7.0)
     assertCableLoad(result, c1, 10.0)
@@ -125,7 +124,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "c" -> surplus(1.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result =  KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cBC, 1.0)
     assertCableLoad(result, cAB, 4.0)
@@ -172,7 +171,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "b" -> surplus(10.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cGA, 10.0 / 3.0)
     assertCableLoad(result, cAB, 10.0 / 3.0)
@@ -221,7 +220,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "b" -> deficit(4.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cGA, 8.0 / 3.0)
     assertCableLoad(result, cGB, 2.0 / 3.0)
@@ -246,7 +245,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, a, b, c), List(cGA, cGB, cGC, cAB, cAC, cBC))
     val flows = Map("a" -> surplus(12.0))
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     // Verify KCL at node A: sum of outflows = 12.0
     val flowGA = result(cGA).toDouble
@@ -271,7 +270,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid), Nil)
     val flows: Map[String, Flow[Energy]] = Map.empty
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     result shouldBe empty
   }
@@ -286,7 +285,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h1" -> surplus(3.0)
     )
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 3.0)
   }
@@ -298,7 +297,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(h1, h2), List(cable))
 
     an[IllegalArgumentException] should be thrownBy {
-      solver.solve(Map.empty, graph)
+      KirchhoffPowerFlowSolver(graph).solve(Map.empty)
     }
   }
 
@@ -309,7 +308,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val graph = GridGraph(List(grid, h1), List(cable))
     val flows = Map("h1" -> deficit(4.0))
 
-    val result = solver.solve(flows, graph)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cable, 4.0)
   }
@@ -333,8 +332,8 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "h2" -> deficit(2.0)
     )
 
-    val kirchhoffResult = KirchhoffPowerFlowSolver.solve(flows, graph)
-    val simpleResult = SimplePowerFlowSolver.solve(flows, graph)
+    val kirchhoffResult = KirchhoffPowerFlowSolver(graph).solve(flows)
+    val simpleResult = SimplePowerFlowSolver(graph).solve(flows)
 
     List(cGH, cH1, cH2).foreach { cable =>
       kirchhoffResult(cable).toDouble shouldBe simpleResult(cable).toDouble +- tolerance

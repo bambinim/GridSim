@@ -28,9 +28,9 @@ import scala.collection.Map
  * For tree topologies, this solver produces results identical to [[SimplePowerFlowSolver]].
  * For meshed topologies, it correctly splits flows across parallel paths.
  */
-object KirchhoffPowerFlowSolver extends PowerFlowSolver:
+case class KirchhoffPowerFlowSolver(graph: GridGraph) extends PowerFlowSolver:
 
-  override def solve(entityFlowMap: Map[String, Flow[Energy]], graph: GridGraph): Map[Cable, Energy] =
+  override def solve(entityFlowMap: Map[String, Flow[Energy]]): Map[Cable, Energy] =
     val nodeIds = collectNodeIds(graph)
     val refId = findReference(graph)
 

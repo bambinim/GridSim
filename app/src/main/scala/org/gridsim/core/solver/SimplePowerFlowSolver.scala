@@ -6,6 +6,14 @@ import org.gridsim.core.common.Units.{Energy, Flow}
 import scala.collection.{Map, mutable}
 
 /**
+ * Represents the BFS-built tree structure.
+ *
+ * @param children  Map from each node to its list of child nodes.
+ * @param parentOf  Map from each child node to its parent node.
+ */
+case class Tree(children: Map[String, List[String]], parentOf: Map[String, String])
+
+/**
  * A tree-based power flow solver for radial (tree-topology) micro-grids.
  *
  * Treats the [[GridGraph]] as a tree rooted at the [[ExternalGrid]] node.
@@ -17,22 +25,80 @@ import scala.collection.{Map, mutable}
  * surplus or supplies the global deficit. Its own flow entry in the
  * `entityFlowMap` is ignored if present.
  */
-object SimplePowerFlowSolver extends PowerFlowSolver:
+case class SimplePowerFlowSolver(graph: GridGraph, tree: Tree, root: String) extends PowerFlowSolver:
 
   /**
-   * Represents the BFS-built tree structure.
+   * Post-order DFS to compute the net signed flow of the subtree rooted at each node.
    *
-   * @param children  Map from each node to its list of child nodes.
-   * @param parentOf  Map from each child node to its parent node.
+   * For leaf entity nodes, the subtree flow equals the node's own signed flow.
+   * For internal nodes, it is the node's own flow plus the sum of all children's subtree flows.
+   * The root ([[ExternalGrid]]) is assigned own-flow = 0 — it is the residual absorber/supplier,
+   * not a flow contributor.
+   *
+   * @return A map from node ID to its signed subtree flow (positive = surplus, negative = deficit).
    */
-  private case class Tree(children: Map[String, List[String]], parentOf: Map[String, String])
+  private def computeSubtreeFlows(
+                                   root: String,
+                                   tree: Tree,
+                                   entityFlowMap: Map[String, Flow[Energy]]
+                                 ): Map[String, Double] =
+    val result = mutable.Map.empty[String, Double]
 
-  override def solve(entityFlowMap: Map[String, Flow[Energy]], graph: GridGraph): Map[Cable, Energy] =
+    def dfs(node: String): Double =
+      val childrenSum = tree.children.getOrElse(node, Nil).map(dfs).sum
+      val ownFlow = if node == root then 0.0 else entityFlowMap.get(node).map(_.value).getOrElse(0.0)
+      val total = ownFlow + childrenSum
+      result(node) = total
+      total
+
+    dfs(root)
+    result.toMap
+
+  /**
+   * Maps each cable to the absolute energy flowing through it.
+   *
+   * For each cable, identifies which endpoint is the child in the BFS tree
+   * using the `parentOf` map. The cable's load is the absolute subtree flow
+   * of the child endpoint.
+   *
+   * If neither endpoint is a child of the other (possible only in degenerate
+   * graphs where a cable connects two disconnected components), the cable
+   * is assigned zero flow.
+   */
+  private def assignCableLoads(
+                                cables: Iterable[Cable],
+                                subtreeFlows: Map[String, Double],
+                                parentOf: Map[String, String]
+                              ): Map[Cable, Energy] =
+    cables.map { cable =>
+      val CableConnections(a, b) = cable.connections
+      val flow = parentOf.get(a) match
+        case Some(parent) if parent == b =>
+          // a is the child, b is the parent → cable carries subtreeFlow(a)
+          subtreeFlows.getOrElse(a, 0.0).abs
+        case _ =>
+          parentOf.get(b) match
+            case Some(parent) if parent == a =>
+              // b is the child, a is the parent → cable carries subtreeFlow(b)
+              subtreeFlows.getOrElse(b, 0.0).abs
+            case _ =>
+              // Edge not in the spanning tree (cycle edge) — assign zero
+              0.0
+      cable -> Energy(flow)
+    }.toMap
+
+  override def solve(entityFlowMap: Map[String, Flow[Energy]]): Map[Cable, Energy] =
+    val subtreeFlows = computeSubtreeFlows(root, tree, entityFlowMap)
+    assignCableLoads(graph.cables, subtreeFlows, tree.parentOf)
+
+
+object SimplePowerFlowSolver:
+
+  def apply(graph: GridGraph): PowerFlowSolver =
     val root = findRoot(graph)
     val adjacency = buildAdjacency(graph)
     val tree = buildTree(root, adjacency)
-    val subtreeFlows = computeSubtreeFlows(root, tree, entityFlowMap)
-    assignCableLoads(graph.cables, subtreeFlows, tree.parentOf)
+    SimplePowerFlowSolver(graph, tree, root)
 
   /**
    * Finds the [[ExternalGrid]] node in the graph, which serves as the tree root.
@@ -79,63 +145,3 @@ object SimplePowerFlowSolver extends PowerFlowSolver:
       queue ++= nodeChildren
 
     Tree(children.toMap, parentOf.toMap)
-
-  /**
-   * Post-order DFS to compute the net signed flow of the subtree rooted at each node.
-   *
-   * For leaf entity nodes, the subtree flow equals the node's own signed flow.
-   * For internal nodes, it is the node's own flow plus the sum of all children's subtree flows.
-   * The root ([[ExternalGrid]]) is assigned own-flow = 0 — it is the residual absorber/supplier,
-   * not a flow contributor.
-   *
-   * @return A map from node ID to its signed subtree flow (positive = surplus, negative = deficit).
-   */
-  private def computeSubtreeFlows(
-    root: String,
-    tree: Tree,
-    entityFlowMap: Map[String, Flow[Energy]]
-  ): Map[String, Double] =
-    val result = mutable.Map.empty[String, Double]
-
-    def dfs(node: String): Double =
-      val childrenSum = tree.children.getOrElse(node, Nil).map(dfs).sum
-      val ownFlow = if node == root then 0.0 else entityFlowMap.get(node).map(_.value).getOrElse(0.0)
-      val total = ownFlow + childrenSum
-      result(node) = total
-      total
-
-    dfs(root)
-    result.toMap
-
-  /**
-   * Maps each cable to the absolute energy flowing through it.
-   *
-   * For each cable, identifies which endpoint is the child in the BFS tree
-   * using the `parentOf` map. The cable's load is the absolute subtree flow
-   * of the child endpoint.
-   *
-   * If neither endpoint is a child of the other (possible only in degenerate
-   * graphs where a cable connects two disconnected components), the cable
-   * is assigned zero flow.
-   */
-  private def assignCableLoads(
-    cables: Iterable[Cable],
-    subtreeFlows: Map[String, Double],
-    parentOf: Map[String, String]
-  ): Map[Cable, Energy] =
-    cables.map { cable =>
-      val CableConnections(a, b) = cable.connections
-      val flow = parentOf.get(a) match
-        case Some(parent) if parent == b =>
-          // a is the child, b is the parent → cable carries subtreeFlow(a)
-          subtreeFlows.getOrElse(a, 0.0).abs
-        case _ =>
-          parentOf.get(b) match
-            case Some(parent) if parent == a =>
-              // b is the child, a is the parent → cable carries subtreeFlow(b)
-              subtreeFlows.getOrElse(b, 0.0).abs
-            case _ =>
-              // Edge not in the spanning tree (cycle edge) — assign zero
-              0.0
-      cable -> Energy(flow)
-    }.toMap
