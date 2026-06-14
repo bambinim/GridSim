@@ -54,3 +54,7 @@ L'interfaccia grafica (GUI) adotta un pattern a **Flusso di Dati Unidirezionale 
     3.  Ad ogni tick del timer, il Runner invia il vecchio `SimulationState` all'Engine, che calcola il nuovo `SimulationState` in modo puro.
     4.  Il Runner riceve il nuovo stato e notifica il Controller (Observer).
     5.  Il Controller aggiorna i nodi della View con le nuove metriche (aggiornando i grafici e lo stato delle batterie in tempo reale).
+
+[Indice](index.md) |
+[Capitolo precedente](03-requirements.md) |
+[Capitolo successivo](05-detailed_design.md)
