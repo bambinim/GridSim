@@ -10,3 +10,5 @@
 
 Guarda anche le [linee guida sui commit](guidelines/commit_guidelines.md) e il [flusso di lavoro](guidelines/workflow.md)
 scelto.
+
+[README](../README.md)
