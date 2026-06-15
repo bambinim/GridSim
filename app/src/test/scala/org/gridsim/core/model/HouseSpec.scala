@@ -3,14 +3,14 @@ package org.gridsim.core.model
 import cats.implicits.*
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.behaviour.house.HouseLogic.given
-import org.gridsim.core.behaviour.battery.BatteryLogic.given
+import org.gridsim.core.common.Coordinates.GeographicPoint
+import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.model.house.Occupancy.Traditional
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Tick
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.gridsim.core.model.house.{House, Size}
 
@@ -25,7 +25,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def tick: Tick = ???
       override def hour: Int = 11
       override def delta: FiniteDuration = 1.hour
-      override def irradiance(point: GeographicPoint): WeatherConditions = ???
+      override def weather(point: GeographicPoint): WeatherConditions = ???
       override def update(): Unit = ???
 
     val house = result.getOrElse(fail("Validation failed"))
@@ -50,7 +50,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def tick: Tick = ???
       override def hour: Int = 11
       override def delta: FiniteDuration = 1.hour
-      override def irradiance(point: GeographicPoint): WeatherConditions = ???
+      override def weather(point: GeographicPoint): WeatherConditions = ???
       override def update(): Unit = ???
 
     val house = result.getOrElse(fail("Validation failed"))
@@ -81,7 +81,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def tick: Tick = ???
       override def hour: Int = 11 // Consumption 4.0 kWh
       override def delta: FiniteDuration = 1.hour
-      override def irradiance(point: GeographicPoint): WeatherConditions = ???
+      override def weather(point: GeographicPoint): WeatherConditions = ???
       override def update(): Unit = ???
 
     // 4.0 deficit. B1 gives 1.0 (empty). B2 gives 1.0 (empty). Residual 2.0.
@@ -102,7 +102,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def tick: Tick = ???
       override def hour: Int = 11 // Consumption 2.0 kWh
       override def delta: FiniteDuration = 1.hour
-      override def irradiance(point: GeographicPoint): WeatherConditions = ???
+      override def weather(point: GeographicPoint): WeatherConditions = ???
       override def update(): Unit = ???
 
     // Inject 10kWh surplus. House consumes 2kWh -> 8kWh left for battery.
@@ -125,7 +125,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def tick: Tick = ???
       override def hour: Int = 11
       override def delta: FiniteDuration = 0.seconds
-      override def irradiance(point: GeographicPoint): WeatherConditions = ???
+      override def weather(point: GeographicPoint): WeatherConditions = ???
       override def update(): Unit = ???
 
     val (updatedHouse, residue) = house.runSolve(env)
@@ -139,7 +139,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def tick: Tick = ???
       override def hour: Int = 11 // 2.0 kWh
       override def delta: FiniteDuration = 1.hour
-      override def irradiance(point: GeographicPoint): WeatherConditions = ???
+      override def weather(point: GeographicPoint): WeatherConditions = ???
       override def update(): Unit = ???
 
     val (updatedHouse, residue) = house.runSolve(env)

@@ -2,13 +2,11 @@ package org.gridsim.core.common
 
 import cats.{Order, Show}
 import cats.kernel.CommutativeMonoid
-import cats.instances.double.*
-import com.google.common.primitives.UnsignedLong
 
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.annotation.targetName
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 object Units:
 
@@ -140,31 +138,3 @@ object Units:
     @targetName("combineFlows")
     def +(o: Flow[Energy]): Flow[Energy] =
       (f.value + o.value).kwh.toFlow
-
-  opaque type Tick = UnsignedLong
-
-  object Tick:
-    def start: Tick = UnsignedLong.ZERO
-
-  extension (tick: Tick)
-    def next: Tick = tick.plus(UnsignedLong.ONE)
-
-  case class GeographicPoint(latitude: Double, longitude: Double)
-
-  trait Coordinate[T]:
-    def latitude(point: T): Double
-    def longitude(point: T): Double
-
-    extension (t: T)
-      def distanceTo(other: T)(using Coordinate[T]): Double =
-        val dLat = math.toRadians(latitude(other) - latitude(t))
-        val dLon = math.toRadians(longitude(other) - longitude(t))
-        val a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-          math.cos(math.toRadians(latitude(t))) *
-            math.cos(math.toRadians(latitude(other))) *
-            math.sin(dLon / 2) * math.sin(dLon / 2)
-        6371 * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a)) // km
-
-  given Coordinate[GeographicPoint] with
-    def latitude(point: GeographicPoint): Double = point.latitude
-    def longitude(point: GeographicPoint): Double = point.longitude

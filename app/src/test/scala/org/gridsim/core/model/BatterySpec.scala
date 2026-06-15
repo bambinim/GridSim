@@ -1,17 +1,19 @@
 package org.gridsim.core.model
 
 import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Tick
 import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.*
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.EnergyResolver.*
+import org.gridsim.core.common.Coordinates.GeographicPoint
+import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
+
 import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
@@ -21,7 +23,7 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     override def tick: Tick = ???
     override def hour: Int = 11
     override def delta: FiniteDuration = 1.hour
-    override def irradiance(point: GeographicPoint): WeatherConditions = ???
+    override def weather(point: GeographicPoint): WeatherConditions = ???
     override def update(): Unit = ???
 
   val spec = BatterySpecification(
