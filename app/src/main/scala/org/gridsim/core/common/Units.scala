@@ -8,7 +8,7 @@ import com.google.common.primitives.UnsignedLong
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.annotation.targetName
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 object Units:
 
@@ -113,7 +113,7 @@ object Units:
 
   /**
    * Represents an energy or power flow in the grid.
-   * 
+   *
    * @tparam A The unit type of the flow (e.g., Energy or Power).
    */
   enum Flow[+A]:
@@ -141,11 +141,13 @@ object Units:
     def +(o: Flow[Energy]): Flow[Energy] =
       (f.value + o.value).kwh.toFlow
 
+  opaque type Tick = UnsignedLong
+
   object Tick:
-    opaque type Tick = UnsignedLong
     def start: Tick = UnsignedLong.ZERO
-    extension (tick: Tick)
-      def next: Tick = tick.plus(UnsignedLong.ONE)
+
+  extension (tick: Tick)
+    def next: Tick = tick.plus(UnsignedLong.ONE)
 
   case class GeographicPoint(latitude: Double, longitude: Double)
 
@@ -154,8 +156,6 @@ object Units:
     def longitude(point: T): Double
 
     extension (t: T)
-      def lat: Double = latitude(t)
-      def lon: Double = longitude(t)
       def distanceTo(other: T)(using Coordinate[T]): Double =
         val dLat = math.toRadians(latitude(other) - latitude(t))
         val dLon = math.toRadians(longitude(other) - longitude(t))

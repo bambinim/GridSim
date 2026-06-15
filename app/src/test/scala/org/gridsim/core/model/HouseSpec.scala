@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Tick.Tick
+import org.gridsim.core.common.Units.Tick
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.gridsim.core.model.house.{House, Size}
 

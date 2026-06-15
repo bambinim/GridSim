@@ -1,7 +1,7 @@
 package org.gridsim.core.model
 
 import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Tick.Tick
+import org.gridsim.core.common.Units.Tick
 import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.*
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
