@@ -36,7 +36,7 @@ object BatteryStrategy:
    */
   def forModel(model: BatteryModel): BatteryStrategy = model match
     case BatteryModel.Standard => StandardBatteryStrategy
-    case _                     => StandardBatteryStrategy
+    case null                     => StandardBatteryStrategy
 
 /**
  * Standard implementation of battery logic, respecting physical constraints.

@@ -3,12 +3,13 @@ package org.gridsim.core.behaviour.house
 import cats.data.State
 import cats.Traverse
 import cats.implicits.*
-import org.gridsim.core.behaviour.EnergyResolver
+import org.gridsim.core.behaviour.{EnergyResolver, EnergyExchanger}
+import org.gridsim.core.behaviour.EnergyExchanger.*
 import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Flow.Balanced
 import org.gridsim.core.model.*
 import org.gridsim.core.model.house.House
-import org.gridsim.core.behaviour.EnergyResolver.*
+
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Implementation of [[EnergyResolver]] for [[House]].
@@ -24,25 +25,28 @@ object HouseLogic:
    * 3. Storages are processed to store surplus or cover remaining deficit.
    */
   given houseResolver[F[_]: Traverse]: EnergyResolver[House[F]] with
-    def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
-      for {
-        house <- State.get[House[F]]
-        internalFlow = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
-        initialResidue = internalFlow + flow
+    def resolve(h: House[F], env: Environment)(using delta: FiniteDuration): (House[F], Flow[Energy]) = { // Aggiunte le graffe
 
-        (afterProducersResidue, updatedProducers) = house.producers.traverse { prod =>
-          State[Flow[Energy], Producer] { currentFlow =>
-            val (newProd, nextResidue) = prod.runSolve(currentFlow, env)
-            (nextResidue, newProd)
-          }
-        }.run(initialResidue).value
+      val internalFlow = ConsumptionProfile.calculateConsume(h.size, h.occupancy, env.hour)
 
-        (afterStoragesResidue, updatedStorages) = house.storages.traverse { stor =>
-          State[Flow[Energy], Storage] { currentFlow =>
-            val (newStor, nextResidue) = stor.runSolve(currentFlow, env)
-            (nextResidue, newStor)
-          }
-        }.run(afterProducersResidue).value
+      val (afterProducersResidue, updatedProducers) = h.producers.traverse { prod =>
+        State[Flow[Energy], Producer] { currentFlow =>
+          val (newProd, nextResidue) = prod.exchange(currentFlow, env)
+          (nextResidue, newProd)
+        }
+      }.run(internalFlow).value
 
-        _ <- State.modify[House[F]](_.copy(producers = updatedProducers, storages = updatedStorages))
-      } yield afterStoragesResidue
+      val (afterStoragesResidue, updatedStorages) = h.storages.traverse { stor =>
+        State[Flow[Energy], Storage] { currentFlow =>
+          val (newStor, nextResidue) = stor.exchange(currentFlow, env)
+          (nextResidue, newStor)
+        }
+      }.run(afterProducersResidue).value
+      
+      val updatedHouse = h.copy(
+        producers = updatedProducers,
+        storages = updatedStorages
+      )
+
+      (updatedHouse, afterStoragesResidue)
+    }

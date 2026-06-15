@@ -4,7 +4,7 @@ import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.battery.*
-import org.gridsim.core.behaviour.EnergyResolver.*
+import org.gridsim.core.behaviour.EnergyExchanger.*
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.common.Ticks.Tick
@@ -29,11 +29,13 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
   val spec = BatterySpecification(10.kwh, 5.kw, 5.kw, 0.2)
 
+  given delta: FiniteDuration = 1.hour
+
   "BatteryLogic" should "dispatch surplus flow to charging strategy" in {
     val battery = Battery("Battery 1", spec, BatteryState(0.kwh))
     val env = new TestEnv {}
 
-    val (newBattery, residue) = battery.runSolve(Surplus(10.kwh), env)
+    val (newBattery, residue) = battery.exchange(Surplus(10.kwh), env)
 
     newBattery.state.currentCharge shouldBe 5.kwh
     residue shouldBe Surplus(5.kwh)
@@ -43,7 +45,7 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
     val battery = Battery("Battery 1", spec, BatteryState(10.kwh))
     val env = new TestEnv {}
 
-    val (newBattery, residue) = battery.runSolve(Deficit(10.kwh), env)
+    val (newBattery, residue) = battery.exchange(Deficit(10.kwh), env)
 
     newBattery.state.currentCharge shouldBe 5.kwh
     residue shouldBe Deficit(5.kwh)
@@ -53,7 +55,7 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
     val battery = Battery("Battery 1", spec, BatteryState(5.kwh))
     val env = new TestEnv {}
 
-    val (newBattery, residue) = battery.runSolve(Balanced, env)
+    val (newBattery, residue) = battery.exchange(Balanced, env)
 
     newBattery.state.currentCharge shouldBe 5.kwh
     residue shouldBe Balanced
