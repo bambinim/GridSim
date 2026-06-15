@@ -42,17 +42,16 @@ case class SimplePowerFlowSolver(graph: GridGraph, tree: Tree, root: String) ext
                                    tree: Tree,
                                    entityFlowMap: Map[String, Flow[Energy]]
                                  ): Map[String, Double] =
-    val result = mutable.Map.empty[String, Double]
-
-    def dfs(node: String): Double =
-      val childrenSum = tree.children.getOrElse(node, Nil).map(dfs).sum
+    def dfs(node: String): (Double, Map[String, Double]) =
+      val childrenData = tree.children.getOrElse(node, Nil).map(dfs)
+      val childrenSum = childrenData.map(_._1).sum
       val ownFlow = if node == root then 0.0 else entityFlowMap.get(node).map(_.value).getOrElse(0.0)
       val total = ownFlow + childrenSum
-      result(node) = total
-      total
 
-    dfs(root)
-    result.toMap
+      val resultMap = childrenData.map(_._2).foldLeft(Map(node -> total))(_ ++ _)
+      (total, resultMap)
+
+    dfs(root)._2
 
   /**
    * Maps each cable to the absolute energy flowing through it.
