@@ -24,7 +24,7 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     override def hour: Int = 11
     override def delta: FiniteDuration = 1.hour
     override def weather(point: GeographicPoint): WeatherConditions = ???
-    override def update(): Unit = ???
+    override def update(): Environment = ???
 
   val spec = BatterySpecification(
     capacity = 10.0.kwh,

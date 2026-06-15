@@ -71,29 +71,29 @@ class TemperaturesSpec extends AnyFlatSpec with Matchers:
   it should "compare temperatures with <" in:
     (Temperature.celsius(20.0) < Temperature.celsius(100.0)) shouldBe true
 
-  // Conversions
+  // Conversions and Any type
   "Temperature[Celsius]" should "convert to Kelvin" in:
-    Temperature.celsius(0.0).toKelvin.value shouldBe 273.15
+    Temperature.celsius(0.0).toAny.toKelvin.value shouldBe 273.15
     Temperature.celsius(100.0).toKelvin.value shouldBe 373.15
 
   it should "convert to Fahrenheit" in:
-    Temperature.celsius(0.0).toFahrenheit.value shouldBe 32.0
+    Temperature.celsius(0.0).toAny.toFahrenheit.value shouldBe 32.0
     Temperature.celsius(100.0).toFahrenheit.value shouldBe 212.0
 
   "Temperature[Kelvin]" should "convert to Celsius" in:
-    Temperature.kelvin(273.15).toCelsius.value shouldBe 0.0
+    Temperature.kelvin(273.15).toAny.toCelsius.value shouldBe 0.0
     Temperature.kelvin(373.15).toCelsius.value shouldBe 100.0
 
   it should "convert to Fahrenheit" in:
-    Temperature.kelvin(273.15).toFahrenheit.value shouldBe 32.0
+    Temperature.kelvin(273.15).toAny.toFahrenheit.value shouldBe 32.0
     Temperature.kelvin(373.15).toFahrenheit.value shouldBe 212.0
 
   "Temperature[Fahrenheit]" should "convert to Celsius" in:
-    Temperature.fahrenheit(32.0).toCelsius.value shouldBe 0.0
+    Temperature.fahrenheit(32.0).toAny.toCelsius.value shouldBe 0.0
     Temperature.fahrenheit(212.0).toCelsius.value shouldBe 100.0
 
   it should "convert to Kelvin" in:
-    Temperature.fahrenheit(32.0).toKelvin.value shouldBe 273.15
+    Temperature.fahrenheit(32.0).toAny.toKelvin.value shouldBe 273.15
     Temperature.fahrenheit(212.0).toKelvin.value shouldBe 373.15
 
   // Show

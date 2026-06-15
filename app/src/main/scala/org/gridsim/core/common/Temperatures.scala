@@ -24,6 +24,8 @@ object Temperatures:
    */
   opaque type Temperature[U <: TemperatureUnit] = Double
 
+  opaque type AnyTemperature = Temperature[Celsius]
+
   object Temperature:
     /**
      * Bypasses validation to construct a [[Temperature[U]] directly from a raw Double.
@@ -98,9 +100,9 @@ object Temperatures:
 
     /** Cats [[Show]] instance for Fahrenheit — formats as "%.2f°F". */
     given showFahrenheit: Show[Temperature[Fahrenheit]] = Show.show(t => f"${t.value}%.2f°F")
+  end Temperature
 
   // Generic extensions (all units)
-
   extension [U <: TemperatureUnit](t: Temperature[U])
     /** Unwraps the underlying [[Double]] value. */
     def value: Double = t
@@ -120,9 +122,9 @@ object Temperatures:
 
     /** Returns true if this temperature is strictly less than [[other]]. */
     def <(other: Temperature[U]): Boolean = t.value < other.value
+  end extension
 
   // Arithmetic extensions (units with a TempValidator)
-
   extension [U <: TemperatureUnit : Temperature.TempValidator](t: Temperature[U])
     /**
      * Adds a delta (in the same unit) to this temperature.
@@ -137,54 +139,104 @@ object Temperatures:
      * resulting value would fall below absolute zero for unit [[U]].
      */
     def -(delta: Double): Temperature[U] = Temperature.validated[U](t.value - delta)
+  end extension
+
+  private def celsiusToKelvin(t: Temperature[Celsius]): Temperature[Kelvin] =
+    Temperature.unsafe(t.value + 273.15)
+  private def celsiusToFahrenheit(t: Temperature[Celsius]): Temperature[Fahrenheit] =
+    Temperature.unsafe(t.value * 9.0 / 5.0 + 32.0)
 
   extension (t: Temperature[Celsius])
     /**
      * Converts this Celsius temperature to Kelvin.
-     * Formula: K = °C + 273.15
      * Uses [[unsafe]] since a valid Celsius value always yields a valid Kelvin value.
      */
     @targetName("Celsius2Kelvin")
-    def toKelvin: Temperature[Kelvin] = Temperature.unsafe(t.value + 273.15)
+    def toKelvin: Temperature[Kelvin] = celsiusToKelvin(t)
 
     /**
      * Converts this Celsius temperature to Fahrenheit.
-     * Formula: °F = °C × 9/5 + 32
      * Uses [[unsafe]] since a valid Celsius value always yields a valid Fahrenheit value.
      */
     @targetName("Celsius2Fahrenheit")
-    def toFahrenheit: Temperature[Fahrenheit] = Temperature.unsafe(t.value * 9.0 / 5.0 + 32.0)
+    def toFahrenheit: Temperature[Fahrenheit] = celsiusToFahrenheit(t)
+
+    /**
+     * Converts this Celsius temperature to AnyTemperature.
+     */
+    @targetName("Celsius2Any")
+    def toAny: AnyTemperature = t
+  end extension
+
+  private def kelvinToCelsius(t: Temperature[Kelvin]): Temperature[Celsius] =
+    Temperature.unsafe(t.value - 273.15)
 
   extension (t: Temperature[Kelvin])
     /**
      * Converts this Kelvin temperature to Celsius.
-     * Formula: °C = K - 273.15
      * Uses [[unsafe]] since a valid Kelvin value always yields a valid Celsius value.
      */
     @targetName("Kelvin2Celsius")
-    def toCelsius: Temperature[Celsius] = Temperature.unsafe(t.value - 273.15)
+    def toCelsius: Temperature[Celsius] = kelvinToCelsius(t)
 
     /**
      * Converts this Kelvin temperature to Fahrenheit.
-     * Formula: °F = (K - 273.15) × 9/5 + 32  (inlined to avoid cross-extension chaining issues)
      * Uses [[unsafe]] since a valid Kelvin value always yields a valid Fahrenheit value.
      */
     @targetName("Kelvin2Fahrenheit")
-    def toFahrenheit: Temperature[Fahrenheit] = Temperature.unsafe((t.value - 273.15) * 9.0 / 5.0 + 32.0)
+    def toFahrenheit: Temperature[Fahrenheit] = celsiusToFahrenheit(kelvinToCelsius(t))
+
+    /**
+     * Converts this Kelvin temperature to AnyTemperature.
+     */
+    @targetName("Kelvin2Any")
+    def toAny: AnyTemperature = kelvinToCelsius(t)
+  end extension
+
+  private def fahrenheitToCelsius(t: Temperature[Fahrenheit]): Temperature[Celsius] =
+    Temperature.unsafe((t.value - 32.0) * 5.0 / 9.0)
 
   extension (t: Temperature[Fahrenheit])
     /**
      * Converts this Fahrenheit temperature to Celsius.
-     * Formula: °C = (°F - 32) × 5/9
      * Uses [[unsafe]] since a valid Fahrenheit value always yields a valid Celsius value.
      */
     @targetName("Fahrenheit2Celsius")
-    def toCelsius: Temperature[Celsius] = Temperature.unsafe((t.value - 32.0) * 5.0 / 9.0)
+    def toCelsius: Temperature[Celsius] = fahrenheitToCelsius(t)
 
     /**
      * Converts this Fahrenheit temperature to Kelvin.
-     * Formula: K = (°F - 32) × 5/9 + 273.15  (inlined to avoid cross-extension chaining issues)
      * Uses [[unsafe]] since a valid Fahrenheit value always yields a valid Kelvin value.
      */
     @targetName("Fahrenheit2Kelvin")
-    def toKelvin: Temperature[Kelvin] = Temperature.unsafe((t.value - 32.0) * 5.0 / 9.0 + 273.15)
+    def toKelvin: Temperature[Kelvin] = celsiusToKelvin(fahrenheitToCelsius(t))
+
+    /**
+     * Converts this Fahrenheit temperature to AnyTemperature.
+     */
+    @targetName("Fahrenheit2Any")
+    def toAny: AnyTemperature = fahrenheitToCelsius(t)
+  end extension
+
+  extension (t: AnyTemperature)
+    /**
+     * Converts this AnyTemperature temperature to Celsius.
+     */
+    @targetName("Any2Celsius")
+    def toCelsius: Temperature[Celsius] = t
+
+    /**
+     * Converts this AnyTemperature temperature to Kelvin.
+     * Uses [[unsafe]] since a valid AnyTemperature value always yields a valid Kelvin value.
+     */
+    @targetName("Any2Kelvin")
+    def toKelvin: Temperature[Kelvin] = celsiusToKelvin(t)
+
+    /**
+     * Converts this AnyTemperature temperature to Fahrenheit.
+     * Uses [[unsafe]] since a valid AnyTemperature value always yields a valid Fahrenheit value.
+     */
+    @targetName("Any2Fahrenheit")
+    def toFahrenheit: Temperature[Fahrenheit] = celsiusToFahrenheit(t)
+  end extension
+end Temperatures

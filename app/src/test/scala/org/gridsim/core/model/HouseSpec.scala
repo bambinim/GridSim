@@ -26,7 +26,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def hour: Int = 11
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def update(): Unit = ???
+      override def update(): Environment = ???
 
     val house = result.getOrElse(fail("Validation failed"))
 
@@ -51,7 +51,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def hour: Int = 11
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def update(): Unit = ???
+      override def update(): Environment = ???
 
     val house = result.getOrElse(fail("Validation failed"))
 
@@ -82,7 +82,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def hour: Int = 11 // Consumption 4.0 kWh
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def update(): Unit = ???
+      override def update(): Environment = ???
 
     // 4.0 deficit. B1 gives 1.0 (empty). B2 gives 1.0 (empty). Residual 2.0.
     val (updatedHouse, residue) = house.runSolve(env)
@@ -103,7 +103,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def hour: Int = 11 // Consumption 2.0 kWh
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def update(): Unit = ???
+      override def update(): Environment = ???
 
     // Inject 10kWh surplus. House consumes 2kWh -> 8kWh left for battery.
     // Battery capacity 10, max charge 5. So battery takes 5. Residue 3 Surplus.
@@ -126,7 +126,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def hour: Int = 11
       override def delta: FiniteDuration = 0.seconds
       override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def update(): Unit = ???
+      override def update(): Environment = ???
 
     val (updatedHouse, residue) = house.runSolve(env)
     residue shouldBe Flow.Balanced // 0 duration = 0 energy
@@ -140,7 +140,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       override def hour: Int = 11 // 2.0 kWh
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def update(): Unit = ???
+      override def update(): Environment = ???
 
     val (updatedHouse, residue) = house.runSolve(env)
     residue shouldBe Flow.Deficit(2.0.kwh)
