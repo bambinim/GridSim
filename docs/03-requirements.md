@@ -71,3 +71,7 @@ Il dominio del simulatore è composto dalle seguenti entità concettuali:
 *   **Librerie di Test:** Uso di ScalaTest per test unitari e di integrazione.
 *   **Interfaccia Grafica:** JavaFX / ScalaFX, per supportare la visualizzazione di grafici ad andamento temporale in tempo reale ed elementi grafici avanzati.
 *   **Concorrenza e Asincronismo:** Costrutti standard della libreria di Scala (`Future`, `Promise` ed `ExecutionContext` per la gestione asincrona dei tick senza blocco della GUI).
+
+[Indice](index.md) |
+[Capitolo precedente](02-development_process/02-development_process.md) |
+[Capitolo successivo](04-architectural_design.md)

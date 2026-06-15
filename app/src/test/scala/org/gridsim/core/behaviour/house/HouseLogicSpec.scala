@@ -4,14 +4,16 @@ import org.gridsim.core.model.*
 import org.gridsim.core.model.house.*
 import org.gridsim.core.model.battery.*
 import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Tick.Tick
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.behaviour.house.HouseLogic.given
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
+import org.gridsim.core.common.GeographicPoint
+import org.gridsim.core.common.Ticks.Tick
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
+
 import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
@@ -21,8 +23,9 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     override def tick: Tick = Tick.start
     override def hour: Int = 11
     override def delta: FiniteDuration = 1.hour
-    override def irradiance(point: GeographicPoint): WeatherConditions = ???
-    override def update(): Unit = ()
+    override def weather(point: GeographicPoint): WeatherConditions = ???
+
+    override def update(): Environment = ???
   }
 
   def mockEnv(h: Int = 11, d: FiniteDuration = 1.hour): Environment = new TestEnv {

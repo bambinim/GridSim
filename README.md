@@ -8,10 +8,8 @@ Project written in Scala for the course
 
 - [@bambinim](https://github.com/bambinim)
 - [@EnryMarch10](https://github.com/EnryMarch10)
+- [@michelenardini99](https://github.com/michelenardini99)
 
 ## Documentazione
 
-1. [Introduzione](README.md)
-2. [Requisiti](docs/01-requirements.md)
-3. [Design architetturale](docs/02-architectural_design.md)
-4. [Design di dettaglio](docs/03-detailed_design.md)
+[Sommario](docs/index.md)

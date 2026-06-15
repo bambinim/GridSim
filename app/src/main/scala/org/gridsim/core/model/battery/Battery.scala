@@ -4,9 +4,7 @@ import cats.data.ValidatedNec
 import org.gridsim.core.model.{Storage, GridEntity}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
-import org.gridsim.core.validation.Validator.given
 import org.gridsim.core.validation.Validator.validate
-import org.gridsim.core.validation.BatteryValidator.given
 
 /**
  * A Battery is an entity capable of storing and releasing energy.

@@ -1,22 +1,21 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.common.Units.Tick.Tick
+import org.gridsim.core.common.GeographicPoint
+import org.gridsim.core.common.Temperatures.AnyTemperature
+import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.common.Units.Power
-import org.gridsim.core.common.Units.GeographicPoint
 
 import scala.concurrent.duration.FiniteDuration
 
-// TODO: to verify if ok
 case class WeatherConditions(
-  irradiance: Power,  // kW/m²
-  // windSpeed: Double,  // m/s
-  temperature: Double // °C
+  irradiance: Power, // TODO: maybe kW/m2? Depends on the modelling of GeographicPoint!
+  // windSpeed: Double, // m/s
+  temperature: AnyTemperature
 )
 
 trait Environment:
   def tick: Tick
   def hour: Int
   def delta: FiniteDuration
-  def irradiance(point: GeographicPoint): WeatherConditions
-  def update(): Unit
-
+  def weather(point: GeographicPoint): WeatherConditions
+  def update(): Environment
