@@ -13,13 +13,11 @@ import org.scalatestplus.junit.JUnitRunner
 class HouseSpec extends AnyFlatSpec with Matchers {
 
   "A House" should "be correctly initialized with valid structural data" in {
-    val result = House.makeEmptyHouse("ValidHouse123", Size.Medium, Traditional)
+    val result = House.makeEmptyHouse("ValidHouse123")
 
     result.isValid shouldBe true
     val house = result.getOrElse(fail("Should be valid"))
     house.id shouldBe "ValidHouse123"
-    house.size shouldBe Size.Medium
-    house.occupancy shouldBe Traditional
     house.producers shouldBe empty
     house.storages shouldBe empty
   }
@@ -28,7 +26,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val spec = BatterySpecification(10.kwh, 5.kw, 5.kw, 0.2)
     val battery = Battery("Battery1", spec, BatteryState(5.kwh))
 
-    val result = House.makeHouseWithStorages("HouseWithBattery", Size.Small, Traditional, List(battery))
+    val result = House.makeHouseWithStorages("HouseWithBattery", List(battery))
 
     result.isValid shouldBe true
     val house = result.getOrElse(fail("Should be valid"))
@@ -37,7 +35,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
   }
 
   "House Validation" should "fail if the ID is too short" in {
-    val result = House.makeEmptyHouse("H1", Size.Small, Traditional)
+    val result = House.makeEmptyHouse("H1")
 
     result.isInvalid shouldBe true
   }
@@ -46,13 +44,13 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val invalidSpec = BatterySpecification(-10.kwh, 5.kw, 5.kw, 0.2)
     val invalidBattery = Battery("Inv", invalidSpec, BatteryState(0.kwh))
 
-    val result = House.makeHouseWithStorages("HouseWithInvalidComp", Size.Small, Traditional, List(invalidBattery))
+    val result = House.makeHouseWithStorages("HouseWithInvalidComp", List(invalidBattery))
 
     result.isInvalid shouldBe true
   }
 
   it should "accumulate errors from multiple invalid components" in {
-    val result = House.makeEmptyHouse("H", Size.Small, Traditional)
+    val result = House.makeEmptyHouse("H")
 
     result.isInvalid shouldBe true
   }

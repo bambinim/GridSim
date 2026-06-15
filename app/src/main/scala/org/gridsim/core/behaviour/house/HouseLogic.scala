@@ -3,8 +3,10 @@ package org.gridsim.core.behaviour.house
 import cats.data.State
 import cats.Traverse
 import cats.implicits.*
-import org.gridsim.core.behaviour.{EnergyResolver, EnergyExchanger}
+import org.gridsim.core.behaviour.{EnergyExchanger, EnergyResolver}
 import org.gridsim.core.behaviour.EnergyExchanger.*
+import org.gridsim.core.behaviour.shaping.DemandShaper
+import org.gridsim.core.common.StochasticGenerator
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.house.House
@@ -12,22 +14,28 @@ import org.gridsim.core.model.house.House
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Implementation of [[EnergyResolver]] for [[House]].
- * Orchestrates energy flows between consumption, producers, and storages.
+ * Logic implementation for the [[House]] entity.
+ *
+ * Orchestrates the energy resolution process by:
+ * 1. Calculating internal consumption using a [[ConsumptionResolver]].
+ * 2. Processing internal Producers to cover demand or generate surplus.
+ * 3. Processing internal Storages to store excess or cover remaining deficit.
  */
 object HouseLogic:
 
   /**
-   * Resolver instance for a [[House]].
-   * Follows a multi-pass approach:
-   * 1. Internal consumption is calculated.
-   * 2. Producers are processed to cover demand or create surplus.
-   * 3. Storages are processed to store surplus or cover remaining deficit.
+   * Provides the [[EnergyResolver]] implementation for the [[House]].
+   *
+   * It requires a [[ConsumptionResolver]] and a [[DemandShaper]] to be
+   * present in the implicit scope to handle stochasticity.
    */
-  given houseResolver[F[_]: Traverse]: EnergyResolver[House[F]] with
-    def resolve(h: House[F], env: Environment)(using delta: FiniteDuration): (House[F], Flow[Energy]) = { // Aggiunte le graffe
+  given houseResolver[F[_]: Traverse](using
+    resolver: ConsumptionResolver,
+    shaper: DemandShaper
+  ): EnergyResolver[House[F]] with
+    def resolve(h: House[F], env: Environment)(using delta: FiniteDuration): (House[F], Flow[Energy]) =
 
-      val internalFlow = ConsumptionProfile.calculateConsume(h.size, h.occupancy, env.hour)
+      val internalFlow = resolver.resolve(env.hour, h.strategy)
 
       val (afterProducersResidue, updatedProducers) = h.producers.traverse { prod =>
         State[Flow[Energy], Producer] { currentFlow =>
@@ -42,11 +50,10 @@ object HouseLogic:
           (nextResidue, newStor)
         }
       }.run(afterProducersResidue).value
-      
+
       val updatedHouse = h.copy(
         producers = updatedProducers,
         storages = updatedStorages
       )
 
       (updatedHouse, afterStoragesResidue)
-    }

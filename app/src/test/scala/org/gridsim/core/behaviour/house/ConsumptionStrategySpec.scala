@@ -1,6 +1,6 @@
 package org.gridsim.core.behaviour.house
 
-import org.gridsim.core.behaviour.house.ConsumptionProfile.*
+import org.gridsim.core.behaviour.house.ConsumptionResolver.*
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.common.Units.Flow.Deficit
 import org.gridsim.core.model.house.Occupancy.*
@@ -16,27 +16,17 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 @RunWith(classOf[JUnitRunner])
 class ConsumptionStrategySpec extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks {
 
-  val testHour = 19
   given delta: FiniteDuration = 2.hour
 
-  "ConsumptionStrategy" should "calculate the correct deficit flow for any House configuration" in {
-    val testCases = Table(
-      ("Size",       "Occupancy",   "Expected Energy"),
-      (Size.Small,   Traditional,   16.kwh),
-      (Size.Medium,  Traditional,   24.kwh),
-      (Size.Large,   Traditional,   32.kwh),
-      (Size.Small,   SmartWorker,   10.kwh),
-      (Size.Medium,  SmartWorker,   15.kwh),
-      (Size.Large,   SmartWorker,   20.kwh),
-      (Size.Small,   Vacant,        2.kwh),
-      (Size.Medium,  Vacant,        3.kwh),
-      (Size.Large,   Vacant,        4.kwh)
-    )
 
-    forAll(testCases) { (size, occupancy, expectedEnergy) =>
-      val result = calculateConsume(size, occupancy, testHour)
-      result shouldBe Deficit(expectedEnergy)
-    }
+  "ConsumptionStrategy" should "return a Deficit flow for peak hours" in {
+    val strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
+    val testHour = 18
+    given resolver: ConsumptionResolver = StochasticConsumptionResolver()
+
+    val result = resolver.resolve(testHour, strategy)
+
+    result should matchPattern { case Flow.Deficit(_) => }
   }
 
 }

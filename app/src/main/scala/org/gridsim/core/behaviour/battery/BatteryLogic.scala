@@ -10,15 +10,17 @@ import org.gridsim.core.model.battery.{Battery, BatteryState}
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Implementation of [[EnergyResolver]] for [[Battery]].
- * Encapsulates the physical constraints of charging and discharging.
+ * Logic implementation for the [[Battery]] entity.
+ *
+ * It bridges the domain model with the physical simulation by applying
+ * battery-specific strategies to resolve incoming energy flows.
  */
 object BatteryLogic:
   /**
-   * Provides the [[EnergyResolver]] for the [[Battery]] entity.
-   * Dispatch the incoming flow to the appropriate strategy.
-   * Return a [[State]] transition that updates the [[Battery]] instance and
-   * calculates the residual [[Energy]].
+   * Provides the [[EnergyExchanger]] implementation for the [[Battery]].
+   *
+   * It dispatches the incoming flow to the appropriate charging or discharging
+   * strategy based on the battery model and specifications.
    */
   given EnergyExchanger[Battery] with
     def exchange(b: Battery, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (Battery, Flow[Energy]) =

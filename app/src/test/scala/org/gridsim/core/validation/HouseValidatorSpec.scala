@@ -16,7 +16,7 @@ import org.scalatestplus.junit.JUnitRunner
 class HouseValidatorSpec extends AnyFlatSpec with Matchers {
 
   "HouseValidator" should "report an InvalidId error when the ID is too short" in {
-    val result = House.makeEmptyHouse("ID", Medium, Traditional)
+    val result = House.makeEmptyHouse("ID")
 
     result.isInvalid shouldBe true
 
@@ -30,7 +30,7 @@ class HouseValidatorSpec extends AnyFlatSpec with Matchers {
     val invalidSpec = BatterySpecification(-10.kwh, 5.kw, 5.kw, 0.2)
     val battery = Battery("Battery", invalidSpec, BatteryState(0.kwh))
 
-    val result = House.makeHouseWithStorages("X", Small, Traditional, List(battery))
+    val result = House.makeHouseWithStorages("X", List(battery))
 
     result.fold(
       errors => {
@@ -49,7 +49,7 @@ class HouseValidatorSpec extends AnyFlatSpec with Matchers {
     val invalidSpec = BatterySpecification(10.kwh, -5.kw, 5.kw, 0.2)
     val battery = Battery("Battery", invalidSpec, BatteryState(0.kwh))
 
-    val result = House.makeHouseWithStorages("House 1", Small, Traditional, List(battery))
+    val result = House.makeHouseWithStorages("House 1", List(battery))
 
     result.fold(
       errors => {

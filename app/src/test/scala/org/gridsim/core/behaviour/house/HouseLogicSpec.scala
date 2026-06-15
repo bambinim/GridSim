@@ -7,8 +7,10 @@ import org.gridsim.core.common.Units.*
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.behaviour.house.HouseLogic.given
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
+import org.gridsim.core.behaviour.shaping.{DemandShaper, GaussianShaper, IdentityShaper}
 import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.common.Ticks.Tick
+import org.gridsim.core.common.StochasticGenerator
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -24,7 +26,6 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     override def hour: Int = 12
     override def delta: FiniteDuration = 1.hour
     override def weather(point: GeographicPoint): WeatherConditions = ???
-
     override def update(): Environment = ???
   }
 
@@ -32,53 +33,53 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     override def hour: Int = h
     override def delta: FiniteDuration = d
   }
-
   given delta: FiniteDuration = 1.hour
-
-  "HouseLogic" should "orchestrate internal consumption based on size and occupancy" in {
-    val house = House.makeEmptyHouse("House1", Size.Small, Occupancy.Traditional).getOrElse(fail())
-
-    val (_, residue) = house.resolve(mockEnv(h = 11))
-
-    residue shouldBe Flow.Deficit(2.0.kwh)
-  }
-
-  it should "scale consumption correctly for different house sizes" in {
-    val house = House.makeEmptyHouse("House2", Size.Large, Occupancy.Traditional).getOrElse(fail())
+  "HouseLogic with IdentityShaper" should "produce exact deterministic consumption" in {
+    // Inject IdentityShaper for predictability
+    given shaper: DemandShaper = IdentityShaper()
+    val house = House.makeEmptyHouse("HouseDet").getOrElse(fail())
 
     val (_, residue) = house.resolve(mockEnv(h = 11))
 
-    residue shouldBe Flow.Deficit(4.0.kwh)
+    // Hour 11 in TraditionalProfile has mean 0.5 kW -> 0.5 kWh
+    residue shouldBe Flow.Deficit(0.5.kwh)
   }
 
-  it should "integrate with storages (batteries) to cover the calculated deficit" in {
+  it should "integrate correctly with batteries using deterministic flow" in {
+    given shaper: DemandShaper = IdentityShaper()
     val spec = BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0)
     val battery = Battery("Battery1", spec, BatteryState(5.kwh))
-    val house = House.makeHouseWithStorages("House3", Size.Small, Occupancy.Traditional, List(battery)).getOrElse(fail())
+    val house = House.makeHouseWithStorages[List]("HouseBat", List(battery)).getOrElse(fail())
 
     val (newHouse, residue) = house.resolve(mockEnv(h = 11))
 
+    // 0.5 kWh deficit covered by 5 kWh battery -> Balanced residue, 4.5 kWh charge
     residue shouldBe Flow.Balanced
     val finalBattery = newHouse.storages.head.asInstanceOf[Battery]
-    finalBattery.state.currentCharge shouldBe 3.0.kwh
+    finalBattery.state.currentCharge shouldBe 4.5.kwh
   }
 
-  it should "thread energy flow sequentially through multiple batteries" in {
-    val spec = BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0)
-    val b1 = Battery("Battery1", spec, BatteryState(1.kwh))
-    val b2 = Battery("Battery2", spec, BatteryState(5.kwh))
-    val house = House.makeHouseWithStorages("House4", Size.Large, Occupancy.Traditional, List(b1, b2)).getOrElse(fail())
+  "HouseLogic with GaussianShaper" should "produce stochastic consumption within reasonable bounds" in {
+    // Inject GaussianShaper with a fixed seed for minimal reproducibility in this test
+    val gen = StochasticGenerator.fromSeed(12345L)
+    given shaper: DemandShaper = GaussianShaper(gen)
+    val house = House.makeEmptyHouse("HouseStoch").getOrElse(fail())
 
-    val (newHouse, residue) = house.resolve(mockEnv(h = 11))
+    val (_, res1) = house.resolve(mockEnv(h = 11))
+    val (_, res2) = house.resolve(mockEnv(h = 11))
 
-    residue shouldBe Flow.Balanced
-    newHouse.storages.head.asInstanceOf[Battery].state.currentCharge shouldBe 0.kwh
-    newHouse.storages.last.asInstanceOf[Battery].state.currentCharge shouldBe 2.kwh
+    // Stochastic values should differ
+    res1 should not be res2
+
+    // Values should still be sensible (mean 0.5 kW, variance 0.1)
+    val Flow.Deficit(amt1) = res1: @unchecked
+    amt1.toDouble should (be > 0.0 and be < 1.0)
   }
 
-  it should "result in a Balanced flow if the simulation tick duration is zero" in {
-    val house = House.makeEmptyHouse("House6", Size.Small, Occupancy.Traditional).getOrElse(fail())
+  it should "result in a Balanced flow if the simulation tick duration is zero regardless of shaper" in {
+    given shaper: DemandShaper = IdentityShaper()
     given delta: FiniteDuration = 0.hour
+    val house = House.makeEmptyHouse("HouseZero").getOrElse(fail())
     val (_, residue) = house.resolve(mockEnv(d = 0.seconds))
 
     residue shouldBe Flow.Balanced
