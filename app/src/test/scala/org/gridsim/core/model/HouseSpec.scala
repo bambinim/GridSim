@@ -3,7 +3,7 @@ package org.gridsim.core.model
 import cats.implicits.*
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.behaviour.house.HouseLogic.given
-import org.gridsim.core.common.Coordinates.GeographicPoint
+import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.model.house.Occupancy.Traditional
 import org.junit.runner.RunWith

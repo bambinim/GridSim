@@ -5,7 +5,7 @@ import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.*
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.EnergyResolver.*
-import org.gridsim.core.common.Coordinates.GeographicPoint
+import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.BatteryValidator.given

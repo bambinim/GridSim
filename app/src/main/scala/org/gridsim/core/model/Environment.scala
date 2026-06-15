@@ -1,7 +1,7 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.common.Coordinates.GeographicPoint
-import org.gridsim.core.common.Temperatures.{AnyTemperature, Temperature, TemperatureUnit}
+import org.gridsim.core.common.GeographicPoint
+import org.gridsim.core.common.Temperatures.AnyTemperature
 import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.common.Units.Power
 
