@@ -27,7 +27,7 @@ object HouseLogic:
     def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
       for {
         house <- State.get[House[F]]
-        internalFlow = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.hour)(using env.delta)
+        internalFlow = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.time.hour)(using env.delta)
         initialResidue = internalFlow + flow
 
         (afterProducersResidue, updatedProducers) = house.producers.traverse { prod =>

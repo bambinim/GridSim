@@ -63,31 +63,31 @@ object Temperatures:
     given TempValidator[Fahrenheit] with
       def validate(v: Double): Temperature[Fahrenheit] = fahrenheit(v)
 
-    given showCelsius: Show[Temperature[Celsius]] = Show.show(t => s"${t.value.show2}°C")
-    given showKelvin: Show[Temperature[Kelvin]] = Show.show(t => s"${t.value.show2} K")
-    given showFahrenheit: Show[Temperature[Fahrenheit]] = Show.show(t => s"${t.value.show2}°F")
+    given showCelsius: Show[Temperature[Celsius]] = Show.show(t => s"${t.show2}°C")
+    given showKelvin: Show[Temperature[Kelvin]] = Show.show(t => s"${t.show2} K")
+    given showFahrenheit: Show[Temperature[Fahrenheit]] = Show.show(t => s"${t.show2}°F")
   end Temperature
 
   extension [U <: TemperatureUnit](t: Temperature[U])
-    def value: Double = t
+    def toDouble: Double = t
 
     /** Signed difference between this temperature and [[other]] in the same unit. */
-    def delta(other: Temperature[U]): Double = t.value - other.value
-    def ===(other: Temperature[U]): Boolean = t.value == other.value
-    def >(other: Temperature[U]): Boolean = t.value > other.value
-    def <(other: Temperature[U]): Boolean = t.value < other.value
+    def delta(other: Temperature[U]): Double = t - other
+    def ===(other: Temperature[U]): Boolean = t == other
+    def >(other: Temperature[U]): Boolean = t > other
+    def <(other: Temperature[U]): Boolean = t < other
   end extension
 
   // Arithmetic extensions (require a TempValidator)
   extension [U <: TemperatureUnit : Temperature.TempValidator](t: Temperature[U])
-    def +(delta: Double): Temperature[U] = Temperature.validated[U](t.value + delta)
-    def -(delta: Double): Temperature[U] = Temperature.validated[U](t.value - delta)
+    def +(delta: Double): Temperature[U] = Temperature.validated[U](t.toDouble + delta)
+    def -(delta: Double): Temperature[U] = Temperature.validated[U](t.toDouble - delta)
   end extension
 
   private def celsiusToKelvin(t: Temperature[Celsius]): Temperature[Kelvin] =
-    Temperature.unsafe(t.value + 273.15)
+    Temperature.unsafe(t + 273.15)
   private def celsiusToFahrenheit(t: Temperature[Celsius]): Temperature[Fahrenheit] =
-    Temperature.unsafe(t.value * 9.0 / 5.0 + 32.0)
+    Temperature.unsafe(t * 9.0 / 5.0 + 32.0)
 
   object Celsius:
     val AbsoluteZero = -273.15
@@ -100,7 +100,7 @@ object Temperatures:
   end Celsius
 
   private def kelvinToCelsius(t: Temperature[Kelvin]): Temperature[Celsius] =
-    Temperature.unsafe(t.value - 273.15)
+    Temperature.unsafe(t - 273.15)
 
   object Kelvin:
     val AbsoluteZero = 0.0
@@ -113,7 +113,7 @@ object Temperatures:
   end Kelvin
 
   private def fahrenheitToCelsius(t: Temperature[Fahrenheit]): Temperature[Celsius] =
-    Temperature.unsafe((t.value - 32.0) * 5.0 / 9.0)
+    Temperature.unsafe((t - 32.0) * 5.0 / 9.0)
 
   object Fahrenheit:
     val AbsoluteZero = -459.67
