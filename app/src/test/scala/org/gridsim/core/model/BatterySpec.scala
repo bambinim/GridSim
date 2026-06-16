@@ -5,23 +5,17 @@ import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.*
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.EnergyResolver.*
-import org.gridsim.core.common.{GeographicPoint, SimulationTime}
+import org.gridsim.core.common.SimulationTime
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 
-import scala.concurrent.duration.*
-
 @RunWith(classOf[JUnitRunner])
 class BatterySpec extends AnyFlatSpec with Matchers {
 
-  val env = new Environment:
-    override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-    override def delta: FiniteDuration = 1.hour
-    override def weather(point: GeographicPoint): WeatherConditions = ???
-    override def advance(): Environment = ???
+  val env = Environment(SimulationTime(0, 0, 11, 0))
 
   val spec = BatterySpecification(
     capacity = 10.0.kwh,

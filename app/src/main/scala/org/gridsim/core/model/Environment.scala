@@ -1,21 +1,23 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.common.{GeographicPoint, Irradiance}
-import org.gridsim.core.common.SimulationTime
-import org.gridsim.core.common.Temperatures.AnyTemperature
+import org.gridsim.core.common.{GeographicPoint, Irradiance, SimulationTime, wm2}
+import org.gridsim.core.common.Temperatures.{AnyTemperature, Temperature}
 
 import scala.concurrent.duration.FiniteDuration
 
-/**
- * Weather conditions at a geographic location and at a given tick.
- *
- * @param irradiance incident solar irradiance (W/m²), 0 at night
- * @param temperature air temperature at the location
- */
-case class WeatherConditions(
-  irradiance: Irradiance,
-  temperature: AnyTemperature
-)
+/** Weather conditions at a geographic location and at a given tick. */
+trait WeatherConditions:
+  /** incident solar irradiance (W/m²), 0 at night */
+  def irradiance: Irradiance
+  /** air temperature at the location */
+  def temperature: AnyTemperature
+
+private final case class WeatherConditionsImpl(irradiance: Irradiance, temperature: AnyTemperature)
+  extends WeatherConditions
+
+object WeatherConditions:
+  def apply(irradiance: Irradiance, temperature: AnyTemperature): WeatherConditions =
+    WeatherConditionsImpl(irradiance, temperature)
 
 /**
  * Represents the state of the world outside the micro-grid at a given instant.
@@ -50,8 +52,37 @@ trait Environment:
    * contract: each call to [[advance]] corresponds to a single simulation
    * step, regardless of its actual real-world duration.
    *
+   * @param delta the time to elapse to go to next environment
    * @return the environment state at the next tick
    */
-  def advance(): Environment
+  def advance(delta: FiniteDuration): Environment
 
   def delta: FiniteDuration // FIXME: to remove
+
+private final case class SimpleEnvironment(time: SimulationTime) extends Environment:
+  /** Simple deterministic weather model (placeholder). */
+  override def weather(point: GeographicPoint): WeatherConditions =
+    val irradiance =
+      if time.hour >= 6 && time.hour <= 18 then
+        (800.0 + 200.0 * math.sin(time.hour / 24.0 * math.Pi)).wm2
+      else
+        Irradiance.Zero
+
+    val temperature =
+      val base = 15.0
+      val daily = math.sin(time.hour / 24.0 * 2 * math.Pi) * 5
+      val seasonal = math.sin(time.day / 365.0 * 2 * math.Pi) * 10
+      Temperature.celsius(base + daily + seasonal).toAny
+
+    WeatherConditions(irradiance, temperature)
+
+  /** Advance simulation by one tick using external delta converted to minutes. */
+  override def advance(delta: FiniteDuration): Environment =
+    val minutes = delta.toMinutes.toInt
+    copy(time plusMinutes minutes)
+
+  override def delta: FiniteDuration = ??? // FIXME: to remove
+
+object Environment:
+  def apply(time: SimulationTime): Environment =
+    SimpleEnvironment(time)

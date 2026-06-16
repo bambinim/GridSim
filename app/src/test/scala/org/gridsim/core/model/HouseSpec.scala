@@ -3,7 +3,7 @@ package org.gridsim.core.model
 import cats.implicits.*
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.behaviour.house.HouseLogic.given
-import org.gridsim.core.common.{GeographicPoint, SimulationTime}
+import org.gridsim.core.common.SimulationTime
 import org.gridsim.core.model.house.Occupancy.Traditional
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
@@ -13,18 +13,12 @@ import org.gridsim.core.common.Units.*
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.gridsim.core.model.house.{House, Size}
 
-import scala.concurrent.duration.*
-
 @RunWith(classOf[JUnitRunner])
 class HouseSpec extends AnyFlatSpec with Matchers {
 
   "A House" should "calculate correctly its base energy request" in {
     val result = House.makeEmptyHouse("House 1", Size.Large, Traditional)
-    val env = new Environment:
-      override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-      override def delta: FiniteDuration = 1.hour
-      override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def advance(): Environment = ???
+    val env = Environment(SimulationTime(0, 0, 11, 0))
 
     val house = result.getOrElse(fail("Validation failed"))
 
@@ -44,11 +38,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val components = List(battery)
 
     val result = House.makeHouseWithStorages("House 1", Size.Large, Traditional, components)
-    val env = new Environment:
-      override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-      override def delta: FiniteDuration = 1.hour
-      override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def advance(): Environment = ???
+    val env = Environment(SimulationTime(0, 0, 11, 0))
 
     val house = result.getOrElse(fail("Validation failed"))
 
@@ -74,11 +64,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val result = House.makeHouseWithStorages("MultiBattery", Size.Large, Traditional, components)
     val house = result.getOrElse(fail("Validation failed"))
 
-    val env = new Environment:
-      override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-      override def delta: FiniteDuration = 1.hour
-      override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def advance(): Environment = ???
+    val env = Environment(SimulationTime(0, 0, 11, 0))
 
     // 4.0 deficit. B1 gives 1.0 (empty). B2 gives 1.0 (empty). Residual 2.0.
     val (updatedHouse, residue) = house.runSolve(env)
@@ -94,11 +80,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val b = Battery("B1", BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(0.kwh))
     val result = House.makeHouseWithStorages("SurplusHouse", Size.Small, Traditional, List(b))
     val house = result.getOrElse(fail("Validation failed"))
-    val env = new Environment:
-      override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-      override def delta: FiniteDuration = 1.hour
-      override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def advance(): Environment = ???
+    val env = Environment(SimulationTime(0, 0, 11, 0))
 
     // Inject 10kWh surplus. House consumes 2kWh -> 8kWh left for battery.
     // Battery capacity 10, max charge 5. So battery takes 5. Residue 3 Surplus.
@@ -116,11 +98,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       "B1", BatterySpecification(10.kwh, 5.kw, 5.kw, 0.0), BatteryState(5.kwh)
     )))
     val house = result.getOrElse(fail("Validation failed"))
-    val env = new Environment:
-      override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-      override def delta: FiniteDuration = 1.hour
-      override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def advance(): Environment = ???
+    val env = Environment(SimulationTime(0, 0, 11, 0))
 
     val (updatedHouse, residue) = house.runSolve(env)
     residue shouldBe Flow.Balanced // 0 duration = 0 energy
@@ -129,11 +107,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
   it should "work with an empty components list" in {
     val result = House.makeHouseWithStorages("Empty", Size.Small, Traditional, Nil)
     val house = result.getOrElse(fail("Validation failed"))
-    val env = new Environment:
-      override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-      override def delta: FiniteDuration = 1.hour
-      override def weather(point: GeographicPoint): WeatherConditions = ???
-      override def advance(): Environment = ???
+    val env = Environment(SimulationTime(0, 0, 11, 0))
 
     val (updatedHouse, residue) = house.runSolve(env)
     residue shouldBe Flow.Deficit(2.0.kwh)
