@@ -32,4 +32,4 @@ object HouseValidator:
       h.id.mustBeValid("House Id"),
       h.producers.traverse(prodVal.validate),
       h.storages.traverse(storVal.validate)
-    ).mapN((id, prods, stors) => h.copy(id = id, producers = prods, storages = stors))
+    ).mapN((id, prods, stors) => h.copy(id = id, state = h.state.copy(producers = prods, storages = stors)))

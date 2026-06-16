@@ -5,6 +5,7 @@ import cats.data.ValidatedNec
 import cats.implicits.*
 import org.gridsim.core.behaviour.house.{ConsumptionStrategy, DefaultConsumptionStrategy}
 import org.gridsim.core.model.*
+import org.gridsim.core.model.house.HouseState
 import org.gridsim.core.model.{GridEntity, Producer, Storage}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
@@ -20,10 +21,12 @@ import org.gridsim.core.validation.HouseComponentValidator.given
  */
 case class House[F[_]] private[core](
   id: String,
-  producers: F[Producer],
-  storages: F[Storage],
+  state: HouseState[F],
   strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
-) extends GridEntity
+) extends GridEntity:
+  def producers: F[Producer] = state.producers
+
+  def storages: F[Storage] = state.storages
 
 object House:
   /**
@@ -33,7 +36,8 @@ object House:
    * @return A [[ValidatedNec]] containing the house or accumulated [[DomainError]]s.
    */
   def makeHouse[F[_]: Traverse](id: String, producers: F[Producer], storages: F[Storage]): ValidatedNec[DomainError, House[F]] =
-    House(id, producers, storages).validate
+    val state = HouseState(producers,storages)
+    House(id, state).validate
 
   /**
    * Helper to instantiate a House with no components (defaults to List).

@@ -34,7 +34,7 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     given shaper: DemandShaper = IdentityShaper()
     val house = House.makeEmptyHouse("HouseDet").getOrElse(fail())
 
-    val (_, residue) = house.resolve(env)
+    val (_, residue) = house.state.resolve(house, env)
 
     // Hour 11 in TraditionalProfile has mean 0.5 kW -> 0.5 kWh
     residue shouldBe Flow.Deficit(0.5.kwh)
@@ -46,11 +46,11 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     val battery = Battery("Battery1", spec, BatteryState(5.kwh))
     val house = House.makeHouseWithStorages[List]("HouseBat", List(battery)).getOrElse(fail())
 
-    val (newHouse, residue) = house.resolve(env)
+    val (newState, residue) = house.state.resolve(house, env)
 
     // 0.5 kWh deficit covered by 5 kWh battery -> Balanced residue, 4.5 kWh charge
     residue shouldBe Flow.Balanced
-    val finalBattery = newHouse.storages.head.asInstanceOf[Battery]
+    val finalBattery = newState.storages.head.asInstanceOf[Battery]
     finalBattery.state.currentCharge.toDouble shouldBe 4.5
   }
 
@@ -60,8 +60,8 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     given shaper: DemandShaper = GaussianShaper(gen)
     val house = House.makeEmptyHouse("HouseStoch").getOrElse(fail())
 
-    val (_, res1) = house.resolve(env)
-    val (_, res2) = house.resolve(env)
+    val (_, res1) = house.state.resolve(house, env)
+    val (_, res2) = house.state.resolve(house, env)
 
     // Stochastic values should differ
     res1 should not be res2
@@ -75,7 +75,7 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     given shaper: DemandShaper = IdentityShaper()
     given delta: FiniteDuration = 0.hour
     val house = House.makeEmptyHouse("HouseZero").getOrElse(fail())
-    val (_, residue) = house.resolve(env)
+    val (_, residue) = house.state.resolve(house, env)
 
     residue shouldBe Flow.Balanced
   }

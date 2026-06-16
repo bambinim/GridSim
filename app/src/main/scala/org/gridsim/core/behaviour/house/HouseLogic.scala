@@ -2,6 +2,7 @@ package org.gridsim.core.behaviour.house
 
 import cats.data.State
 import cats.Traverse
+import cats.Show.Shown.mat
 import cats.implicits.*
 import org.gridsim.core.behaviour.{EnergyExchanger, EnergyResolver}
 import org.gridsim.core.common.*
@@ -9,7 +10,8 @@ import org.gridsim.core.behaviour.EnergyExchanger.*
 import org.gridsim.core.behaviour.shaping.DemandShaper
 import org.gridsim.core.common.StochasticGenerator
 import org.gridsim.core.model.*
-import org.gridsim.core.model.house.House
+import org.gridsim.core.model.battery.{Battery, BatteryState}
+import org.gridsim.core.model.house.{House, HouseState}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -33,27 +35,31 @@ object HouseLogic:
   given houseResolver[F[_]: Traverse](using
     resolver: ConsumptionResolver,
     shaper: DemandShaper
-  ): EnergyResolver[House[F]] with
-    def resolve(h: House[F], env: Environment)(using delta: FiniteDuration): (House[F], Flow[Energy]) =
+  ): EnergyResolver[HouseState[F], House[F]] with
+    def resolve(state: HouseState[F], h: House[F], env: Environment)(using delta: FiniteDuration): (HouseState[F], Flow[Energy]) =
       val internalFlow = resolver.resolve(env.time.hour, h.strategy)
 
-      /*val (afterProducersResidue, updatedProducers) = h.producers.traverse { prod =>
-        State[Flow[Energy], Producer] { currentFlow =>
-          val (newProd, nextResidue) = prod.exchange(currentFlow, env)
-          (nextResidue, newProd)
+      val simulation = for {
+        updatedProducers <- state.producers.traverse { prod =>
+          State[Flow[Energy], Producer] { currentFlow =>
+            val (newState, nextResidue) = prod.state.exchange(prod, currentFlow, env)
+            (nextResidue, updateComponent(prod, newState))
+          }
         }
-      }.run(internalFlow).value
 
-      val (afterStoragesResidue, updatedStorages) = h.storages.traverse { stor =>
-        State[Flow[Energy], Storage] { currentFlow =>
-          val (newStor, nextResidue) = stor.exchange(currentFlow, env)
-          (nextResidue, newStor)
+        updatedStorages <- state.storages.traverse { stor =>
+          State[Flow[Energy], Storage] { currentFlow =>
+            val (newState, nextResidue) = stor.state.exchange(stor, currentFlow, env)
+            (nextResidue, updateComponent(stor, newState))
+          }
         }
-      }.run(afterProducersResidue).value
+      }yield HouseState(updatedProducers, updatedStorages)
 
-      val updatedHouse = h.copy(
-        producers = updatedProducers,
-        storages = updatedStorages
-      )*/
+      val (finalResidue, newHouseState) = simulation.run(internalFlow).value
 
-      (h, internalFlow)
+      (newHouseState, finalResidue)
+
+  private def updateComponent[A <: GridEntity, S](comp: A, newState: S): A = comp match
+    case b: Battery =>
+      b.copy(state = newState.asInstanceOf[BatteryState]).asInstanceOf[A]
+    case other => throw new IllegalArgumentException(s"Component not managed: ${other.getClass}")

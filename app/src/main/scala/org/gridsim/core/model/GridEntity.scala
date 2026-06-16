@@ -9,4 +9,7 @@ trait GridEntity:
 /**
  * Role trait for entities that can produce energy
  */
-trait Producer extends GridEntity
+trait Producer extends GridEntity:
+  def state: ProducerState
+
+case class ProducerState(active: Boolean = true)

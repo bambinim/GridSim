@@ -17,7 +17,7 @@ import scala.concurrent.duration.FiniteDuration
  *
  * @tparam T The type of the orchestrator.
  */
-trait EnergyResolver[T]:
+trait EnergyResolver[T, A]:
   /**
    * Calculates the net energy exchange for the orchestrator.
    *
@@ -26,11 +26,11 @@ trait EnergyResolver[T]:
    * @param delta        The duration of the simulation tick.
    * @return A tuple containing the updated orchestrator state and the resulting net flow.
    */
-  def resolve(orchestrator: T, env: Environment)(using delta: FiniteDuration): (T, Flow[Energy])
+  def resolve(state: T, orchestrator: A, env: Environment)(using delta: FiniteDuration): (T, Flow[Energy])
 
 object EnergyResolver:
   /** Extension methods to allow syntax like `house.resolve(env)`. */
-  extension [A](node: A)(using resolver: EnergyResolver[A])
-    def resolve(env: Environment)(using delta: FiniteDuration): (A, Flow[Energy]) =
-      resolver.resolve(node, env)
+  extension [T, A](state: T)(using resolver: EnergyResolver[T, A])
+    def resolve(orchestrator: A, env: Environment)(using delta: FiniteDuration): (T, Flow[Energy]) =
+      resolver.resolve(state, orchestrator, env)
 

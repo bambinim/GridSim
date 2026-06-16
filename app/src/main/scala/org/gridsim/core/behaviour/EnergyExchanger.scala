@@ -3,6 +3,7 @@ package org.gridsim.core.behaviour
 import org.gridsim.core.model.*
 import org.gridsim.core.model.battery.{Battery, BatteryState}
 import org.gridsim.core.common.*
+import org.gridsim.core.model.{ProducerState, Producer}
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 
 import scala.concurrent.duration.FiniteDuration
@@ -19,7 +20,8 @@ trait EnergyExchanger[T, A]:
   /**
    * Processes an incoming energy flow.
    *
-   * @param component The component state to update.
+   * @param state     The component state to update
+   * @param component The component model.
    * @param flow      The requested energy flow (Surplus or Deficit).
    * @param env       The current environment context.
    * @param delta     The duration of the simulation tick.
@@ -42,8 +44,8 @@ object EnergyExchanger:
           (s, flow)
 
   /** Dispatches the energy exchange to producer components. */
-  /*given producerExchanger: EnergyExchanger[Producer] with
-    def exchange(producer: Producer, residueEnergy: Flow[Energy], env: Environment)(using delta: FiniteDuration): (Producer, Flow[Energy]) =
-      producer match
-        // case p: SolarPanel => p.exchange(residueEnergy, env)
-        case other => (other, residueEnergy)*/
+  given producerExchanger: EnergyExchanger[ProducerState, Producer] with
+    def exchange(state: ProducerState, producer: Producer, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (ProducerState, Flow[Energy]) =
+      (state, producer) match
+        case (s, other) =>
+          (s, flow)
