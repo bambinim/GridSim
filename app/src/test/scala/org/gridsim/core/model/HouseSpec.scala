@@ -4,7 +4,6 @@ import cats.implicits.*
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.behaviour.house.HouseLogic.given
 import org.gridsim.core.common.GeographicPoint
-import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.model.house.Occupancy.Traditional
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
@@ -22,7 +21,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
   "A House" should "calculate correctly its base energy request" in {
     val result = House.makeEmptyHouse("House 1", Size.Large, Traditional)
     val env = new Environment:
-      override def tick: Tick = ???
       override def hour: Int = 11
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
@@ -47,7 +45,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
 
     val result = House.makeHouseWithStorages("House 1", Size.Large, Traditional, components)
     val env = new Environment:
-      override def tick: Tick = ???
       override def hour: Int = 11
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
@@ -78,7 +75,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val house = result.getOrElse(fail("Validation failed"))
 
     val env = new Environment:
-      override def tick: Tick = ???
       override def hour: Int = 11 // Consumption 4.0 kWh
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
@@ -99,7 +95,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val result = House.makeHouseWithStorages("SurplusHouse", Size.Small, Traditional, List(b))
     val house = result.getOrElse(fail("Validation failed"))
     val env = new Environment:
-      override def tick: Tick = ???
       override def hour: Int = 11 // Consumption 2.0 kWh
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???
@@ -122,7 +117,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     )))
     val house = result.getOrElse(fail("Validation failed"))
     val env = new Environment:
-      override def tick: Tick = ???
       override def hour: Int = 11
       override def delta: FiniteDuration = 0.seconds
       override def weather(point: GeographicPoint): WeatherConditions = ???
@@ -136,7 +130,6 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val result = House.makeHouseWithStorages("Empty", Size.Small, Traditional, Nil)
     val house = result.getOrElse(fail("Validation failed"))
     val env = new Environment:
-      override def tick: Tick = ???
       override def hour: Int = 11 // 2.0 kWh
       override def delta: FiniteDuration = 1.hour
       override def weather(point: GeographicPoint): WeatherConditions = ???

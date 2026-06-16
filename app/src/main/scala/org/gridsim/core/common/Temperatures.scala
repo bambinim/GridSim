@@ -52,7 +52,7 @@ object Temperatures:
     private[Temperatures] def validated[U <: TemperatureUnit](value: Double)(using v: TempValidator[U]): Temperature[U] =
       v.validate(value)
 
-    /** Type class that abstracts over per-unit validation logic. */
+    /** Type class that abstracts over per unit validation logic. */
     trait TempValidator[U <: TemperatureUnit]:
       def validate(value: Double): Temperature[U]
 
@@ -78,7 +78,7 @@ object Temperatures:
     def <(other: Temperature[U]): Boolean = t.value < other.value
   end extension
 
-  // Arithmetic extensions (units with a TempValidator)
+  // Arithmetic extensions (require a TempValidator)
   extension [U <: TemperatureUnit : Temperature.TempValidator](t: Temperature[U])
     def +(delta: Double): Temperature[U] = Temperature.validated[U](t.value + delta)
     def -(delta: Double): Temperature[U] = Temperature.validated[U](t.value - delta)

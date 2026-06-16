@@ -6,8 +6,6 @@ import org.gridsim.core.behaviour.*
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.common.GeographicPoint
-import org.gridsim.core.common.Ticks.Tick
-import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
@@ -20,7 +18,6 @@ import scala.concurrent.duration.*
 class BatterySpec extends AnyFlatSpec with Matchers {
 
   val env = new Environment:
-    override def tick: Tick = ???
     override def hour: Int = 11
     override def delta: FiniteDuration = 1.hour
     override def weather(point: GeographicPoint): WeatherConditions = ???

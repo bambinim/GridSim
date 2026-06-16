@@ -7,4 +7,4 @@ object Formatting:
 
   extension (d: Double)
     def show2: String =
-      String.format(locale, "%.2f", Double.box(d))
+      String.format(locale, "%.2f", d)
