@@ -10,8 +10,8 @@ import org.gridsim.core.behaviour.house.HouseLogic.given
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.shaping.{DemandShaper, GaussianShaper, IdentityShaper}
 import org.gridsim.core.common.GeographicPoint
-import org.gridsim.core.common.Ticks.Tick
 import org.gridsim.core.common.StochasticGenerator
+import org.gridsim.core.common.SimulationTime
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -22,25 +22,19 @@ import scala.concurrent.duration.*
 @RunWith(classOf[JUnitRunner])
 class HouseLogicSpec extends AnyFlatSpec with Matchers {
 
-  trait TestEnv extends Environment {
-    override def tick: Tick = Tick.start
-    override def hour: Int = 12
+  val env = new Environment:
+    override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
     override def delta: FiniteDuration = 1.hour
     override def weather(point: GeographicPoint): WeatherConditions = ???
-    override def update(): Environment = ???
-  }
+    override def advance(): Environment = ???
 
-  def mockEnv(h: Int = 11, d: FiniteDuration = 1.hour): Environment = new TestEnv {
-    override def hour: Int = h
-    override def delta: FiniteDuration = d
-  }
   given delta: FiniteDuration = 1.hour
   "HouseLogic with IdentityShaper" should "produce exact deterministic consumption" in {
     // Inject IdentityShaper for predictability
     given shaper: DemandShaper = IdentityShaper()
     val house = House.makeEmptyHouse("HouseDet").getOrElse(fail())
 
-    val (_, residue) = house.resolve(mockEnv(h = 11))
+    val (_, residue) = house.resolve(env)
 
     // Hour 11 in TraditionalProfile has mean 0.5 kW -> 0.5 kWh
     residue shouldBe Flow.Deficit(0.5.kwh)
@@ -52,7 +46,7 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     val battery = Battery("Battery1", spec, BatteryState(5.kwh))
     val house = House.makeHouseWithStorages[List]("HouseBat", List(battery)).getOrElse(fail())
 
-    val (newHouse, residue) = house.resolve(mockEnv(h = 11))
+    val (newHouse, residue) = house.resolve(env)
 
     // 0.5 kWh deficit covered by 5 kWh battery -> Balanced residue, 4.5 kWh charge
     residue shouldBe Flow.Balanced
@@ -66,8 +60,8 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     given shaper: DemandShaper = GaussianShaper(gen)
     val house = House.makeEmptyHouse("HouseStoch").getOrElse(fail())
 
-    val (_, res1) = house.resolve(mockEnv(h = 11))
-    val (_, res2) = house.resolve(mockEnv(h = 11))
+    val (_, res1) = house.resolve(env)
+    val (_, res2) = house.resolve(env)
 
     // Stochastic values should differ
     res1 should not be res2
@@ -81,7 +75,7 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     given shaper: DemandShaper = IdentityShaper()
     given delta: FiniteDuration = 0.hour
     val house = House.makeEmptyHouse("HouseZero").getOrElse(fail())
-    val (_, residue) = house.resolve(mockEnv(d = 0.seconds))
+    val (_, residue) = house.resolve(env)
 
     residue shouldBe Flow.Balanced
   }

@@ -53,3 +53,4 @@ Garantiamo l'integrità fisica tramite **Smart Constructors**:
 *   Non è possibile creare entità con dati assurdi (es. capacità negativa).
 *   Metodi come `Battery.make(...)` restituiscono un **`ValidatedNec`**, che accumula tutti gli errori di validazione invece di lanciare eccezioni.
 
+[Indice](index.md)

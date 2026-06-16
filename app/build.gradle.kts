@@ -48,3 +48,15 @@ application {
     // Define the main class for the application.
     mainClass = "org.gridsim.App"
 }
+
+tasks.register("ciAssemble") {
+    group = "build"
+    description = "CI assemble"
+    dependsOn("assemble")
+}
+
+tasks.register("ciBuild") {
+    group = "build"
+    description = "CI build without added checks"
+    dependsOn("assemble", "test")
+}

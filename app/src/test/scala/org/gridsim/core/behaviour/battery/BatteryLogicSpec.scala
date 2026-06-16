@@ -8,7 +8,7 @@ import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.EnergyExchanger.*
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.common.GeographicPoint
-import org.gridsim.core.common.Ticks.Tick
+import org.gridsim.core.common.SimulationTime
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -19,14 +19,11 @@ import scala.concurrent.duration.*
 @RunWith(classOf[JUnitRunner])
 class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
-  trait TestEnv extends Environment {
-    override def tick: Tick = Tick.start
-    override def hour: Int = 12
+  val env = new Environment:
+    override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
     override def delta: FiniteDuration = 1.hour
     override def weather(point: GeographicPoint): WeatherConditions = ???
-
-    override def update(): Environment = ???
-  }
+    override def advance(): Environment = ???
 
   val spec = BatterySpecification(10.kwh, 5.kw, 5.kw, 0.2)
 
@@ -34,7 +31,6 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
   "BatteryLogic" should "dispatch surplus flow to charging strategy" in {
     val battery = Battery("Battery 1", spec, BatteryState(0.kwh))
-    val env = new TestEnv {}
 
     val (newBattery, residue) = battery.exchange(Surplus(10.kwh), env)
 
@@ -44,7 +40,6 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
     it should "dispatch deficit flow to discharging strategy" in {
     val battery = Battery("Battery 1", spec, BatteryState(10.kwh))
-    val env = new TestEnv {}
 
     val (newBattery, residue) = battery.exchange(Deficit(10.kwh), env)
 
@@ -54,7 +49,6 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
     it should "return Balanced residue when flow is balanced" in {
     val battery = Battery("Battery 1", spec, BatteryState(5.kwh))
-    val env = new TestEnv {}
 
     val (newBattery, residue) = battery.exchange(Balanced, env)
 

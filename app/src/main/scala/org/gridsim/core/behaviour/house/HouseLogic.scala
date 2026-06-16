@@ -29,13 +29,13 @@ object HouseLogic:
    * It requires a [[ConsumptionResolver]] and a [[DemandShaper]] to be
    * present in the implicit scope to handle stochasticity.
    */
+
   given houseResolver[F[_]: Traverse](using
     resolver: ConsumptionResolver,
     shaper: DemandShaper
   ): EnergyResolver[House[F]] with
     def resolve(h: House[F], env: Environment)(using delta: FiniteDuration): (House[F], Flow[Energy]) =
-
-      val internalFlow = resolver.resolve(env.hour, h.strategy)
+      val internalFlow = resolver.resolve(env.time.hour, h.strategy)
 
       val (afterProducersResidue, updatedProducers) = h.producers.traverse { prod =>
         State[Flow[Energy], Producer] { currentFlow =>
