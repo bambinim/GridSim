@@ -12,6 +12,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
+
 @RunWith(classOf[JUnitRunner])
 class BatterySpec extends AnyFlatSpec with Matchers {
 
@@ -23,6 +25,8 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     maxPowerDischarge = 5.0.kw,
     minSoC = 0.2
   )
+
+  given delta: FiniteDuration = 1.hour
 
   "A Battery" should "be correctly initialized with its specs and state" in {
     val state = BatteryState(currentCharge = 5.0.kwh)

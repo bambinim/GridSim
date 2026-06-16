@@ -10,6 +10,8 @@ import org.gridsim.core.model.*
 import org.gridsim.core.model.house.House
 import org.gridsim.core.behaviour.EnergyResolver.*
 
+import scala.concurrent.duration.FiniteDuration
+
 /**
  * Implementation of [[EnergyResolver]] for [[House]].
  * Orchestrates energy flows between consumption, producers, and storages.
@@ -24,10 +26,10 @@ object HouseLogic:
    * 3. Storages are processed to store surplus or cover remaining deficit.
    */
   given houseResolver[F[_]: Traverse]: EnergyResolver[House[F]] with
-    def solve(flow: Flow[Energy], env: Environment): State[House[F], Flow[Energy]] =
+    def solve(flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): State[House[F], Flow[Energy]] =
       for {
         house <- State.get[House[F]]
-        internalFlow = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.time.hour)(using env.delta)
+        internalFlow = ConsumptionProfile.calculateConsume(house.size, house.occupancy, env.time.hour)
         initialResidue = internalFlow + flow
 
         (afterProducersResidue, updatedProducers) = house.producers.traverse { prod =>

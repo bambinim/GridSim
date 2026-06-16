@@ -12,9 +12,14 @@ import org.scalatestplus.junit.JUnitRunner
 import org.gridsim.core.common.Units.*
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.gridsim.core.model.house.{House, Size}
+import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
+
+import scala.concurrent.duration.FiniteDuration
 
 @RunWith(classOf[JUnitRunner])
 class HouseSpec extends AnyFlatSpec with Matchers {
+
+  given delta: FiniteDuration = 1.hour
 
   "A House" should "calculate correctly its base energy request" in {
     val result = House.makeEmptyHouse("House 1", Size.Large, Traditional)

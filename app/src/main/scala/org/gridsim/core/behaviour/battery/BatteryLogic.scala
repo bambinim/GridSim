@@ -21,13 +21,13 @@ object BatteryLogic:
    * calculates the residual [[Energy]].
    */
   given EnergyResolver[Battery] with
-    def solve(flow: Flow[Energy], env: Environment): State[Battery, Flow[Energy]] =
+    def solve(flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): State[Battery, Flow[Energy]] =
       for {
         b <- State.get[Battery]
         strategy = BatteryStrategy.forModel(b.model)
         action = flow match
-          case Surplus(e) => strategy.charge(e, b.spec)(using env.delta)
-          case Deficit(e) => strategy.discharge(e, b.spec)(using env.delta)
+          case Surplus(e) => strategy.charge(e, b.spec)
+          case Deficit(e) => strategy.discharge(e, b.spec)
           case _ => State.pure(Balanced)
 
         (nextState, residue) = action.run(b.state).value
