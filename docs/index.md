@@ -8,7 +8,9 @@
 6. [Implementazione](06-implementation/06-implementation.md)
 7. [Conclusioni](07-conclusion.md)
 
+Per un veloce consulto sulla struttura vedi la [guida rapida](report_core.md).
+
 Guarda anche le [linee guida sui commit](guidelines/commit_guidelines.md) e il [flusso di lavoro](guidelines/workflow.md)
-scelto.
+scelti per la collaborazione su GitHub.
 
 [README](../README.md)

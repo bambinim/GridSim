@@ -152,3 +152,6 @@ git push origin develop
 ```bash
 git branch -d hotfix/1.0.1
 ```
+
+[Indice](../index.md) |
+[Commits](commit_guidelines.md)

@@ -88,3 +88,6 @@ fix: resolve memory leak in stream processing
 ```text
 docs: update ARCHITECTURE.md with new diagram
 ```
+
+[Indice](../index.md) |
+[Workflow](workflow.md)
