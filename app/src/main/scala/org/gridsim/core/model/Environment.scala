@@ -57,8 +57,6 @@ trait Environment:
    */
   def advance(delta: FiniteDuration): Environment
 
-  def delta: FiniteDuration // FIXME: to remove
-
 private final case class SimpleEnvironment(time: SimulationTime) extends Environment:
   /** Simple deterministic weather model (placeholder). */
   override def weather(point: GeographicPoint): WeatherConditions =
@@ -80,8 +78,6 @@ private final case class SimpleEnvironment(time: SimulationTime) extends Environ
   override def advance(delta: FiniteDuration): Environment =
     val minutes = delta.toMinutes.toInt
     copy(time plusMinutes minutes)
-
-  override def delta: FiniteDuration = ??? // FIXME: to remove
 
 object Environment:
   def apply(time: SimulationTime): Environment =
