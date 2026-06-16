@@ -37,19 +37,19 @@ class TemperaturesSpec extends AnyFlatSpec with Matchers:
 
   // Value
   "Temperature" should "expose its underlying Double value" in:
-    Temperature.celsius(100.0).value shouldBe 100.0
-    Temperature.kelvin(373.15).value shouldBe 373.15
-    Temperature.fahrenheit(212.0).value shouldBe 212.0
+    Temperature.celsius(100.0).toDouble shouldBe 100.0
+    Temperature.kelvin(373.15).toDouble shouldBe 373.15
+    Temperature.fahrenheit(212.0).toDouble shouldBe 212.0
 
   // Arithmetic
   it should "support addition of a delta" in:
-    (Temperature.celsius(100.0) + 50.0).value shouldBe 150.0
+    (Temperature.celsius(100.0) + 50.0).toDouble shouldBe 150.0
 
   it should "reject addition that goes below absolute zero" in:
     an[IllegalArgumentException] should be thrownBy (Temperature.celsius(-270.0) + (-10.0))
 
   it should "support subtraction of a delta" in:
-    (Temperature.celsius(100.0) - 50.0).value shouldBe 50.0
+    (Temperature.celsius(100.0) - 50.0).toDouble shouldBe 50.0
 
   it should "reject subtraction that goes below absolute zero" in:
     an[IllegalArgumentException] should be thrownBy (Temperature.kelvin(1.0) - 5.0)
@@ -73,28 +73,28 @@ class TemperaturesSpec extends AnyFlatSpec with Matchers:
 
   // Conversions and Any type
   "Temperature[Celsius]" should "convert to Kelvin" in:
-    Temperature.celsius(0.0).toAny.toKelvin.value shouldBe 273.15
-    Temperature.celsius(100.0).toKelvin.value shouldBe 373.15
+    Temperature.celsius(0.0).toAny.toKelvin.toDouble shouldBe 273.15
+    Temperature.celsius(100.0).toKelvin.toDouble shouldBe 373.15
 
   it should "convert to Fahrenheit" in:
-    Temperature.celsius(0.0).toAny.toFahrenheit.value shouldBe 32.0
-    Temperature.celsius(100.0).toFahrenheit.value shouldBe 212.0
+    Temperature.celsius(0.0).toAny.toFahrenheit.toDouble shouldBe 32.0
+    Temperature.celsius(100.0).toFahrenheit.toDouble shouldBe 212.0
 
   "Temperature[Kelvin]" should "convert to Celsius" in:
-    Temperature.kelvin(273.15).toAny.toCelsius.value shouldBe 0.0
-    Temperature.kelvin(373.15).toCelsius.value shouldBe 100.0
+    Temperature.kelvin(273.15).toAny.toCelsius.toDouble shouldBe 0.0
+    Temperature.kelvin(373.15).toCelsius.toDouble shouldBe 100.0
 
   it should "convert to Fahrenheit" in:
-    Temperature.kelvin(273.15).toAny.toFahrenheit.value shouldBe 32.0
-    Temperature.kelvin(373.15).toFahrenheit.value shouldBe 212.0
+    Temperature.kelvin(273.15).toAny.toFahrenheit.toDouble shouldBe 32.0
+    Temperature.kelvin(373.15).toFahrenheit.toDouble shouldBe 212.0
 
   "Temperature[Fahrenheit]" should "convert to Celsius" in:
-    Temperature.fahrenheit(32.0).toAny.toCelsius.value shouldBe 0.0
-    Temperature.fahrenheit(212.0).toCelsius.value shouldBe 100.0
+    Temperature.fahrenheit(32.0).toAny.toCelsius.toDouble shouldBe 0.0
+    Temperature.fahrenheit(212.0).toCelsius.toDouble shouldBe 100.0
 
   it should "convert to Kelvin" in:
-    Temperature.fahrenheit(32.0).toAny.toKelvin.value shouldBe 273.15
-    Temperature.fahrenheit(212.0).toKelvin.value shouldBe 373.15
+    Temperature.fahrenheit(32.0).toAny.toKelvin.toDouble shouldBe 273.15
+    Temperature.fahrenheit(212.0).toKelvin.toDouble shouldBe 373.15
 
   // Show
   "Show" should "format Celsius correctly" in:
@@ -108,13 +108,13 @@ class TemperaturesSpec extends AnyFlatSpec with Matchers:
 
   // Round-trip
   "Conversions" should "round-trip Celsius -> Kelvin -> Celsius" in:
-    val result = Temperature.celsius(100.0).toKelvin.toCelsius.value
+    val result = Temperature.celsius(100.0).toKelvin.toCelsius.toDouble
     math.round(result * 100) / 100.0 shouldBe 100.0
 
   it should "round-trip Celsius -> Fahrenheit -> Celsius" in:
-    val result = Temperature.celsius(100.0).toFahrenheit.toCelsius.value
+    val result = Temperature.celsius(100.0).toFahrenheit.toCelsius.toDouble
     math.round(result * 100) / 100.0 shouldBe 100.0
 
   it should "round-trip Kelvin -> Fahrenheit -> Kelvin" in:
-    val result = Temperature.kelvin(373.15).toFahrenheit.toKelvin.value
+    val result = Temperature.kelvin(373.15).toFahrenheit.toKelvin.toDouble
     math.round(result * 100) / 100.0 shouldBe 373.15
