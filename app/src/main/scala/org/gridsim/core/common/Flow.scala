@@ -11,9 +11,9 @@ enum Flow[+A]:
 
 object Flow:
 
-  def surplus(amount: Energy): Flow[Energy] = Flow.Surplus(amount)
+  def surplus(amount: Energy): Flow[Energy] = Flow.Surplus(amount.abs)
 
-  def deficit(amount: Energy): Flow[Energy] = Flow.Deficit(amount)
+  def deficit(amount: Energy): Flow[Energy] = Flow.Deficit(amount.abs)
 
   val balanced: Flow[Energy] = Flow.Balanced
   extension (f: Flow[Energy])

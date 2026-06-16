@@ -1,8 +1,7 @@
 package org.gridsim.core.model
 
 import org.gridsim.core.common.*
-import org.gridsim.core.model.house.Occupancy.Traditional
-import org.gridsim.core.model.house.{House, Size}
+import org.gridsim.core.model.house.House
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec

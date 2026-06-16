@@ -21,11 +21,7 @@ case class Battery private[core](
   spec: BatterySpecification,
   state: BatteryState,
   model: BatteryModel = BatteryModel.Standard
-) extends Storage:
-
-  override def currentCharge: Energy = state.currentCharge
-
-  override def maxCapacity: Energy = spec.capacity
+) extends Storage
 
 object Battery:
   /**

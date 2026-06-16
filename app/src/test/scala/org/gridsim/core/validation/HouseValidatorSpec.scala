@@ -1,11 +1,9 @@
 package org.gridsim.core.validation
 
 import org.gridsim.core.common.*
-import org.gridsim.core.model.house.Occupancy.Traditional
-import org.gridsim.core.model.house.{House, Size}
+import org.gridsim.core.model.house.House
 import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.gridsim.core.model.error.DomainError.{InvalidId, OutOfRange, ValueMustBePositive}
-import org.gridsim.core.model.house.Size.{Medium, Small}
 import cats.syntax.all.*
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec

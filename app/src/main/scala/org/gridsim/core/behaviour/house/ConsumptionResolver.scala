@@ -3,9 +3,7 @@ package org.gridsim.core.behaviour.house
 import org.gridsim.core.behaviour.shaping.DemandShaper
 import org.gridsim.core.common.*
 import org.gridsim.core.common.StochasticGenerator
-import org.gridsim.core.model.house.Occupancy.*
-import org.gridsim.core.model.house.Size.*
-import org.gridsim.core.model.house.{Occupancy, Size}
+
 
 import scala.concurrent.duration.FiniteDuration
 

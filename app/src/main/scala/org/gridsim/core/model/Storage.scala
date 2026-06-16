@@ -4,6 +4,14 @@ import org.gridsim.core.common.Energy
 import cats.syntax.order.*
 
 /**
+ * Base traits for all storage systems.
+ */
+trait StorageSpecification:
+  def capacity: Energy
+
+trait StorageState:
+  def currentCharge: Energy
+/**
  * Represents a generic abstraction for any energy storage device
  * (e.g., chemical batteries, thermal buffers, hydrogen tanks).
  *
@@ -13,12 +21,14 @@ import cats.syntax.order.*
  * energy-based view to the grid.
  */
 trait Storage extends GridEntity:
+  def spec: StorageSpecification
+  def state: StorageState
   /**
    * Returns the amount of energy currently stored inside the device.
    *
    * @return An [[Energy]] value representing the current state of charge.
    */
-  def currentCharge: Energy
+  def currentCharge: Energy = state.currentCharge
 
   /**
    * Returns the nominal maximum energy capacity supported by the device.
@@ -26,7 +36,7 @@ trait Storage extends GridEntity:
    *
    * @return An [[Energy]] value representing the maximum storage boundary.
    */
-  def maxCapacity: Energy
+  def maxCapacity: Energy = spec.capacity
 
   /**
    * Calculates the current fill level of the storage device.
