@@ -1,8 +1,8 @@
 package org.gridsim.core.behaviour.house
 
 import org.gridsim.core.behaviour.shaping.DemandShaper
+import org.gridsim.core.common.*
 import org.gridsim.core.common.StochasticGenerator
-import org.gridsim.core.common.Units.{Energy, Flow, kw}
 import org.gridsim.core.model.house.Occupancy.*
 import org.gridsim.core.model.house.Size.*
 import org.gridsim.core.model.house.{Occupancy, Size}
@@ -34,4 +34,4 @@ trait ConsumptionResolver:
 object ConsumptionResolver:
   /** Default given instance using a stochastic model. */
   given ConsumptionResolver = new StochasticConsumptionResolver()
-    
+

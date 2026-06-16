@@ -1,7 +1,8 @@
 package org.gridsim.core.behaviour.battery
 
-import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Flow.*
+import org.gridsim.core.common.Flow.*
+import org.gridsim.core.common.Energy.*
+import org.gridsim.core.common.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.EnergyExchanger.*
@@ -37,27 +38,27 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
     val (newBattery, residue) = battery.exchange(Surplus(10.kwh), env)
 
-    newBattery.state.currentCharge shouldBe 5.kwh
+    newBattery.state.currentCharge.toDouble shouldBe 5.0
     residue shouldBe Surplus(5.kwh)
-  }
+    }
 
-  it should "dispatch deficit flow to discharging strategy" in {
+    it should "dispatch deficit flow to discharging strategy" in {
     val battery = Battery("Battery 1", spec, BatteryState(10.kwh))
     val env = new TestEnv {}
 
     val (newBattery, residue) = battery.exchange(Deficit(10.kwh), env)
 
-    newBattery.state.currentCharge shouldBe 5.kwh
+    newBattery.state.currentCharge.toDouble shouldBe 5.0
     residue shouldBe Deficit(5.kwh)
-  }
+    }
 
-  it should "return Balanced and unchanged state for Balanced flow" in {
+    it should "return Balanced residue when flow is balanced" in {
     val battery = Battery("Battery 1", spec, BatteryState(5.kwh))
     val env = new TestEnv {}
 
     val (newBattery, residue) = battery.exchange(Balanced, env)
 
-    newBattery.state.currentCharge shouldBe 5.kwh
+    newBattery.state.currentCharge.toDouble shouldBe 5.0
     residue shouldBe Balanced
-  }
+    }
 }

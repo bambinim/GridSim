@@ -1,6 +1,6 @@
 package org.gridsim.core.behaviour.house
 
-import org.gridsim.core.common.Units.Power
+import org.gridsim.core.common.Power
 
 
 /**

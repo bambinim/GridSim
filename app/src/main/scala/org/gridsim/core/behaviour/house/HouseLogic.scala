@@ -4,10 +4,10 @@ import cats.data.State
 import cats.Traverse
 import cats.implicits.*
 import org.gridsim.core.behaviour.{EnergyExchanger, EnergyResolver}
+import org.gridsim.core.common.*
 import org.gridsim.core.behaviour.EnergyExchanger.*
 import org.gridsim.core.behaviour.shaping.DemandShaper
 import org.gridsim.core.common.StochasticGenerator
-import org.gridsim.core.common.Units.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.house.House
 

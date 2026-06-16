@@ -1,9 +1,10 @@
 package org.gridsim.core.behaviour.house
 
+import org.gridsim.core.common.*
+import org.gridsim.core.common.Flow.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.house.*
 import org.gridsim.core.model.battery.*
-import org.gridsim.core.common.Units.*
 import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.behaviour.house.HouseLogic.given
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
@@ -56,7 +57,7 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     // 0.5 kWh deficit covered by 5 kWh battery -> Balanced residue, 4.5 kWh charge
     residue shouldBe Flow.Balanced
     val finalBattery = newHouse.storages.head.asInstanceOf[Battery]
-    finalBattery.state.currentCharge shouldBe 4.5.kwh
+    finalBattery.state.currentCharge.toDouble shouldBe 4.5
   }
 
   "HouseLogic with GaussianShaper" should "produce stochastic consumption within reasonable bounds" in {

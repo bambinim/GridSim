@@ -1,6 +1,6 @@
 package org.gridsim.core.model.battery
 
 import cats.syntax.all.*
-import org.gridsim.core.common.Units.Energy
+import org.gridsim.core.common.Energy
 
 case class BatteryState(currentCharge: Energy)

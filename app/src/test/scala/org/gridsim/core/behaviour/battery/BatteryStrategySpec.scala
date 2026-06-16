@@ -1,7 +1,8 @@
 package org.gridsim.core.behaviour.battery
 
-import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Flow.*
+import org.gridsim.core.common.Flow.*
+import org.gridsim.core.common.Energy.*
+import org.gridsim.core.common.*
 import org.gridsim.core.model.battery.{BatterySpecification, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
@@ -23,7 +24,7 @@ class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenProp
   given delta: FiniteDuration = 1.hour
 
   "StandardBatteryStrategy" should "handle charging scenarios correctly" in {
-    val chargeScenarios = Table(
+    val chargeScenarios = Table[Energy, Energy, Energy, Flow[Energy]](
       ("Initial Charge", "Offered", "Final Charge", "Residue"),
       (0.kwh,            5.kwh,     5.kwh,        Balanced),
       (0.kwh,            10.kwh,    5.kwh,        Surplus(5.kwh)),
@@ -31,15 +32,15 @@ class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenProp
       (10.kwh,           5.kwh,     10.kwh,       Surplus(5.kwh))
     )
 
-    forAll(chargeScenarios) { (initial, offered, expectedFinal, expectedResidue) =>
+    forAll(chargeScenarios) { (initial: Energy, offered: Energy, expectedFinal: Energy, expectedResidue: Flow[Energy]) =>
       val (finalState, residue) = StandardBatteryStrategy.charge(offered, spec).run(BatteryState(initial)).value
-      finalState.currentCharge shouldBe expectedFinal
+      finalState.currentCharge.toDouble shouldBe expectedFinal.toDouble
       residue shouldBe expectedResidue
     }
   }
 
   it should "handle discharging scenarios correctly" in {
-    val dischargeScenarios = Table(
+    val dischargeScenarios = Table[Energy, Energy, Energy, Flow[Energy]](
       ("Initial Charge", "Needed",  "Final Charge", "Residue"),
       (10.kwh,           5.kwh,     5.kwh,        Balanced),
       (10.kwh,           10.kwh,    5.kwh,        Deficit(5.kwh)),
@@ -47,9 +48,9 @@ class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenProp
       (2.kwh,            5.kwh,     2.kwh,        Deficit(5.kwh))
     )
 
-    forAll(dischargeScenarios) { (initial, needed, expectedFinal, expectedResidue) =>
+    forAll(dischargeScenarios) { (initial: Energy, needed: Energy, expectedFinal: Energy, expectedResidue: Flow[Energy]) =>
       val (finalState, residue) = StandardBatteryStrategy.discharge(needed, spec).run(BatteryState(initial)).value
-      finalState.currentCharge shouldBe expectedFinal
+      finalState.currentCharge.toDouble shouldBe expectedFinal.toDouble
       residue shouldBe expectedResidue
     }
   }
@@ -61,7 +62,7 @@ class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenProp
       .charge(5.kwh, spec)(using shortDelta)
       .run(BatteryState(0.kwh)).value
 
-    finalState.currentCharge shouldBe 2.5.kwh
+    finalState.currentCharge.toDouble shouldBe 2.5
     residue shouldBe Surplus(2.5.kwh)
   }
 }

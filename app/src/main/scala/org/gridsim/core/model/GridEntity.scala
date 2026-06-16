@@ -10,8 +10,3 @@ trait GridEntity:
  * Role trait for entities that can produce energy
  */
 trait Producer extends GridEntity
-
-/**
- * Role trait for entities that can store and release Energy.
- */
-trait Storage extends GridEntity

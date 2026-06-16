@@ -1,7 +1,7 @@
 package org.gridsim.core.validation
 
-import org.gridsim.core.common.Units.*
-import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
+import org.gridsim.core.common.*
+import org.gridsim.core.model.battery.{Battery, BatteryModel, BatterySpecification, BatteryState}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.model.error.DomainError.{OutOfRange, ValueMustBePositive}
 import org.gridsim.core.validation.BatteryValidator.given

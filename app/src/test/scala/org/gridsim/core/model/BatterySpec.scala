@@ -1,6 +1,6 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.common.Units.*
+import org.gridsim.core.common.*
 import org.gridsim.core.model.battery.*
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
@@ -31,16 +31,16 @@ class BatterySpec extends AnyFlatSpec with Matchers {
 
   it should "calculate correctly its battery level" in {
     val battery = Battery("B1", spec, BatteryState(5.kwh))
-    battery.getBatteryLevel shouldBe 0.5
+    battery.percentage shouldBe 0.5
   }
 
   it should "report 1.0 when full" in {
     val battery = Battery("Full", spec, BatteryState(10.kwh))
-    battery.getBatteryLevel shouldBe 1.0
+    battery.percentage shouldBe 1.0
   }
 
   it should "report 0.0 when empty" in {
     val battery = Battery("Empty", spec, BatteryState(0.kwh))
-    battery.getBatteryLevel shouldBe 0.0
+    battery.percentage shouldBe 0.0
   }
 }

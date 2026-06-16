@@ -1,8 +1,10 @@
 package org.gridsim.core.behaviour.house
 
 import org.gridsim.core.behaviour.shaping.DemandShaper
-import org.gridsim.core.common.{StochasticGenerator, Units}
-import org.gridsim.core.common.Units.{Energy, Flow, kw}
+import org.gridsim.core.common.*
+import org.gridsim.core.common.Flow.*
+import org.gridsim.core.common.Power.*
+import cats.syntax.all.*
 
 import scala.concurrent.duration.FiniteDuration
 

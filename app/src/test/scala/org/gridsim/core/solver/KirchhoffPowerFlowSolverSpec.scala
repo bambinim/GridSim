@@ -1,9 +1,10 @@
 package org.gridsim.core.solver
 
+import org.gridsim.core.common.*
+import org.gridsim.core.common.Flow.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
-import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.model.GridEntity
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner

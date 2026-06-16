@@ -1,8 +1,10 @@
 package org.gridsim.core.behaviour.battery
 
 import cats.data.State
-import org.gridsim.core.common.Units.{Energy, Flow}
-import org.gridsim.core.common.Units.Flow.{Balanced, Deficit, Surplus}
+import cats.syntax.all.*
+import org.gridsim.core.common.*
+import org.gridsim.core.common.Flow.{Balanced, Deficit, Surplus}
+import org.gridsim.core.common.Energy
 import org.gridsim.core.model.battery.{BatterySpecification, BatteryState}
 
 import scala.concurrent.duration.FiniteDuration

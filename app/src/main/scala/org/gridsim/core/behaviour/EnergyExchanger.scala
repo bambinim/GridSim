@@ -1,8 +1,8 @@
 package org.gridsim.core.behaviour
 
-import org.gridsim.core.common.Units.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.battery.Battery
+import org.gridsim.core.common.*
 
 import org.gridsim.core.behaviour.battery.BatteryLogic.given
 

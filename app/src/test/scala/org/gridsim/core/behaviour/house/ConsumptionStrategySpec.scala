@@ -1,8 +1,9 @@
 package org.gridsim.core.behaviour.house
 
 import org.gridsim.core.behaviour.house.ConsumptionResolver.*
-import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Flow.Deficit
+import org.gridsim.core.common.Flow.Deficit
+import org.gridsim.core.common.Energy.*
+import org.gridsim.core.common.*
 import org.gridsim.core.model.house.Occupancy.*
 import org.gridsim.core.model.house.{House, Size}
 import org.junit.runner.RunWith

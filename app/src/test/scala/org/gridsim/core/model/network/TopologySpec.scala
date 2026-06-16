@@ -2,7 +2,8 @@ package org.gridsim.core.model.network
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.gridsim.core.common.Units.Energy
+import org.gridsim.core.common.Energy
+import org.gridsim.core.common.*
 import org.gridsim.core.model.GridEntity
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner

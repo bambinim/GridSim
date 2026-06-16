@@ -1,7 +1,7 @@
 package org.gridsim.core.solver
 
+import org.gridsim.core.common.*
 import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
-import org.gridsim.core.common.Units.{Energy, Flow}
 
 import scala.collection.Map
 

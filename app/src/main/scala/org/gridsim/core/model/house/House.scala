@@ -4,7 +4,6 @@ import cats.{Alternative, Traverse}
 import cats.data.ValidatedNec
 import cats.implicits.*
 import org.gridsim.core.behaviour.house.{ConsumptionStrategy, DefaultConsumptionStrategy}
-import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.model.*
 import org.gridsim.core.model.{GridEntity, Producer, Storage}
 import org.gridsim.core.model.error.DomainError

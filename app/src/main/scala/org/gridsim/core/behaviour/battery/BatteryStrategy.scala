@@ -1,8 +1,9 @@
 package org.gridsim.core.behaviour.battery
 
 import cats.data.State
-import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Flow.*
+import org.gridsim.core.common.*
+import org.gridsim.core.common.Flow.*
+import org.gridsim.core.common.Energy
 import org.gridsim.core.model.battery.{BatteryModel, BatterySpecification, BatteryState}
 
 import scala.concurrent.duration.FiniteDuration

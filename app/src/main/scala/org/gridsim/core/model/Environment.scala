@@ -3,7 +3,7 @@ package org.gridsim.core.model
 import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.common.Temperatures.AnyTemperature
 import org.gridsim.core.common.Ticks.Tick
-import org.gridsim.core.common.Units.Power
+import org.gridsim.core.common.Power
 
 import scala.concurrent.duration.FiniteDuration
 
