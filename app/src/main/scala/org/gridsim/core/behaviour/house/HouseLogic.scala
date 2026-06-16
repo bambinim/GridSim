@@ -37,7 +37,7 @@ object HouseLogic:
     def resolve(h: House[F], env: Environment)(using delta: FiniteDuration): (House[F], Flow[Energy]) =
       val internalFlow = resolver.resolve(env.time.hour, h.strategy)
 
-      val (afterProducersResidue, updatedProducers) = h.producers.traverse { prod =>
+      /*val (afterProducersResidue, updatedProducers) = h.producers.traverse { prod =>
         State[Flow[Energy], Producer] { currentFlow =>
           val (newProd, nextResidue) = prod.exchange(currentFlow, env)
           (nextResidue, newProd)
@@ -54,6 +54,6 @@ object HouseLogic:
       val updatedHouse = h.copy(
         producers = updatedProducers,
         storages = updatedStorages
-      )
+      )*/
 
-      (updatedHouse, afterStoragesResidue)
+      (h, internalFlow)

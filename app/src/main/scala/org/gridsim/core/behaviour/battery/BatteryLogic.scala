@@ -22,8 +22,8 @@ object BatteryLogic:
    * It dispatches the incoming flow to the appropriate charging or discharging
    * strategy based on the battery model and specifications.
    */
-  given EnergyExchanger[Battery] with
-    def exchange(b: Battery, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (Battery, Flow[Energy]) =
+  given EnergyExchanger[BatteryState, Battery] with
+    def exchange(state: BatteryState, b: Battery, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (BatteryState, Flow[Energy]) =
       val strategy = BatteryStrategy.forModel(b.model)
 
       val action: State[BatteryState, Flow[Energy]] = flow match
@@ -33,4 +33,4 @@ object BatteryLogic:
 
       val (nextState, residue) = action.run(b.state).value
 
-      (b.copy(state = nextState), residue)
+      (nextState, residue)

@@ -32,27 +32,27 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
   "BatteryLogic" should "dispatch surplus flow to charging strategy" in {
     val battery = Battery("Battery 1", spec, BatteryState(0.kwh))
 
-    val (newBattery, residue) = battery.exchange(Surplus(10.kwh), env)
+    val (newState, residue) = battery.state.exchange(battery, Surplus(10.kwh), env)
 
-    newBattery.state.currentCharge.toDouble shouldBe 5.0
+    newState.currentCharge.toDouble shouldBe 5.0
     residue shouldBe Surplus(5.kwh)
     }
 
     it should "dispatch deficit flow to discharging strategy" in {
     val battery = Battery("Battery 1", spec, BatteryState(10.kwh))
 
-    val (newBattery, residue) = battery.exchange(Deficit(10.kwh), env)
+      val (newState, residue) = battery.state.exchange(battery, Deficit(10.kwh), env)
 
-    newBattery.state.currentCharge.toDouble shouldBe 5.0
+    newState.currentCharge.toDouble shouldBe 5.0
     residue shouldBe Deficit(5.kwh)
     }
 
     it should "return Balanced residue when flow is balanced" in {
     val battery = Battery("Battery 1", spec, BatteryState(5.kwh))
+      
+    val (newState, residue) = battery.state.exchange(battery, Balanced, env)
 
-    val (newBattery, residue) = battery.exchange(Balanced, env)
-
-    newBattery.state.currentCharge.toDouble shouldBe 5.0
+    newState.currentCharge.toDouble shouldBe 5.0
     residue shouldBe Balanced
     }
 }
