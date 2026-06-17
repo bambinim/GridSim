@@ -11,7 +11,6 @@ import org.gridsim.core.behaviour.battery.BatteryLogic.given
 import org.gridsim.core.behaviour.shaping.{DemandShaper, GaussianShaper, IdentityShaper}
 import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.common.StochasticGenerator
-import org.gridsim.core.common.SimulationTime
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -23,7 +22,7 @@ import scala.concurrent.duration.*
 class HouseLogicSpec extends AnyFlatSpec with Matchers {
 
   val env = new Environment {
-    override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
+    override def time: FiniteDuration = 11.hours
     override def weather(point: GeographicPoint): WeatherConditions = ???
     override def advance(delta: FiniteDuration): Environment = ???
   }

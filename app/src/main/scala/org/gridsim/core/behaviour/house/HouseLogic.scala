@@ -15,8 +15,6 @@ import org.gridsim.core.model.house.{House, HouseState}
 
 import scala.concurrent.duration.FiniteDuration
 
-import scala.concurrent.duration.FiniteDuration
-
 /**
  * Logic implementation for the [[House]] entity.
  *
@@ -38,7 +36,7 @@ object HouseLogic:
     shaper: DemandShaper
   ): EnergyResolver[HouseState[F], House[F]] with
     def resolve(state: HouseState[F], h: House[F], env: Environment)(using delta: FiniteDuration): (HouseState[F], Flow[Energy]) =
-      val internalFlow = resolver.resolve(env.time.hour, h.strategy)
+      val internalFlow = resolver.resolve(env.time.toHours, h.strategy)
 
       val simulation = for {
         updatedProducers <- state.producers.traverse { prod =>

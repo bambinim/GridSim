@@ -15,7 +15,7 @@ import scala.concurrent.duration.FiniteDuration
  * ensuring that the calculated demand varies realistically across simulation ticks.
  */
 class StochasticConsumptionResolver extends ConsumptionResolver:
-  override def resolve(hour: Int, strategy: ConsumptionStrategy)(using delta: FiniteDuration, shaper: DemandShaper): Flow[Energy] =
+  override def resolve(hour: Long, strategy: ConsumptionStrategy)(using delta: FiniteDuration, shaper: DemandShaper): Flow[Energy] =
     val band = strategy.getBand(hour)
 
     val totalPower = shaper.shape(band.meanPower.toDouble, band.variance).kw

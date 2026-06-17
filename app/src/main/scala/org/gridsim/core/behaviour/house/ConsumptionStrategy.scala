@@ -15,9 +15,4 @@ trait ConsumptionStrategy:
    * @param h The hour of the day (0-23).
    * @return The [[ConsumptionBand]] defining mean power and variance for that hour.
    */
-  def getBand(h: Int): ConsumptionBand
-
-
-
-
-
+  def getBand(h: Long): ConsumptionBand

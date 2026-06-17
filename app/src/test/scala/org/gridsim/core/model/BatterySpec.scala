@@ -2,6 +2,9 @@ package org.gridsim.core.model
 
 import org.gridsim.core.common.*
 import org.gridsim.core.model.battery.*
+import org.gridsim.core.behaviour.*
+import org.gridsim.core.behaviour.battery.BatteryLogic.given
+import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
@@ -13,6 +16,8 @@ import scala.concurrent.duration.FiniteDuration
 
 @RunWith(classOf[JUnitRunner])
 class BatterySpec extends AnyFlatSpec with Matchers {
+
+  val env = Environment(11.hours)
 
   val spec = BatterySpecification(
     capacity = 10.kwh,

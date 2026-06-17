@@ -4,7 +4,6 @@ import org.gridsim.core.behaviour.shaping.DemandShaper
 import org.gridsim.core.common.*
 import org.gridsim.core.common.StochasticGenerator
 
-
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -24,12 +23,11 @@ trait ConsumptionResolver:
    * @param shaper   The shaper used to apply randomness or smoothing to the demand.
    * @return A [[Flow.Deficit]] or [[Flow.Balanced]] based on the calculated demand.
    */
-  def resolve(hour: Int, strategy: ConsumptionStrategy)(using
-    delta: FiniteDuration,
-    shaper: DemandShaper
+  def resolve(hour: Long, strategy: ConsumptionStrategy)(using
+                                                        delta: FiniteDuration,
+                                                        shaper: DemandShaper
   ): Flow[Energy]
 
 object ConsumptionResolver:
   /** Default given instance using a stochastic model. */
   given ConsumptionResolver = new StochasticConsumptionResolver()
-
