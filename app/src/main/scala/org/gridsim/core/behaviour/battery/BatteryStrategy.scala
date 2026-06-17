@@ -1,63 +1,60 @@
 package org.gridsim.core.behaviour.battery
 
 import cats.data.State
-import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Flow.*
+import org.gridsim.core.behaviour.StorageStrategy
+import org.gridsim.core.common.*
+import org.gridsim.core.common.Flow.*
+import org.gridsim.core.common.Energy
 import org.gridsim.core.model.battery.{BatteryModel, BatterySpecification, BatteryState}
 
 import scala.concurrent.duration.FiniteDuration
 
 /**
  * Strategy pattern for battery energy processing.
- * Allows for different implementations of charging and discharging logic.
+ *
+ * Implementations define how a battery state evolves when subjected to
+ * an energy surplus (charging) or deficit (discharging).
  */
-trait BatteryStrategy:
+trait BatteryStrategy extends StorageStrategy[BatteryState, BatterySpecification]:
   /**
-   * Processes an incoming surplus of energy.
+   * Calculates the updated state and residual energy after a charging attempt.
    *
+   * @param state   The current state of the battery.
    * @param offered The amount of energy available for charging.
    * @param spec    The physical specifications of the battery.
-   * @return A State transition that updates the BatteryState and returns the residual flow.
+   * @param delta   The duration of the simulation tick.
+   * @return A State transition for the [[BatteryState]].
    */
-  def charge(offered: Energy, spec: BatterySpecification)(using delta: FiniteDuration): State[BatteryState, Flow[Energy]]
+  def charge(state: BatteryState, offered: Energy, spec: BatterySpecification)(using delta: FiniteDuration): (BatteryState, Flow[Energy])
 
   /**
-   * Processes an incoming deficit of energy.
+   * Calculates the updated state and residual energy after a discharging attempt.
    *
-   * @param needed  The amount of energy requested from the battery.
-   * @param spec    The physical specifications of the battery.
-   * @return A State transition that updates the BatteryState and returns the residual flow.
+   * @param state  The current state of the battery.
+   * @param needed The amount of energy requested from the battery.
+   * @param spec   The physical specifications of the battery.
+   * @param delta  The duration of the simulation tick.
+   * @return A State transition for the [[BatteryState]].
    */
-  def discharge(needed: Energy, spec: BatterySpecification)(using delta: FiniteDuration): State[BatteryState, Flow[Energy]]
+  def discharge(state: BatteryState, needed: Energy, spec: BatterySpecification)(using delta: FiniteDuration): (BatteryState, Flow[Energy])
 
 object BatteryStrategy:
   /**
-   * Dispatches the correct strategy based on the battery model.
+   * Factory method to obtain the strategy associated with a specific [[BatteryModel]].
    */
   def forModel(model: BatteryModel): BatteryStrategy = model match
     case BatteryModel.Standard => StandardBatteryStrategy
-    case _                     => StandardBatteryStrategy
+    case null                     => StandardBatteryStrategy
 
-/**
- * Standard implementation of battery logic, respecting physical constraints.
- */
-object StandardBatteryStrategy extends BatteryStrategy:
-  override def charge(offered: Energy, spec: BatterySpecification)(using delta: FiniteDuration): State[BatteryState, Flow[Energy]] =
-    for {
-      state <- State.get[BatteryState]
-      maxChargeable = spec.maxPowerCharge.toEnergy
-      availableSpace = (spec.capacity - state.currentCharge).max(Energy.Zero)
-      stored = offered.min(maxChargeable).min(availableSpace)
-      residue = if (offered - stored) > Energy.Zero then Surplus(offered - stored) else Balanced
-      _ <- State.modify[BatteryState](s => s.copy(currentCharge = s.currentCharge + stored))
-    } yield residue
+  /**
+   * Syntax extensions for BatteryState to allow fluent method calls.
+   * Example: state.charge(offered, spec)
+   */
+  extension (s: BatteryState)
+    def charge(offered: Energy, spec: BatterySpecification)(using delta: FiniteDuration, strategy: BatteryStrategy): (BatteryState, Flow[Energy]) =
+      strategy.charge(s, offered, spec)
 
-  override def discharge(needed: Energy, spec: BatterySpecification)(using delta: FiniteDuration): State[BatteryState, Flow[Energy]] =
-    for {
-      state <- State.get[BatteryState]
-      usable = (state.currentCharge - (spec.capacity * spec.minSoC)).max(Energy.Zero)
-      maxDischargeable = spec.maxPowerDischarge.toEnergy
-      discharged = needed.min(maxDischargeable).min(usable)
-      residue = if (needed - discharged) > Energy.Zero then Deficit(needed - discharged) else Balanced
-      _ <- State.modify[BatteryState](s => s.copy(currentCharge = s.currentCharge - discharged))
-    } yield residue
+    def discharge(needed: Energy, spec: BatterySpecification)(using delta: FiniteDuration, strategy: BatteryStrategy): (BatteryState, Flow[Energy]) =
+      strategy.discharge(s, needed, spec)
+
+

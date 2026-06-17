@@ -1,7 +1,8 @@
 package org.gridsim.core.model.battery
 
 import cats.data.ValidatedNec
-import org.gridsim.core.model.{Storage, GridEntity}
+import org.gridsim.core.common.Energy
+import org.gridsim.core.model.{GridEntity, Storage}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.validate
@@ -20,7 +21,7 @@ case class Battery private[core](
   spec: BatterySpecification,
   state: BatteryState,
   model: BatteryModel = BatteryModel.Standard
-) extends GridEntity with Storage
+) extends Storage
 
 object Battery:
   /**
@@ -35,12 +36,3 @@ object Battery:
     model: BatteryModel = BatteryModel.Standard
   )(using Validator[Battery]): ValidatedNec[DomainError, Battery] =
     Battery(id, spec, state, model).validate
-
-extension (battery: Battery)
-  /**
-   * Calculates the current State of Charge (SoC) of the battery.
-   */
-  def getBatteryLevel: Double =
-    val charge = battery.state.currentCharge
-    val capacity = battery.spec.capacity
-    charge / capacity

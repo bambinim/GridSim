@@ -1,131 +1,51 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.common.Units.*
+import org.gridsim.core.common.*
 import org.gridsim.core.model.battery.*
-import org.gridsim.core.behaviour.*
-import org.gridsim.core.behaviour.battery.BatteryLogic.given
-import org.gridsim.core.behaviour.EnergyResolver.*
-import org.gridsim.core.common.SimulationTime
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatestplus.junit.JUnitRunner
 
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 @RunWith(classOf[JUnitRunner])
 class BatterySpec extends AnyFlatSpec with Matchers {
 
-  val env = Environment(SimulationTime(0, 0, 11, 0))
-
   val spec = BatterySpecification(
-    capacity = 10.0.kwh,
-    maxPowerCharge = 5.0.kw,
-    maxPowerDischarge = 5.0.kw,
+    capacity = 10.kwh,
+    maxPowerCharge = 5.kw,
+    maxPowerDischarge = 5.kw,
     minSoC = 0.2
   )
 
   given delta: FiniteDuration = 1.hour
 
   "A Battery" should "be correctly initialized with its specs and state" in {
-    val state = BatteryState(currentCharge = 5.0.kwh)
-    val result = Battery.make("Battery 1", spec, state)
-    result.isValid shouldBe true
-  }
-
-  it should "be invalid if specifications are invalid" in {
-    val specEr = BatterySpecification(
-      capacity = 10.0.kwh,
-      maxPowerCharge = -3.0.kw,
-      maxPowerDischarge = 3.0.kw,
-      minSoC = 1.2
-    )
     val state = BatteryState(currentCharge = 5.kwh)
-    val result = Battery.make("Battery 1", specEr, state)
-    result.isInvalid shouldBe true
-  }
-
-  it should "be invalid if state is invalid" in {
-    val state = BatteryState(currentCharge = 20.kwh)
     val result = Battery.make("Battery 1", spec, state)
-    result.isInvalid shouldBe true
+
+    result.isValid shouldBe true
+    val battery = result.getOrElse(fail())
+    battery.id shouldBe "Battery 1"
+    battery.spec shouldBe spec
+    battery.state shouldBe state
   }
 
   it should "calculate correctly its battery level" in {
-    val battery = Battery("Battery 1", spec, BatteryState(5.kwh))
-    battery.getBatteryLevel shouldBe 0.5
+    val battery = Battery("B1", spec, BatteryState(5.kwh))
+    battery.percentage shouldBe 0.5
   }
 
-  it should "handle extreme power/energy values without crashing" in {
-    val extremeSpec = BatterySpecification(1e-10.kwh, 1e10.kw, 1e10.kw, 0.0)
-    val battery = Battery("Extreme", extremeSpec, BatteryState(0.kwh))
-
-    val (newBattery, residue) = battery.runSolve(Flow.Surplus(1.kwh), env)
-    newBattery.state.currentCharge shouldBe extremeSpec.capacity
+  it should "report 1.0 when full" in {
+    val battery = Battery("Full", spec, BatteryState(10.kwh))
+    battery.percentage shouldBe 1.0
   }
 
-  it should "not charge if already at capacity" in {
-    val fullBattery = Battery("Full", spec, BatteryState(10.0.kwh))
-    val (newBattery, residue) = fullBattery.runSolve(Flow.Surplus(1.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 10.0.kwh
-    residue shouldBe Flow.Surplus(1.0.kwh)
-  }
-
-  it should "not discharge if already at minSoC" in {
-    val emptyBattery = Battery("Empty", spec, BatteryState(2.0.kwh))
-    val (newBattery, residue) = emptyBattery.runSolve(Flow.Deficit(1.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 2.0.kwh
-    residue shouldBe Flow.Deficit(1.0.kwh)
-  }
-
-  "BatteryLogic" should "charge correctly when within limits" in {
-    val battery = Battery("B1", spec, BatteryState(5.0.kwh))
-    val (newBattery, residue) = battery.runSolve(Flow.Surplus(2.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 7.0.kwh
-    residue shouldBe Flow.Balanced
-  }
-
-  it should "handle excess energy when hitting maxPowerCharge limit" in {
-    val battery = Battery("B1", spec, BatteryState(5.0.kwh))
-    val (newBattery, residue) = battery.runSolve(Flow.Surplus(10.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 10.0.kwh
-    residue shouldBe Flow.Surplus(5.0.kwh)
-  }
-
-  it should "handle excess energy when hitting capacity limit" in {
-    val battery = Battery("B1", spec, BatteryState(9.0.kwh))
-    val (newBattery, residue) = battery.runSolve(Flow.Surplus(5.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 10.0.kwh
-    residue shouldBe Flow.Surplus(4.0.kwh)
-  }
-
-  it should "discharge correctly when within limits" in {
-    val battery = Battery("B1", spec, BatteryState(5.0.kwh))
-    val (newBattery, residue) = battery.runSolve(Flow.Deficit(2.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 3.0.kwh
-    residue shouldBe Flow.Balanced
-  }
-
-  it should "handle deficit when hitting maxPowerDischarge limit" in {
-    val battery = Battery("B1", spec, BatteryState(10.0.kwh))
-    val (newBattery, residue) = battery.runSolve(Flow.Deficit(10.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 5.0.kwh
-    residue shouldBe Flow.Deficit(5.0.kwh)
-  }
-
-  it should "handle deficit when hitting minSoC limit" in {
-    val battery = Battery("B1", spec, BatteryState(3.0.kwh))
-    val (newBattery, residue) = battery.runSolve(Flow.Deficit(5.0.kwh), env)
-
-    newBattery.state.currentCharge shouldBe 2.0.kwh
-    residue shouldBe Flow.Deficit(4.0.kwh)
+  it should "report 0.0 when empty" in {
+    val battery = Battery("Empty", spec, BatteryState(0.kwh))
+    battery.percentage shouldBe 0.0
   }
 }

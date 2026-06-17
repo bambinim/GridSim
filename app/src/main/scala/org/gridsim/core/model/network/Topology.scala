@@ -1,6 +1,6 @@
 package org.gridsim.core.model.network
 
-import org.gridsim.core.common.Units.Energy
+import org.gridsim.core.common.Energy
 import org.gridsim.core.model.GridEntity
 
 import scala.collection.{Iterable, Set}

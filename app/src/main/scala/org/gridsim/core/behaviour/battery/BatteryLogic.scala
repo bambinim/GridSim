@@ -1,35 +1,37 @@
 package org.gridsim.core.behaviour.battery
 
 import cats.data.State
-import org.gridsim.core.behaviour.EnergyResolver
-import org.gridsim.core.common.Units.*
-import org.gridsim.core.common.Units.Flow.*
+import org.gridsim.core.behaviour.{EnergyExchanger, EnergyResolver}
+import org.gridsim.core.common.*
+import org.gridsim.core.common.Flow.*
 import org.gridsim.core.model.Environment
-import org.gridsim.core.model.battery.Battery
+import org.gridsim.core.model.battery.{Battery, BatteryState}
+import BatteryStrategy.*
 
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Implementation of [[EnergyResolver]] for [[Battery]].
- * Encapsulates the physical constraints of charging and discharging.
+ * Logic implementation for the [[Battery]] entity.
+ *
+ * It bridges the domain model with the physical simulation by applying
+ * battery-specific strategies to resolve incoming energy flows.
  */
 object BatteryLogic:
   /**
-   * Provides the [[EnergyResolver]] for the [[Battery]] entity.
-   * Dispatch the incoming flow to the appropriate strategy.
-   * Return a [[State]] transition that updates the [[Battery]] instance and
-   * calculates the residual [[Energy]].
+   * Implementation of [[EnergyExchanger]] for [[Battery]].
+   *
+   * This exchanger evaluates the incoming [[Flow]] against the battery's
+   * [[BatteryState]] and physical specifications. It acts as a state
+   * transition function:
+   *
+   * It dispatches the incoming flow to the appropriate charging or discharging
+   * strategy based on the battery model and specifications.
    */
-  given EnergyResolver[Battery] with
-    def solve(flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): State[Battery, Flow[Energy]] =
-      for {
-        b <- State.get[Battery]
-        strategy = BatteryStrategy.forModel(b.model)
-        action = flow match
-          case Surplus(e) => strategy.charge(e, b.spec)
-          case Deficit(e) => strategy.discharge(e, b.spec)
-          case _ => State.pure(Balanced)
+  given EnergyExchanger[BatteryState, Battery] with
+    def exchange(state: BatteryState, b: Battery, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (BatteryState, Flow[Energy]) =
+      val strategy = BatteryStrategy.forModel(b.model)
 
-        (nextState, residue) = action.run(b.state).value
-        _ <- State.modify[Battery](_.copy(state = nextState))
-      } yield residue
+      flow match
+        case Surplus(e) => state.charge(e, b.spec)(using delta, strategy)
+        case Deficit(e) => state.discharge(e, b.spec)(using delta, strategy)
+        case _ => (state, Balanced)

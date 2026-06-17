@@ -1,8 +1,8 @@
 package org.gridsim.core.solver
 
+import org.gridsim.core.common.*
 import scala.collection.Map
 import org.gridsim.core.model.network.{Cable, GridGraph}
-import org.gridsim.core.common.Units.{Energy, Flow}
 import org.gridsim.core.solver.{KirchhoffPowerFlowSolver, SimplePowerFlowSolver}
 
 trait PowerFlowSolver:

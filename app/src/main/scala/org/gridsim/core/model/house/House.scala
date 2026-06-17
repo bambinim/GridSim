@@ -3,28 +3,15 @@ package org.gridsim.core.model.house
 import cats.{Alternative, Traverse}
 import cats.data.ValidatedNec
 import cats.implicits.*
-import org.gridsim.core.common.Units.{Energy, Flow}
+import org.gridsim.core.behaviour.house.{ConsumptionStrategy, DefaultConsumptionStrategy}
 import org.gridsim.core.model.*
+import org.gridsim.core.model.house.HouseState
 import org.gridsim.core.model.{GridEntity, Producer, Storage}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.*
 import org.gridsim.core.validation.HouseValidator
 import org.gridsim.core.validation.HouseComponentValidator.given
-
-/**
- * Represents the size of a house, which acts as a multiplier for base energy consumption.
- */
-enum Size(val multiplier: Double):
-  case Small  extends Size(1.0)
-  case Medium extends Size(1.5)
-  case Large  extends Size(2.0)
-
-/**
- * Represents the occupancy profile of a house, determining the base energy demand pattern.
- */
-enum Occupancy:
-  case Traditional, SmartWorker, Vacant
 
 /**
  * A House is a complex [[GridEntity]] that aggregates multiple components.
@@ -34,11 +21,12 @@ enum Occupancy:
  */
 case class House[F[_]] private[core](
   id: String,
-  size: Size,
-  occupancy: Occupancy,
-  producers: F[Producer],
-  storages: F[Storage]
-) extends GridEntity
+  state: HouseState[F],
+  strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
+) extends GridEntity:
+  def producers: F[Producer] = state.producers
+
+  def storages: F[Storage] = state.storages
 
 object House:
   /**
@@ -47,20 +35,30 @@ object House:
    *
    * @return A [[ValidatedNec]] containing the house or accumulated [[DomainError]]s.
    */
-  def makeHouse[F[_]: Traverse](id: String, size: Size, occupancy: Occupancy, producers: F[Producer], storages: F[Storage]): ValidatedNec[DomainError, House[F]] =
-    House(id, size, occupancy, producers, storages).validate
+  def makeHouse[F[_]: Traverse](
+     id: String,
+     producers: F[Producer],
+     storages: F[Storage],
+     strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
+   ): ValidatedNec[DomainError, House[F]] =
+    val state = HouseState(producers,storages)
+    House(id, state).validate
 
   /**
    * Helper to instantiate a House with no components (defaults to List).
    */
-  def makeEmptyHouse(id: String, size: Size, occupancy: Occupancy): ValidatedNec[DomainError, House[List]] =
-    makeHouse[List](id, size, occupancy, Nil, Nil)
+  def makeEmptyHouse(id: String, strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile): ValidatedNec[DomainError, House[List]] =
+    makeHouse[List](id, Nil, Nil, strategy)
 
   /**
    * Helper to instantiate a House with a collection of storages and no producers.
    */
-  def makeHouseWithStorages[F[_]: Traverse : Alternative](id: String, size: Size, occupancy: Occupancy, storages: F[Storage]): ValidatedNec[DomainError, House[F]] =
-    makeHouse[F](id, size, occupancy, Alternative[F].empty, storages)
+  def makeHouseWithStorages[F[_]: Traverse : Alternative](
+     id: String,
+     storages: F[Storage],
+     strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
+   ): ValidatedNec[DomainError, House[F]] =
+    makeHouse[F](id, Alternative[F].empty, storages, strategy)
 
 
   /**

@@ -9,6 +9,7 @@ scala-library = "3.3.7"
 scala-xml = "2.4.0"
 scalatest = "3.2.20"
 cats-core = "2.12.0"
+pureconfig = "0.17.10"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
