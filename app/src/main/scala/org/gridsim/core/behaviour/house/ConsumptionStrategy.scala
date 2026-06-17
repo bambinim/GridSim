@@ -15,14 +15,14 @@ trait ConsumptionStrategy:
    * @param h The hour of the day (0-23).
    * @return The instantaneous power demand.
    */
-  def demandAt(h: Int): Power
+  def demandAt(h: Long): Power
 
 /**
  * Traditional profile: represents residents with typical peak hours
  * in the early morning and evening.
  */
 object TraditionalStrategy extends ConsumptionStrategy:
-  override def demandAt(h: Int): Power = h match
+  override def demandAt(h: Long): Power = h match
     case h if (h >= 7 && h <= 9) || (h >= 18 && h <= 22) => 8.0.kw
     case _ => 2.0.kw
 
@@ -31,7 +31,7 @@ object TraditionalStrategy extends ConsumptionStrategy:
  * with sustained high demand throughout the day.
  */
 object SmartWorkerStrategy extends ConsumptionStrategy:
-  override def demandAt(h: Int): Power = h match
+  override def demandAt(h: Long): Power = h match
     case h if h >= 8 && h <= 23 => 5.0.kw
     case _ => 2.0.kw
 
@@ -39,4 +39,4 @@ object SmartWorkerStrategy extends ConsumptionStrategy:
  * Vacant profile: represents a house with minimal, constant baseline demand.
  */
 object VacantStrategy extends ConsumptionStrategy:
-  override def demandAt(h: Int): Power = 1.0.kw
+  override def demandAt(h: Long): Power = 1.0.kw

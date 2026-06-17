@@ -33,7 +33,7 @@ object ConsumptionProfile:
    * @param delta The duration of the simulation Tick.
    * @return A [[Flow.Deficit]] rapresenting the required energy
    */
-  def calculateConsume(size: Size, occupancy: Occupancy, hour: Int)(using delta: FiniteDuration): Flow[Energy] =
+  def calculateConsume(size: Size, occupancy: Occupancy, hour: Long)(using delta: FiniteDuration): Flow[Energy] =
     val sizeMultiplier = size.multiplier
     val strategy = strategies.getOrElse(occupancy, VacantStrategy)
 
