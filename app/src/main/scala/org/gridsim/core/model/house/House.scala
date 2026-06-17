@@ -35,21 +35,30 @@ object House:
    *
    * @return A [[ValidatedNec]] containing the house or accumulated [[DomainError]]s.
    */
-  def makeHouse[F[_]: Traverse](id: String, producers: F[Producer], storages: F[Storage]): ValidatedNec[DomainError, House[F]] =
+  def makeHouse[F[_]: Traverse](
+     id: String,
+     producers: F[Producer],
+     storages: F[Storage],
+     strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
+   ): ValidatedNec[DomainError, House[F]] =
     val state = HouseState(producers,storages)
     House(id, state).validate
 
   /**
    * Helper to instantiate a House with no components (defaults to List).
    */
-  def makeEmptyHouse(id: String): ValidatedNec[DomainError, House[List]] =
-    makeHouse[List](id, Nil, Nil)
+  def makeEmptyHouse(id: String, strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile): ValidatedNec[DomainError, House[List]] =
+    makeHouse[List](id, Nil, Nil, strategy)
 
   /**
    * Helper to instantiate a House with a collection of storages and no producers.
    */
-  def makeHouseWithStorages[F[_]: Traverse : Alternative](id: String, storages: F[Storage]): ValidatedNec[DomainError, House[F]] =
-    makeHouse[F](id, Alternative[F].empty, storages)
+  def makeHouseWithStorages[F[_]: Traverse : Alternative](
+     id: String,
+     storages: F[Storage],
+     strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
+   ): ValidatedNec[DomainError, House[F]] =
+    makeHouse[F](id, Alternative[F].empty, storages, strategy)
 
 
   /**
