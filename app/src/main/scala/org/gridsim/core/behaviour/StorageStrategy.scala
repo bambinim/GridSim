@@ -1,5 +1,38 @@
 package org.gridsim.core.behaviour
 
-trait StorageStrategy {
+import org.gridsim.core.common.{Energy, Flow}
+import org.gridsim.core.model.{StorageSpecification, StorageState}
 
-}
+import scala.concurrent.duration.FiniteDuration
+
+/**
+ * Base trait defining the contract for energy storage strategies.
+ *
+ * Implementations determine how specific storage technologies (batteries,
+ * thermal stores, etc.) evolve their state based on energy flows.
+ *
+ * @tparam S    The specific type of [[StorageState]].
+ * @tparam Spec The specific type of [[StorageSpecification]].
+ */
+trait StorageStrategy[S <: StorageState, Spec <: StorageSpecification]:
+  /**
+   * Calculates the state transition and residual energy after a charging attempt.
+   *
+   * @param state   The current state of the storage unit.
+   * @param offered The amount of energy available for charging.
+   * @param spec    The physical specifications of the storage unit.
+   * @param delta   The duration of the simulation tick.
+   * @return A tuple containing the updated [[StorageState]] and the residual [[Flow]].
+   */
+  def charge(state: S, offered: Energy, spec: Spec)(using delta: FiniteDuration): (S, Flow[Energy])
+
+  /**
+   * Calculates the state transition and residual energy after a discharging attempt.
+   *
+   * @param state  The current state of the storage unit.
+   * @param needed The amount of energy requested from the storage.
+   * @param spec   The physical specifications of the storage unit.
+   * @param delta  The duration of the simulation tick.
+   * @return A tuple containing the updated [[StorageState]] and the residual [[Flow]].
+   */
+  def discharge(state: S, needed: Energy, spec: Spec)(using delta: FiniteDuration): (S, Flow[Energy])

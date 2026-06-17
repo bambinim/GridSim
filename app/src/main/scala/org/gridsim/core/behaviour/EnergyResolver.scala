@@ -22,6 +22,7 @@ trait EnergyResolver[T, A]:
   /**
    * Calculates the net energy exchange for the orchestrator.
    *
+   * @param state        The State of the entity orchestrator.
    * @param orchestrator The entity orchestrating the internal flows.
    * @param env          The current environment context.
    * @param delta        The duration of the simulation tick.

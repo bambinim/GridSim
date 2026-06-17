@@ -14,7 +14,8 @@ import scala.concurrent.duration.FiniteDuration
  * Exchangers are reactive entities (like Storages or Producers) that consume surplus
  * or supply deficit when requested by an orchestrator.
  *
- * @tparam T The type of the component.
+ * @tparam T The state type of the component.
+ * @tparam A The type of the component.         
  */
 trait EnergyExchanger[T, A]:
   /**
@@ -30,7 +31,7 @@ trait EnergyExchanger[T, A]:
   def exchange(state: T, component: A, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (T, Flow[Energy])
 
 object EnergyExchanger:
-  /** Extension methods to allow syntax like `component.exchange(flow, env)`. */
+  /** Extension methods to allow syntax like `state.exchange(flow, env)`. */
   extension [T, A](state: T)(using exchanger: EnergyExchanger[T, A])
     def exchange(component: A, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (T, Flow[Energy]) =
       exchanger.exchange(state, component, flow, env)
