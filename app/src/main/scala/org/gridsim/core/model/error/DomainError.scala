@@ -29,6 +29,7 @@ enum DomainError:
    * @param str   The invalid string that was provided.
    */
   case InvalidId(field: String, str: String)
+  case IdNotFound(id: String)
 
 object DomainError:
   /**
@@ -44,4 +45,6 @@ object DomainError:
       s"[ERROR] Field '$f' cannot be negative. Provided: $v"
     case OutOfRange(f, v, min, max) =>
       s"[Error] Field '$f' must be in range between $min and $max. Provided: $v"
+    case IdNotFound(i) =>
+      s"[ERROR] Identifier match not found for id '$i'"
   }

@@ -16,8 +16,3 @@ trait ConsumptionStrategy:
    * @return The [[ConsumptionBand]] defining mean power and variance for that hour.
    */
   def getBand(h: Int): ConsumptionBand
-
-
-
-
-

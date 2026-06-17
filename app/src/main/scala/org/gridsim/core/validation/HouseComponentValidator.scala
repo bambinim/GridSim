@@ -1,9 +1,11 @@
 package org.gridsim.core.validation
 
 import cats.data.ValidatedNec
+import cats.implicits.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.error.DomainError
-import org.gridsim.core.model.battery.Battery
+import org.gridsim.core.model.battery.{Battery, BatteryState}
+import org.gridsim.core.model.storage.{Storage, StorageState}
 import org.gridsim.core.validation.Validator.validate
 import org.gridsim.core.validation.BatteryValidator.given
 
@@ -13,21 +15,18 @@ import org.gridsim.core.validation.BatteryValidator.given
 object HouseComponentValidator:
 
   /**
-   * The implicit [[Validator]] instance for storage components.
+   * The implicit [[Validator]] instance for generic house components.
    */
-  given storageValidator: Validator[Storage] with
-    def validate(s: Storage): ValidatedNec[DomainError, Storage] =
-      s match
-        case b: Battery =>
-          b.validate
-        case other =>
-          cats.data.Validated.validNec(other)
+  given componentValidator: Validator[(GridEntity, GridState)] with
+    def validate(pair: (GridEntity, GridState)): ValidatedNec[DomainError, (GridEntity, GridState)] =
+      val (entity, state) = pair
 
-  /**
-   * The implicit [[Validator]] instance for producer components.
-   */
-  given producerValidator: Validator[Producer] with
-    def validate(p: Producer): ValidatedNec[DomainError, Producer] =
-      p match
-        case other =>
-          cats.data.Validated.validNec(other)
+      (entity, state) match
+        case (b: Battery, s: BatteryState) =>
+          (b, s).validate.map { case (ent, st) => (ent: GridEntity, st: GridState) }
+
+        case (e, s) if e.id != s.entityId =>
+          DomainError.InvalidId(e.id, s.entityId).invalidNec
+
+        case _ =>
+          pair.validNec

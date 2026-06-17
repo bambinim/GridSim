@@ -3,23 +3,25 @@ package org.gridsim.core.behaviour.battery
 import org.gridsim.core.common.Flow.*
 import org.gridsim.core.common.Energy.*
 import org.gridsim.core.common.*
-import org.gridsim.core.model.battery.{BatterySpecification, BatteryState}
+import org.gridsim.core.model.battery.{Battery, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.junit.JUnitRunner
 import scala.concurrent.duration.*
-import BatteryStrategy.*
 
 @RunWith(classOf[JUnitRunner])
 class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks {
 
-  given strategy: BatteryStrategy = StandardBatteryStrategy
+  private val strategy: BatteryStrategy = StandardBatteryStrategy
+  import strategy.*
+  
   given delta: FiniteDuration = 1.hour
 
-  val spec = BatterySpecification(
-    capacity = 10.kwh,
+  private val battery = Battery(
+    id = "B1",
+    maxCapacity = 10.kwh,
     maxPowerCharge = 5.kw,
     maxPowerDischarge = 5.kw,
     minSoC = 0.2
@@ -35,7 +37,7 @@ class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenProp
     )
 
     forAll(chargeScenarios) { (initial: Energy, offered: Energy, expectedFinal: Energy, expectedResidue: Flow[Energy]) =>
-      val (finalState, residue) = BatteryState(initial).charge(offered, spec)
+      val (finalState, residue) = BatteryState("B1", initial).charge(offered, battery)
 
       finalState.currentCharge.toDouble shouldBe expectedFinal.toDouble
       residue shouldBe expectedResidue
@@ -52,7 +54,7 @@ class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenProp
     )
 
     forAll(dischargeScenarios) { (initial: Energy, needed: Energy, expectedFinal: Energy, expectedResidue: Flow[Energy]) =>
-      val (finalState, residue) = BatteryState(initial).discharge(needed, spec)
+      val (finalState, residue) = BatteryState("B1", initial).discharge(needed, battery)
 
       finalState.currentCharge.toDouble shouldBe expectedFinal.toDouble
       residue shouldBe expectedResidue
@@ -62,7 +64,7 @@ class BatteryStrategySpec extends AnyFlatSpec with Matchers with TableDrivenProp
   it should "scale power constraints based on time delta" in {
     given shortDelta: FiniteDuration = 30.minutes
 
-    val (finalState, residue) = BatteryState(0.kwh).charge(5.kwh, spec)(using shortDelta, strategy)
+    val (finalState, residue) = BatteryState("B1", 0.kwh).charge(5.kwh, battery)(using shortDelta)
 
     finalState.currentCharge.toDouble shouldBe 2.5
     residue shouldBe Surplus(2.5.kwh)

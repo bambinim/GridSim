@@ -1,38 +1,31 @@
 package org.gridsim.core.model.battery
 
 import cats.data.ValidatedNec
-import org.gridsim.core.common.Energy
-import org.gridsim.core.model.{GridEntity, Storage}
+import org.gridsim.core.common.{Energy, Power}
+import org.gridsim.core.model.GridEntity
 import org.gridsim.core.model.error.DomainError
+import org.gridsim.core.model.storage.Storage
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.validate
 
 /**
- * A Battery is an entity capable of storing and releasing energy.
- * It can be used both inside a house and as a standalone grid component.
- *
- * @param id    The unique identifier for the battery.
- * @param spec  The physical specifications of the battery.
- * @param state The current runtime state of the battery.
- * @param model The specific battery model determining its behaviour.
+ * A BatteryEntity contains the static configuration of a battery.
  */
-case class Battery private[core](
+case class Battery(
   id: String,
-  spec: BatterySpecification,
-  state: BatteryState,
-  model: BatteryModel = BatteryModel.Standard
+  model: BatteryModel = BatteryModel.Standard,
+  maxCapacity: Energy,
+  maxPowerCharge: Power,
+  maxPowerDischarge: Power,
+  minSoC: Double = 0.2
 ) extends Storage
 
 object Battery:
   /**
-   * Smart constructor for the [[Battery]] component.
-   * By making the default constructor private and forcing creation through this method,
-   * we guarantee that it is impossible to instantiate an invalid [[Battery]] in the system.
+   * Helper to validate a battery entity-state pair.
    */
   def make(
-    id: String,
-    spec: BatterySpecification,
-    state: BatteryState,
-    model: BatteryModel = BatteryModel.Standard
-  )(using Validator[Battery]): ValidatedNec[DomainError, Battery] =
-    Battery(id, spec, state, model).validate
+    entity: Battery,
+    state: BatteryState
+  )(using Validator[(Battery, BatteryState)]): ValidatedNec[DomainError, (Battery, BatteryState)] =
+    (entity, state).validate
