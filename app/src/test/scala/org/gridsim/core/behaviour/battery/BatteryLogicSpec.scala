@@ -19,11 +19,11 @@ import scala.concurrent.duration.*
 @RunWith(classOf[JUnitRunner])
 class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
-  val env = new Environment:
+  val env = new Environment {
     override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-    override def delta: FiniteDuration = 1.hour
     override def weather(point: GeographicPoint): WeatherConditions = ???
-    override def advance(): Environment = ???
+    override def advance(delta: FiniteDuration): Environment = ???
+  }
 
   val spec = BatterySpecification(10.kwh, 5.kw, 5.kw, 0.2)
 
@@ -49,7 +49,7 @@ class BatteryLogicSpec extends AnyFlatSpec with Matchers {
 
     it should "return Balanced residue when flow is balanced" in {
     val battery = Battery("Battery 1", spec, BatteryState(5.kwh))
-      
+
     val (newState, residue) = battery.state.exchange(battery, Balanced, env)
 
     newState.currentCharge.toDouble shouldBe 5.0

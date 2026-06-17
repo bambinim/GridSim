@@ -22,11 +22,11 @@ import scala.concurrent.duration.*
 @RunWith(classOf[JUnitRunner])
 class HouseLogicSpec extends AnyFlatSpec with Matchers {
 
-  val env = new Environment:
+  val env = new Environment {
     override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
-    override def delta: FiniteDuration = 1.hour
     override def weather(point: GeographicPoint): WeatherConditions = ???
-    override def advance(): Environment = ???
+    override def advance(delta: FiniteDuration): Environment = ???
+  }
 
   given delta: FiniteDuration = 1.hour
   "HouseLogic with IdentityShaper" should "produce exact deterministic consumption" in {
