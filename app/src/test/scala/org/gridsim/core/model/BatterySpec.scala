@@ -6,7 +6,10 @@ import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.SpanSugar.convertIntToGrainOfTime
 import org.scalatestplus.junit.JUnitRunner
+
+import scala.concurrent.duration.FiniteDuration
 
 @RunWith(classOf[JUnitRunner])
 class BatterySpec extends AnyFlatSpec with Matchers {
@@ -17,6 +20,8 @@ class BatterySpec extends AnyFlatSpec with Matchers {
     maxPowerDischarge = 5.kw,
     minSoC = 0.2
   )
+
+  given delta: FiniteDuration = 1.hour
 
   "A Battery" should "be correctly initialized with its specs and state" in {
     val state = BatteryState(currentCharge = 5.kwh)

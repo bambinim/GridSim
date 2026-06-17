@@ -15,6 +15,8 @@ import org.gridsim.core.model.house.{House, HouseState}
 
 import scala.concurrent.duration.FiniteDuration
 
+import scala.concurrent.duration.FiniteDuration
+
 /**
  * Logic implementation for the [[House]] entity.
  *
@@ -31,7 +33,6 @@ object HouseLogic:
    * It requires a [[ConsumptionResolver]] and a [[DemandShaper]] to be
    * present in the implicit scope to handle stochasticity.
    */
-
   given houseResolver[F[_]: Traverse](using
     resolver: ConsumptionResolver,
     shaper: DemandShaper

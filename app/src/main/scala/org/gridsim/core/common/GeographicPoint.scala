@@ -11,10 +11,10 @@ trait GeographicPoint:
   def latitude: Double
   def longitude: Double
 
-private final case class GeographicPointImpl(latitude: Double, longitude: Double) extends GeographicPoint
+private final case class GeographicPointImpl(latitude: Double, longitude: Double)
+  extends GeographicPoint
 
 object GeographicPoint:
-  /** Creates a geographic point with the given coordinates. */
   def apply(latitude: Double, longitude: Double): GeographicPoint =
     require(latitude >= -90.0 && latitude <= 90.0, s"Invalid latitude: $latitude")
     require(longitude >= -180.0 && longitude <= 180.0, s"Invalid longitude: $longitude")

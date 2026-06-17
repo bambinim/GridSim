@@ -15,7 +15,8 @@ import scala.concurrent.duration.FiniteDuration
  * Resolvers are intended for orchestrators (like House) that manage internal
  * consumption and component interactions to produce a net energy flow.
  *
- * @tparam T The type of the orchestrator.
+ * @tparam T The type state of the orchestrator.
+ * @tparam A The type of orchestrator
  */
 trait EnergyResolver[T, A]:
   /**
@@ -29,8 +30,9 @@ trait EnergyResolver[T, A]:
   def resolve(state: T, orchestrator: A, env: Environment)(using delta: FiniteDuration): (T, Flow[Energy])
 
 object EnergyResolver:
-  /** Extension methods to allow syntax like `house.resolve(env)`. */
+  /** Extension methods to allow syntax. */
   extension [T, A](state: T)(using resolver: EnergyResolver[T, A])
     def resolve(orchestrator: A, env: Environment)(using delta: FiniteDuration): (T, Flow[Energy]) =
       resolver.resolve(state, orchestrator, env)
+
 
