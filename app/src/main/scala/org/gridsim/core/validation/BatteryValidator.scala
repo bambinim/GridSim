@@ -2,44 +2,47 @@ package org.gridsim.core.validation
 
 import cats.data.ValidatedNec
 import cats.syntax.all.*
-import org.gridsim.core.model.battery.{Battery, BatterySpecification, BatteryState}
 import org.gridsim.core.model.error.DomainError
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.validation.Validator.*
 
 /**
  * Defines the physical rules for a [[Battery]] component.
- * Ensures that both its [[BatterySpecification]] and [[BatteryState]]
+ * Ensures that both its static configuration and dynamic [[BatteryState]]
  * are coherent and physically possible.
  */
 object BatteryValidator:
-  given Validator[Battery] with
-    def validate(battery: Battery): ValidatedNec[DomainError, Battery] =
+  given Validator[(Battery, BatteryState)] with
+    def validate(pair: (Battery, BatteryState)): ValidatedNec[DomainError, (Battery, BatteryState)] =
+      val (entity, state) = pair
       (
-        validateSpec(battery.spec),
-        validateState(battery.state, battery.spec)
-      ).mapN((_, _) => battery)
+        validateCoherence(entity, state),
+        validateBatteryEntity(entity),
+        validateBatteryState(entity, state)
+      ).mapN((_, _, _) => pair)
+
+    private def validateCoherence(entity: Battery, state: BatteryState): ValidatedNec[DomainError, Unit] =
+      if entity.id == state.entityId then ().validNec
+      else DomainError.IdNotFound(entity.id).invalidNec
 
     /**
-     * Validates the state of the [[Battery]] against its hardware limitation.
-     *
-     * Physical Rules:
-     * 1. A [[Battery]] cannot have negative charge.
-     * 2. A [[Battery]] cannot hold more charge than its maximum capacity.
+     * Rule 2: Validates hardware configuration (static entity).
      */
-    private def validateState(state: BatteryState, spec: BatterySpecification): ValidatedNec[DomainError, BatteryState] =
-      state.currentCharge.toDouble.mustBeInRange("Current Charge", 0.0, spec.capacity.toDouble).map( _ => state)
+    private def validateBatteryEntity(b: Battery): ValidatedNec[DomainError, Battery] =
+      (
+        b.maxCapacity.toDouble.mustBePositive("Capacity"),
+        b.maxPowerCharge.toDouble.mustBePositive("Max Power Charge"),
+        b.maxPowerDischarge.toDouble.mustBePositive("Max Power Discharge"),
+        b.minSoC.mustBeInRange("Min SoC", 0.0, 1.0)
+      ).mapN((_, _, _, _) => b)
 
     /**
-     * Validates the static hardware specifications of the battery.
-     *
-     * Physical Rules:
-     * 1. Hardware capacities and power transfer rates must be strictly positive.
-     * 2. The Minimum State of Charge (minSoC) represents a percentage and must be in [0.0, 1.0].
+     * Rule 3: Validates dynamic telemetry against hardware constraints (state).
      */
-    private def validateSpec(spec: BatterySpecification): ValidatedNec[DomainError, BatterySpecification] =
-      (
-        spec.capacity.toDouble.mustBePositive("Capacity"),
-        spec.maxPowerCharge.toDouble.mustBePositive("Max Power Charge"),
-        spec.maxPowerDischarge.toDouble.mustBePositive("Max Power Discharge"),
-        spec.minSoC.mustBeInRange("Min SoC", 0.0, 1.0)
-      ).mapN((_, _, _, _) => spec)
+    private def validateBatteryState(entity: Battery, state: BatteryState): ValidatedNec[DomainError, BatteryState] =
+      state.currentCharge.toDouble.mustBeInRange(
+        "Current Charge",
+        0.0,
+        entity.maxCapacity.toDouble
+      ).map(_ => state)
+

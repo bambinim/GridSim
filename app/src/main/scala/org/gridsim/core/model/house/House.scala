@@ -1,69 +1,40 @@
 package org.gridsim.core.model.house
 
-import cats.{Alternative, Traverse}
 import cats.data.ValidatedNec
 import cats.implicits.*
 import org.gridsim.core.behaviour.house.{ConsumptionStrategy, DefaultConsumptionStrategy}
 import org.gridsim.core.model.*
-import org.gridsim.core.model.house.HouseState
-import org.gridsim.core.model.{GridEntity, Producer, Storage}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.*
 import org.gridsim.core.validation.HouseValidator
-import org.gridsim.core.validation.HouseComponentValidator.given
+import org.gridsim.core.validation.HouseComponentValidator.componentValidator
 
 /**
- * A House is a complex [[GridEntity]] that aggregates multiple components.
- * It can only contain entities that are marked with [[CanBeInHouse]].
+ * Static configuration of a house and the grid components installed in it.
  *
- * @tparam F The container type for components.
+ * Components are generic grid entities so the house can contain storage today
+ * and producer entities such as solar panels when their evolution is added.
  */
-case class House[F[_]] private[core](
+case class House(
   id: String,
-  state: HouseState[F],
+  components: List[GridEntity],
   strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
-) extends GridEntity:
-  def producers: F[Producer] = state.producers
-
-  def storages: F[Storage] = state.storages
+) extends GridEntity
 
 object House:
   /**
-   * Smart constructor for a generic House.
-   * Ensures that the [[House]] entity is valid upon instantiation.
-   *
-   * @return A [[ValidatedNec]] containing the house or accumulated [[DomainError]]s.
+   * Helper to validate a house entity-state pair.
    */
-  def makeHouse[F[_]: Traverse](
-     id: String,
-     producers: F[Producer],
-     storages: F[Storage],
-     strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
-   ): ValidatedNec[DomainError, House[F]] =
-    val state = HouseState(producers,storages)
-    House(id, state).validate
-
-  /**
-   * Helper to instantiate a House with no components (defaults to List).
-   */
-  def makeEmptyHouse(id: String, strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile): ValidatedNec[DomainError, House[List]] =
-    makeHouse[List](id, Nil, Nil, strategy)
-
-  /**
-   * Helper to instantiate a House with a collection of storages and no producers.
-   */
-  def makeHouseWithStorages[F[_]: Traverse : Alternative](
-     id: String,
-     storages: F[Storage],
-     strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
-   ): ValidatedNec[DomainError, House[F]] =
-    makeHouse[F](id, Alternative[F].empty, storages, strategy)
-
+  def make(
+     entity: House,
+     state: HouseState
+   ): ValidatedNec[DomainError, (House, HouseState)] =
+    (entity, state).validate
 
   /**
    * Given instance to allow House entities to be validated recursively.
    */
-  given [F[_] : Traverse]: Validator[House[F]] with
-    def validate(h: House[F]): ValidatedNec[DomainError, House[F]] =
-      HouseValidator.validate(h)
+  given Validator[(House, HouseState)] with
+    def validate(pair: (House, HouseState)): ValidatedNec[DomainError, (House, HouseState)] =
+      HouseValidator.validate(pair)
