@@ -1,11 +1,11 @@
 package org.gridsim.core.validation
 
 import org.gridsim.core.common.*
-import org.gridsim.core.model.battery.{Battery, BatteryModel, BatteryState}
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.model.error.DomainError.{OutOfRange, ValueMustBePositive}
 import org.gridsim.core.validation.BatteryValidator.given
 import cats.syntax.all.*
+import org.gridsim.core.model.storage.battery.{Battery, BatteryModel, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

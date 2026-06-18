@@ -4,11 +4,11 @@ import org.gridsim.core.common.Flow.*
 import org.gridsim.core.common.Energy.*
 import org.gridsim.core.common.*
 import org.gridsim.core.model.*
-import org.gridsim.core.model.battery.*
-import org.gridsim.core.behaviour.StorageEnergyExchanger
-import org.gridsim.core.behaviour.StorageEnergyExchanger.exchange
-import org.gridsim.core.behaviour.battery.BatteryEnergyExchange.given
+import org.gridsim.core.behaviour.storage.StorageEnergyExchanger.exchange
+import org.gridsim.core.behaviour.storage.battery.BatteryEnergyExchange.given
+import org.gridsim.core.behaviour.storage.StorageEnergyExchanger
 import org.gridsim.core.common.GeographicPoint
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -2,10 +2,10 @@ package org.gridsim.core.validation
 
 import org.gridsim.core.common.*
 import org.gridsim.core.model.house.{House, HouseState}
-import org.gridsim.core.model.battery.{Battery, BatteryState}
 import org.gridsim.core.model.error.DomainError.{InvalidId, OutOfRange, ValueMustBePositive}
 import cats.syntax.all.*
 import org.gridsim.core.behaviour.house.DefaultConsumptionStrategy
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

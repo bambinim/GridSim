@@ -1,9 +1,10 @@
-package org.gridsim.core.behaviour
+package org.gridsim.core.behaviour.storage
 
-import org.gridsim.core.model.battery.{Battery, BatteryState}
+import org.gridsim.core.behaviour.storage.StorageEnergyExchanger
+import org.gridsim.core.behaviour.storage.battery.BatteryEnergyExchange.given
 import org.gridsim.core.common.*
-import org.gridsim.core.behaviour.battery.BatteryEnergyExchange.given
 import org.gridsim.core.model.Environment
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.model.storage.{Storage, StorageState}
 
 import scala.concurrent.duration.FiniteDuration

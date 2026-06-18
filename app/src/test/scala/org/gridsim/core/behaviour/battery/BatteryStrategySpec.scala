@@ -1,14 +1,16 @@
 package org.gridsim.core.behaviour.battery
 
+import org.gridsim.core.behaviour.storage.battery.{BatteryStrategy, StandardBatteryStrategy}
 import org.gridsim.core.common.Flow.*
 import org.gridsim.core.common.Energy.*
 import org.gridsim.core.common.*
-import org.gridsim.core.model.battery.{Battery, BatteryState}
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.junit.JUnitRunner
+
 import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])

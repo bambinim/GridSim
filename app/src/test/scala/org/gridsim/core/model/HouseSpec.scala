@@ -2,8 +2,8 @@ package org.gridsim.core.model
 
 import org.gridsim.core.common.*
 import org.gridsim.core.model.house.{House, HouseState}
-import org.gridsim.core.model.battery.{Battery, BatteryState}
 import org.gridsim.core.behaviour.house.DefaultConsumptionStrategy
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.validation.HouseComponentValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec

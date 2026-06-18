@@ -4,8 +4,7 @@ import cats.data.ValidatedNec
 import cats.implicits.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.error.DomainError
-import org.gridsim.core.model.battery.{Battery, BatteryState}
-import org.gridsim.core.model.storage.{Storage, StorageState}
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.validation.Validator.validate
 import org.gridsim.core.validation.BatteryValidator.given
 
@@ -17,13 +16,13 @@ object HouseComponentValidator:
   /**
    * The implicit [[Validator]] instance for generic house components.
    */
-  given componentValidator: Validator[(GridEntity, GridState)] with
-    def validate(pair: (GridEntity, GridState)): ValidatedNec[DomainError, (GridEntity, GridState)] =
+  given componentValidator: Validator[(GridEntity, GridEntityState)] with
+    def validate(pair: (GridEntity, GridEntityState)): ValidatedNec[DomainError, (GridEntity, GridEntityState)] =
       val (entity, state) = pair
 
       (entity, state) match
         case (b: Battery, s: BatteryState) =>
-          (b, s).validate.map { case (ent, st) => (ent: GridEntity, st: GridState) }
+          (b, s).validate.map { case (ent, st) => (ent: GridEntity, st: GridEntityState) }
 
         case (e, s) if e.id != s.entityId =>
           DomainError.InvalidId(e.id, s.entityId).invalidNec

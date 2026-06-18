@@ -10,7 +10,7 @@ import org.gridsim.core.validation.Validator.*
 object HouseValidator:
 
   def validate(pair: (House, HouseState))(using
-    componentVal: Validator[(GridEntity, GridState)]
+    componentVal: Validator[(GridEntity, GridEntityState)]
   ): ValidatedNec[DomainError, (House, HouseState)] =
     val (entity, state) = pair
 

@@ -1,4 +1,4 @@
-package org.gridsim.core.model.battery
+package org.gridsim.core.model.storage.battery
 
 import cats.data.ValidatedNec
 import org.gridsim.core.common.{Energy, Power}

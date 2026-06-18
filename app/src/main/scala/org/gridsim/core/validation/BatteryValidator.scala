@@ -2,8 +2,8 @@ package org.gridsim.core.validation
 
 import cats.data.ValidatedNec
 import cats.syntax.all.*
-import org.gridsim.core.model.battery.{Battery, BatteryState}
 import org.gridsim.core.model.error.DomainError
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.validation.Validator.*
 
 /**

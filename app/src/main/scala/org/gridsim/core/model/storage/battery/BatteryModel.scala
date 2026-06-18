@@ -1,6 +1,6 @@
-package org.gridsim.core.model.battery
+package org.gridsim.core.model.storage.battery
 
-import org.gridsim.core.behaviour.battery.BatteryStrategy
+import org.gridsim.core.behaviour.storage.battery.BatteryStrategy
 
 /**
  * Represents the specific model or technology of a battery.

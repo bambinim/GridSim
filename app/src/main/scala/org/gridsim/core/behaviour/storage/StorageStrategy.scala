@@ -1,4 +1,4 @@
-package org.gridsim.core.behaviour
+package org.gridsim.core.behaviour.storage
 
 import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.storage.{Storage, StorageState}

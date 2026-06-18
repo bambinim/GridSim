@@ -4,14 +4,14 @@ import org.gridsim.core.common.*
 import org.gridsim.core.common.Flow.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.house.*
-import org.gridsim.core.model.battery.*
 import org.gridsim.core.behaviour.house.HouseEvolution.*
-import org.gridsim.core.behaviour.battery.BatteryEnergyExchange.*
+import org.gridsim.core.behaviour.storage.battery.BatteryEnergyExchange.*
 import org.gridsim.core.behaviour.shaping.{DemandShaper, GaussianShaper, IdentityShaper}
 import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.common.StochasticGenerator
 import org.gridsim.core.validation.HouseComponentValidator.given
 import org.gridsim.core.behaviour.GridEvolution
+import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

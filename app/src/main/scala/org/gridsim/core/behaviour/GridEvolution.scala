@@ -10,7 +10,7 @@ import org.gridsim.core.model.*
  * `state.evolve(entity, env)`. Implementations choose their own context type `C`
  * for dependencies that are specific to that entity family.
  */
-trait GridEvolution[S <: GridState, E <: GridEntity, C]:
+trait GridEvolution[S <: GridEntityState, E <: GridEntity, C]:
   extension (state: S)
     /**
      * Evolves `state` for `entity` within the supplied environment.

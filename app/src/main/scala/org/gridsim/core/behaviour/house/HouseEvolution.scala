@@ -1,8 +1,8 @@
 package org.gridsim.core.behaviour.house
 
 import org.gridsim.core.common.*
-import org.gridsim.core.behaviour.GridEvolution
-import org.gridsim.core.behaviour.StorageEnergyExchanger.*
+import org.gridsim.core.behaviour.{EvolutionContext, GridEvolution}
+import org.gridsim.core.behaviour.storage.StorageEnergyExchanger.*
 import org.gridsim.core.model.*
 import org.gridsim.core.model.house.{House, HouseState}
 import org.gridsim.core.model.storage.{Storage, StorageState}
@@ -19,19 +19,27 @@ import org.gridsim.core.model.storage.{Storage, StorageState}
  * currently neutral. Future producer components should update `productionFlow`
  * before storage exchange runs.
  */
-object HouseEvolution extends GridEvolution[HouseState, House, HouseEvolutionContext]:
+object HouseEvolution
+    extends GridEvolution[HouseState, House, EvolutionContext[HouseEvolutionDependencies]]:
   extension (state: HouseState)
     /**
      * Evolves all house component states and returns the residual flow after storage exchange.
      */
-    def evolve(h: House, env: Environment)(using context: HouseEvolutionContext): (HouseState, Flow[Energy]) =
-      val consumptionFlow = context.resolver.resolve(env.time.hour, h.strategy)(using context.delta, context.shaper)
+    def evolve(h: House, env: Environment)(
+      using context: EvolutionContext[HouseEvolutionDependencies]
+    ): (HouseState, Flow[Energy]) =
+      val houseDependencies = context.dependencies
+      val consumptionFlow =
+        houseDependencies.resolver.resolve(env.time.hour, h.strategy)(
+          using context.delta,
+          houseDependencies.shaper
+        )
       val productionFlow = Flow.Balanced
       val residueBeforeStorage = productionFlow + consumptionFlow
       val componentById = h.components.map(c => c.id -> c).toMap
 
       val (finalResidue, updatedComponentStates) =
-        state.componentStates.foldLeft((residueBeforeStorage, List.empty[GridState])) {
+        state.componentStates.foldLeft((residueBeforeStorage, List.empty[GridEntityState])) {
           case ((currentFlow, updatedStates), componentState) =>
             (componentState, componentById(componentState.entityId)) match
               case (storageState: StorageState, storage: Storage) =>

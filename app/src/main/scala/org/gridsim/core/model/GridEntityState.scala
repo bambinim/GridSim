@@ -1,4 +1,4 @@
 package org.gridsim.core.model
 
-trait GridState:
+trait GridEntityState:
   def entityId: String

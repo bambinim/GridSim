@@ -1,10 +1,10 @@
 package org.gridsim.core.model.storage
 
 import org.gridsim.core.common.Energy
-import org.gridsim.core.model.GridState
+import org.gridsim.core.model.GridEntityState
 import cats.implicits.catsSyntaxPartialOrder
 
-trait StorageState extends GridState:
+trait StorageState extends GridEntityState:
   def currentCharge: Energy
 
 object StorageState:
