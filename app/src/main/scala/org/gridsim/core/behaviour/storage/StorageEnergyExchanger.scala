@@ -1,6 +1,5 @@
 package org.gridsim.core.behaviour.storage
 
-import org.gridsim.core.behaviour.storage.StorageEnergyExchanger
 import org.gridsim.core.behaviour.storage.battery.BatteryEnergyExchange.given
 import org.gridsim.core.common.*
 import org.gridsim.core.model.Environment

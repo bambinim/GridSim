@@ -30,7 +30,7 @@ object HouseEvolution
     ): (HouseState, Flow[Energy]) =
       val houseDependencies = context.dependencies
       val consumptionFlow =
-        houseDependencies.resolver.resolve(env.time.toHours, h.strategy)(
+        houseDependencies.resolver.resolve(env.hourOfDay, h.strategy)(
           using context.delta,
           houseDependencies.shaper
         )

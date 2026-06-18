@@ -31,6 +31,10 @@ trait Environment:
   /** The current simulation time instant. */
   def time: FiniteDuration
 
+  /** Current hour of day, normalized to the range 0-23. */
+  final def hourOfDay: Int =
+    Math.floorMod(time.toHours, 24L).toInt
+
   /**
    * Returns the weather conditions at the geographic location [[point]]
    * at the given [[time]].
@@ -60,15 +64,16 @@ trait Environment:
 private final case class SimpleEnvironment(time: FiniteDuration) extends Environment:
   /** Simple deterministic weather model (placeholder). */
   override def weather(point: GeographicPoint): WeatherConditions =
+    val hour = hourOfDay
     val irradiance =
-      if time.toHours >= 6 && time.toHours <= 18 then
-        (800.0 + 200.0 * math.sin(time.toHours / 24.0 * math.Pi)).wm2
+      if hour >= 6 && hour <= 18 then
+        (800.0 + 200.0 * math.sin(hour / 24.0 * math.Pi)).wm2
       else
         Irradiance.Zero
 
     val temperature =
       val base = 15.0
-      val daily = math.sin(time.toHours / 24.0 * 2 * math.Pi) * 5
+      val daily = math.sin(hour / 24.0 * 2 * math.Pi) * 5
       val seasonal = math.sin(time.toDays / 365.0 * 2 * math.Pi) * 10
       Temperature.celsius(base + daily + seasonal).toAny
 

@@ -25,6 +25,10 @@ class EnvironmentSpec extends AnyFlatSpec with Matchers:
 
     w.irradiance.toDouble should be > 0.0
 
+  it should "normalize the hour of day after multiple days" in :
+    Environment(2.days).hourOfDay shouldBe 0
+    Environment(2.days + 11.hours).hourOfDay shouldBe 11
+
   it should "return consistent weather for same time" in :
     val t = 10.days + 12.hours
 

@@ -21,7 +21,7 @@ import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
 class HouseLogicSpec extends AnyFlatSpec with Matchers {
-  
+
   private val env = new Environment {
     override def time: FiniteDuration = 11.hours
     override def weather(point: GeographicPoint): WeatherConditions = ???
@@ -31,18 +31,18 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
   given delta: FiniteDuration = 1.hour
   given ConsumptionResolver = new StochasticConsumptionResolver()
 
-  "HouseLogic with IdentityShaper" should "produce exact deterministic consumption" in {
+  "HouseLogic with IdentityShaper" should "use the hour of day after a day rollover" in {
     // Inject IdentityShaper for predictability
     given shaper: DemandShaper = IdentityShaper()
-
-
+    val env = Environment(2.days)
     val entity = House("HouseDet", Nil)
     val state = HouseState("HouseDet", Nil)
 
     val (_, residue) = state.evolve(entity, env)
 
     val Flow.Deficit(amt) = residue: @unchecked
-    amt.toDouble should be(0.5 +- 0.01)
+    env.hourOfDay shouldBe 0
+    amt.toDouble should be(0.2 +- 0.01)
   }
 
   it should "integrate correctly with batteries using deterministic flow" in {
@@ -60,9 +60,6 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     val state = HouseState("HouseBat", List(bState))
 
     val (newState, residue) = state.evolve(entity, env)
-
-    // DEBUG: Stampa cosa hai ottenuto
-    println(s"DEBUG: Residue è $residue")
 
     // 0.5 kWh deficit covered by 5 kWh battery -> Balanced residue, 4.5 kWh charge
     residue shouldBe Flow.Balanced
