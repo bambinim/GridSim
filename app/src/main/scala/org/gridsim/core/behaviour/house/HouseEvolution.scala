@@ -7,6 +7,8 @@ import org.gridsim.core.model.*
 import org.gridsim.core.model.house.{House, HouseState}
 import org.gridsim.core.model.storage.{Storage, StorageState}
 
+import scala.concurrent.duration.FiniteDuration
+
 /**
  * Evolves a house for one simulation tick.
  *
@@ -21,35 +23,69 @@ import org.gridsim.core.model.storage.{Storage, StorageState}
  */
 object HouseEvolution
     extends GridEvolution[HouseState, House, EvolutionContext[HouseEvolutionDependencies]]:
+
   extension (state: HouseState)
     /**
      * Evolves all house component states and returns the residual flow after storage exchange.
      */
-    def evolve(h: House, env: Environment)(
+    def evolve(house: House, environment: Environment)(
       using context: EvolutionContext[HouseEvolutionDependencies]
     ): (HouseState, Flow[Energy]) =
-      val houseDependencies = context.dependencies
-      val consumptionFlow =
-        houseDependencies.resolver.resolve(env.hourOfDay, h.strategy)(
-          using context.delta,
-          houseDependencies.shaper
-        )
-      val productionFlow = Flow.Balanced
-      val residueBeforeStorage = productionFlow + consumptionFlow
-      val componentById = h.components.map(c => c.id -> c).toMap
+      val initialFlow = resolveConsumption(house, environment)
+      val componentsById = house.components.map(component => component.id -> component).toMap
 
-      val (finalResidue, updatedComponentStates) =
-        state.componentStates.foldLeft((residueBeforeStorage, List.empty[GridEntityState])) {
-          case ((currentFlow, updatedStates), componentState) =>
-            (componentState, componentById(componentState.entityId)) match
-              case (storageState: StorageState, storage: Storage) =>
-                val (nextState, nextResidue) =
-                  storageState.exchange(storage, currentFlow, env)(using context.delta)
-                (nextResidue, updatedStates :+ nextState)
+      val (updatedComponentStates, residualFlow) =
+        evolveComponents(
+          state.componentStates,
+          componentsById,
+          initialFlow,
+          environment
+        )(using context.delta)
 
-              case _ =>
-                (currentFlow, updatedStates :+ componentState)
-        }
+      (state.copy(componentStates = updatedComponentStates), residualFlow)
 
-      val newHouseState = HouseState(state.entityId, updatedComponentStates)
-      (newHouseState, finalResidue)
+  private def resolveConsumption(
+    house: House,
+    environment: Environment
+  )(using context: EvolutionContext[HouseEvolutionDependencies]): Flow[Energy] =
+    val dependencies = context.dependencies
+
+    dependencies.resolver.resolve(environment.hourOfDay, house.strategy)(
+      using context.delta,
+      dependencies.shaper
+    )
+
+  private def evolveComponents(
+    states: List[GridEntityState],
+    componentsById: Map[String, GridEntity],
+    initialFlow: Flow[Energy],
+    environment: Environment
+  )(using delta: FiniteDuration): (List[GridEntityState], Flow[Energy]) =
+    val (residualFlow, reversedStates) =
+      states.foldLeft((initialFlow, List.empty[GridEntityState])) {
+        case ((currentFlow, updatedStates), currentState) =>
+          val (nextState, nextFlow) =
+            evolveComponent(
+              currentState,
+              componentsById.get(currentState.entityId),
+              currentFlow,
+              environment
+            )
+
+          (nextFlow, nextState :: updatedStates)
+      }
+
+    (reversedStates.reverse, residualFlow)
+
+  private def evolveComponent(
+    state: GridEntityState,
+    entity: Option[GridEntity],
+    flow: Flow[Energy],
+    environment: Environment
+  )(using delta: FiniteDuration): (GridEntityState, Flow[Energy]) =
+    (state, entity) match
+      case (storageState: StorageState, Some(storage: Storage)) =>
+        storageState.exchange(storage, flow, environment)
+
+      case _ =>
+        (state, flow)
