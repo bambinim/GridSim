@@ -14,7 +14,7 @@ import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
 class BatterySpec extends AnyFlatSpec with Matchers {
-
+  
   private val validBattery = Battery(
     id = "Battery 1",
     maxCapacity = 10.kwh,

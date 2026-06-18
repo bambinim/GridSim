@@ -20,7 +20,7 @@ import scala.concurrent.duration.*
 class BatteryEnergyExchangeSpec extends AnyFlatSpec with Matchers {
 
   private val env = new Environment {
-    override def time: SimulationTime = SimulationTime(0, 0, 11, 0)
+    override def time: FiniteDuration = 11.hours
     override def weather(point: GeographicPoint): WeatherConditions = ???
     override def advance(delta: FiniteDuration): Environment = ???
   }

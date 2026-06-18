@@ -12,7 +12,7 @@ import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class HouseSpec extends AnyFlatSpec with Matchers {
-  
+
   "A House" should "be correctly initialized with valid structural data" in {
     val entity = House(
       id = "ValidHouse123",
@@ -37,14 +37,14 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       minSoC = 0.2
     )
     val bState = BatteryState("Battery1", 5.kwh)
-    
+
     val entity = House(
       id = "HouseWithBattery",
       components = List(battery),
       strategy = DefaultConsumptionStrategy.traditionalProfile
     )
     val state = HouseState("HouseWithBattery", List(bState))
-    
+
     val result = House.make(entity, state)
 
     result.isValid shouldBe true
@@ -57,7 +57,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
     val entity = House("H1", Nil)
     val state = HouseState("H1", Nil)
     val result = House.make(entity, state)
-    
+
     result.isInvalid shouldBe true
   }
 
@@ -77,7 +77,7 @@ class HouseSpec extends AnyFlatSpec with Matchers {
       strategy = DefaultConsumptionStrategy.traditionalProfile
     )
     val state = HouseState("HouseWithInvalidComp", List(bState))
-    
+
     val result = House.make(entity, state)
 
     result.isInvalid shouldBe true
