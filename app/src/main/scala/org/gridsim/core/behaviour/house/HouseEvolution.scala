@@ -56,7 +56,7 @@ object HouseEvolution
     )
 
   private def evolveComponents(
-    states: List[GridEntityState],
+    states: Iterable[GridEntityState],
     componentsById: Map[String, GridEntity],
     initialFlow: Flow[Energy],
     environment: Environment
