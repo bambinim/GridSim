@@ -2,9 +2,6 @@ package org.gridsim.core.model
 
 import org.gridsim.core.common.*
 import org.gridsim.core.model.battery.*
-import org.gridsim.core.behaviour.*
-import org.gridsim.core.behaviour.battery.BatteryLogic.given
-import org.gridsim.core.behaviour.EnergyResolver.*
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec

@@ -3,9 +3,7 @@ package org.gridsim.core.model
 import org.gridsim.core.common.Energy
 import cats.syntax.order.*
 
-/**
- * Base traits for all storage systems.
- */
+/** Base traits for all storage systems. */
 trait StorageSpecification:
   def capacity: Energy
 

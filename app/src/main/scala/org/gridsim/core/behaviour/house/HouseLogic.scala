@@ -2,16 +2,16 @@ package org.gridsim.core.behaviour.house
 
 import cats.data.State
 import cats.Traverse
-import cats.Show.Shown.mat
 import cats.implicits.*
+
 import org.gridsim.core.behaviour.{EnergyExchanger, EnergyResolver}
 import org.gridsim.core.common.*
 import org.gridsim.core.behaviour.EnergyExchanger.*
 import org.gridsim.core.behaviour.shaping.DemandShaper
-import org.gridsim.core.common.StochasticGenerator
 import org.gridsim.core.model.*
-import org.gridsim.core.model.battery.{Battery, BatteryState}
 import org.gridsim.core.model.house.{House, HouseState}
+import org.gridsim.core.model.battery.{Battery, BatteryState}
+import org.gridsim.core.model.{SolarPanel, SolarPanelState}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -59,6 +59,6 @@ object HouseLogic:
       (newHouseState, finalResidue)
 
   private def updateComponent[A <: GridEntity, S](comp: A, newState: S): A = comp match
-    case b: Battery =>
-      b.copy(state = newState.asInstanceOf[BatteryState]).asInstanceOf[A]
+    case battery: Battery => battery.copy(state = newState.asInstanceOf[BatteryState]).asInstanceOf[A]
+    case panel: SolarPanel => panel.withState(newState.asInstanceOf[SolarPanelState]).asInstanceOf[A]
     case other => throw new IllegalArgumentException(s"Component not managed: ${other.getClass}")

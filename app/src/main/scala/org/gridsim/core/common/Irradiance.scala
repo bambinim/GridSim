@@ -1,5 +1,6 @@
 package org.gridsim.core.common
 
+import cats.kernel.CommutativeMonoid
 import cats.{Order, Show}
 
 /**
@@ -27,9 +28,6 @@ object Irradiance:
 
 extension (i: Irradiance)
   def toDouble: Double = i
-  def <(o: Irradiance): Boolean = i < o
-  def >(o: Irradiance): Boolean = i > o
-  def *(scalar: Double): Irradiance = Irradiance(i * scalar)
 
 extension (d: Double)
   def wm2: Irradiance = Irradiance(d)

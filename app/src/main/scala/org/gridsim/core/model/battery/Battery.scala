@@ -1,8 +1,7 @@
 package org.gridsim.core.model.battery
 
 import cats.data.ValidatedNec
-import org.gridsim.core.common.Energy
-import org.gridsim.core.model.{GridEntity, Storage}
+import org.gridsim.core.model.Storage
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.validate

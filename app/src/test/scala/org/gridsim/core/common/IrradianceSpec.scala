@@ -5,6 +5,8 @@ import org.scalatest.matchers.should.Matchers
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
 
+import cats.syntax.all.*
+
 @RunWith(classOf[JUnitRunner])
 class IrradianceSpec extends AnyFlatSpec with Matchers:
 
@@ -29,9 +31,11 @@ class IrradianceSpec extends AnyFlatSpec with Matchers:
     Irradiance(20.0) > Irradiance(10.0) shouldBe true
     Irradiance(10.0) > Irradiance(20.0) shouldBe false
 
-  "*" should "scale irradiance correctly" in:
-    (Irradiance(100.0) * 0.5).toDouble shouldBe 50.0
-    (Irradiance(200.0) * 2.0).toDouble shouldBe 400.0
+  "+" should "sum values correctly" in:
+    200.0.wm2 + 100.0.wm2 shouldBe 300.0.wm2
+
+  "-" should "subtract values correctly" in:
+    200.0.wm2 - 100.0.wm2 shouldBe 100.0.wm2
 
   "Double.wm2" should "convert a Double into Irradiance" in:
     val i: Irradiance = 120.0.wm2
