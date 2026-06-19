@@ -1,6 +1,7 @@
 package org.gridsim.core.simulation
 
-import org.gridsim.core.behaviour.house.{ConsumptionResolver, StochasticConsumptionResolver}
+import org.gridsim.core.behaviour.{DefaultEntityEvolutionDispatcher, EntityEvolutionDispatcher}
+import org.gridsim.core.behaviour.house.{ConsumptionResolver, HouseEvolutionDependencies, StochasticConsumptionResolver}
 import org.gridsim.core.behaviour.shaping.{DemandShaper, IdentityShaper}
 import org.gridsim.core.common.{Energy, Flow, kw, kwh}
 import org.gridsim.core.model.Environment
@@ -29,9 +30,15 @@ class DefaultSimulationEngineSpec extends AnyFlatSpec with Matchers:
 
   given ConsumptionResolver = new StochasticConsumptionResolver()
   given DemandShaper = IdentityShaper()
-  given PowerFlowSolver = SimplePowerFlowSolver(graph)
-
-  private val engine = DefaultSimulationEngine(model)
+  
+  given EntityEvolutionDispatcher = DefaultEntityEvolutionDispatcher(
+    HouseEvolutionDependencies(
+      resolver = StochasticConsumptionResolver(),
+      shaper = IdentityShaper()
+    )
+  )
+  
+  private val engine = DefaultSimulationEngine(model, SimplePowerFlowSolver(graph))
 
   it should "advance the environment by the model delta" in:
     val current =
@@ -64,8 +71,9 @@ class DefaultSimulationEngineSpec extends AnyFlatSpec with Matchers:
     )
     val engine =
       DefaultSimulationEngine(
-        SimulationModel(grid, 15.minutes)
-      )(using summon, SimplePowerFlowSolver(grid))
+        SimulationModel(grid, 15.minutes),
+        SimplePowerFlowSolver(graph)
+      )
     val current =
       SimulationState(
         environment = Environment(2.hours),
@@ -101,8 +109,9 @@ class DefaultSimulationEngineSpec extends AnyFlatSpec with Matchers:
       )
     val engine =
       DefaultSimulationEngine(
-        SimulationModel(grid, 15.minutes)
-      )(using summon, SimplePowerFlowSolver(grid))
+        SimulationModel(grid, 15.minutes),
+        SimplePowerFlowSolver(graph)
+      )
     val current =
       SimulationState(
         environment = Environment(2.hours),
