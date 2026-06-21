@@ -9,5 +9,5 @@
 - [Michele Nardini]()
 
 [Indice](../index.md) |
-[Capitolo precedente](../05-detailed_design.md) |
+[Capitolo precedente](../05-detailed_design/05-detailed_design.md) |
 [Capitolo successivo](../07-conclusion.md)

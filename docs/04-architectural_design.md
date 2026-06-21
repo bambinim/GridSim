@@ -55,4 +55,4 @@ L'interfaccia grafica (GUI) adotta un pattern a **Flusso di Dati Unidirezionale 
 
 [Indice](index.md) |
 [Capitolo precedente](03-requirements.md) |
-[Capitolo successivo](05-detailed_design.md)
+[Capitolo successivo](05-detailed_design/05-detailed_design.md)
