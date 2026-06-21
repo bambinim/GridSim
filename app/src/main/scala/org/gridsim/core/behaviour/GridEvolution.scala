@@ -11,10 +11,11 @@ import org.gridsim.core.model.*
  * for dependencies that are specific to that entity family.
  */
 trait GridEvolution[S <: GridEntityState, E <: GridEntity, C]:
+
   extension (state: S)
     /**
      * Evolves `state` for `entity` within the supplied environment.
      *
      * @return the updated state and the residual energy flow left after the entity has acted.
      */
-    def evolve(entity: E, env: Environment)(using context: C): (S, Flow[Energy])
+    def evolve(entity: E, environment: Environment)(using context: C): (S, Flow[Energy])

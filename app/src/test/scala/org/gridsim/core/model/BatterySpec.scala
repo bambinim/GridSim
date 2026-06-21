@@ -1,8 +1,7 @@
 package org.gridsim.core.model
 
 import org.gridsim.core.common.*
-import org.gridsim.core.common.kwh
-import org.gridsim.core.model.storage.StorageState.*
+import org.gridsim.core.model.storage.StorageState.percentage
 import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.validation.BatteryValidator.given
 import org.junit.runner.RunWith
@@ -10,11 +9,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 
-import scala.concurrent.duration.*
-
 @RunWith(classOf[JUnitRunner])
 class BatterySpec extends AnyFlatSpec with Matchers {
-  
+
   private val validBattery = Battery(
     id = "Battery 1",
     maxCapacity = 10.kwh,

@@ -24,9 +24,7 @@ trait StorageEnergyExchanger[S <: StorageState, E <: Storage]:
   def exchange(state: S, entity: E, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (S, Flow[Energy])
 
 object StorageEnergyExchanger:
-  /**
-   * Dispatches a generic storage state/entity pair to the concrete exchange implementation.
-   */
+
   extension (state: StorageState)
     def exchange(storage: Storage, flow: Flow[Energy], env: Environment)(using delta: FiniteDuration): (StorageState, Flow[Energy]) =
       (state, storage) match

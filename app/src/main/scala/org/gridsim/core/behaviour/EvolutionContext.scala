@@ -15,9 +15,8 @@ final case class EvolutionContext[D](
 )
 
 object EvolutionContext:
-  /**
-   * Builds a context from the tick duration and an entity-specific dependency value.
-   */
+
+  /** Builds a context from the tick duration and an entity-specific dependency value. */
   given fromGivens[D](using
     delta: FiniteDuration,
     dependencies: D
