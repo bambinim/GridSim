@@ -18,7 +18,7 @@ import scala.collection.Map
 import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
-class DefaultSimulationEngineSpec extends AnyFlatSpec with Matchers:
+class SimulationEngineSpec extends AnyFlatSpec with Matchers:
 
   private val graph =
     GridGraph(
@@ -72,7 +72,7 @@ class DefaultSimulationEngineSpec extends AnyFlatSpec with Matchers:
     val engine =
       DefaultSimulationEngine(
         SimulationModel(grid, 15.minutes),
-        SimplePowerFlowSolver(graph)
+        SimplePowerFlowSolver(grid)
       )
     val current =
       SimulationState(
@@ -110,7 +110,7 @@ class DefaultSimulationEngineSpec extends AnyFlatSpec with Matchers:
     val engine =
       DefaultSimulationEngine(
         SimulationModel(grid, 15.minutes),
-        SimplePowerFlowSolver(graph)
+        SimplePowerFlowSolver(grid)
       )
     val current =
       SimulationState(
