@@ -1,11 +1,12 @@
 package org.gridsim.core.behaviour
 
 import org.gridsim.core.behaviour.house.*
-import org.gridsim.core.behaviour.house.HouseEvolution.*
+import org.gridsim.core.behaviour.house.HouseEvolution.evolve as evolveHouse
+import org.gridsim.core.behaviour.producer.SolarPanelEvolution.evolve as evolveSolarPanel
 import org.gridsim.core.behaviour.shaping.DemandShaper
 import org.gridsim.core.common.{Energy, Flow}
-import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
 import org.gridsim.core.model.house.{House, HouseState}
+import org.gridsim.core.model.*
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -50,7 +51,13 @@ final case class DefaultEntityEvolutionDispatcher(
         given EvolutionContext[HouseEvolutionDependencies] =
           EvolutionContext(delta, houseDependencies)
 
-        houseState.evolve(house, environment)
+        houseState.evolveHouse(house, environment)
+
+      case (panelState: SolarPanelState, panel: SolarPanel) =>
+        given EvolutionContext[Unit] =
+          EvolutionContext(delta, ())
+
+        panelState.evolveSolarPanel(panel, environment)
 
       case _ =>
         throw IllegalArgumentException(

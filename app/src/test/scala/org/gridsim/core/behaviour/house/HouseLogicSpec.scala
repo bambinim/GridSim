@@ -12,6 +12,7 @@ import org.gridsim.core.common.StochasticGenerator
 import org.gridsim.core.validation.HouseComponentValidator.given
 import org.gridsim.core.behaviour.GridEvolution
 import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
+import org.gridsim.core.validation.SolarPanelValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -65,6 +66,29 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
     residue shouldBe Flow.Balanced
     val finalBatteryState = newState.componentStates.head.asInstanceOf[BatteryState]
     finalBatteryState.currentCharge.toDouble shouldBe 4.5
+  }
+
+  it should "include solar panel production before resolving the final house flow" in {
+    given shaper: DemandShaper = IdentityShaper()
+    val location = GeographicPoint(44.3, 11.7)
+    val panelState = SolarPanelState("Panel1")
+    val panel =
+      SolarPanel(
+        id = "Panel1",
+        location = location,
+        maxProduction = 5.kw,
+        areaSqm = 20.0,
+        efficiency = 0.20,
+        state = panelState
+      ).toOption.get.panel
+    val entity = House("HouseSolar", List(panel))
+    val state = HouseState("HouseSolar", List(panelState))
+
+    val (newState, residue) = state.evolve(entity, Environment(6.hours))
+
+    val finalPanelState = newState.componentStates.head.asInstanceOf[SolarPanelState]
+    finalPanelState.currentProduction.toDouble should be > 0.0
+    residue shouldBe Flow.Surplus(finalPanelState.currentProduction.toEnergy - 0.6.kwh)
   }
 
   "HouseLogic with GaussianShaper" should "produce stochastic consumption within reasonable bounds" in {

@@ -3,8 +3,8 @@ package org.gridsim.core.simulation
 import org.gridsim.core.behaviour.{DefaultEntityEvolutionDispatcher, EntityEvolutionDispatcher}
 import org.gridsim.core.behaviour.house.{ConsumptionResolver, HouseEvolutionDependencies, StochasticConsumptionResolver}
 import org.gridsim.core.behaviour.shaping.{DemandShaper, IdentityShaper}
-import org.gridsim.core.common.{Energy, Flow, kw, kwh}
-import org.gridsim.core.model.Environment
+import org.gridsim.core.common.{Energy, Flow, GeographicPoint, kw, kwh}
+import org.gridsim.core.model.{Environment, SolarPanel, SolarPanelState}
 import org.gridsim.core.model.house.{House, HouseState}
 import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
 import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
@@ -19,6 +19,7 @@ import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
 class SimulationEngineSpec extends AnyFlatSpec with Matchers:
+  import org.gridsim.core.validation.SolarPanelValidator.given
 
   private val graph =
     GridGraph(
@@ -92,6 +93,43 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
 
     nextBatteryCharge shouldBe Some(0.9625.kwh)
     next.entityFlows.get(house.id) shouldBe Some(Flow.Balanced)
+
+  it should "resolve solar panel entities through the default dispatcher" in:
+    val panelState = SolarPanelState("panel-1")
+    val panel =
+      SolarPanel(
+        id = "panel-1",
+        location = GeographicPoint(44.3, 11.7),
+        maxProduction = 5.kw,
+        areaSqm = 20.0,
+        efficiency = 0.20,
+        state = panelState
+      ).toOption.get.panel
+    val grid =
+      GridGraph(
+        nodes = List(ExternalGrid("external-grid"), panel),
+        cables = Nil
+      )
+    val engine =
+      DefaultSimulationEngine(
+        SimulationModel(grid, 1.hour),
+        SimplePowerFlowSolver(grid)
+      )
+    val current =
+      SimulationState(
+        environment = Environment(6.hours),
+        entityStates = List(panelState)
+      )
+
+    val next = engine.step(current)
+
+    val nextPanelState =
+      next.entityStates.collectFirst { case state: SolarPanelState => state }
+
+    nextPanelState.map(_.currentProduction.toDouble).get should be > 0.0
+    next.entityFlows.get(panel.id) shouldBe nextPanelState.map(state =>
+      Flow.Surplus(state.currentProduction.toEnergy(using 1.hour))
+    )
 
   it should "calculate the load on every cable" in:
     val externalGrid = ExternalGrid("external-grid")
