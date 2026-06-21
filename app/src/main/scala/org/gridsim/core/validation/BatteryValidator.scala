@@ -12,6 +12,7 @@ import org.gridsim.core.validation.Validator.*
  * are coherent and physically possible.
  */
 object BatteryValidator:
+
   given Validator[(Battery, BatteryState)] with
     def validate(pair: (Battery, BatteryState)): ValidatedNec[DomainError, (Battery, BatteryState)] =
       val (entity, state) = pair
@@ -25,9 +26,6 @@ object BatteryValidator:
       if entity.id == state.entityId then ().validNec
       else DomainError.IdNotFound(entity.id).invalidNec
 
-    /**
-     * Rule 2: Validates hardware configuration (static entity).
-     */
     private def validateBatteryEntity(b: Battery): ValidatedNec[DomainError, Battery] =
       (
         b.maxCapacity.toDouble.mustBePositive("Capacity"),
@@ -36,13 +34,9 @@ object BatteryValidator:
         b.minSoC.mustBeInRange("Min SoC", 0.0, 1.0)
       ).mapN((_, _, _, _) => b)
 
-    /**
-     * Rule 3: Validates dynamic telemetry against hardware constraints (state).
-     */
     private def validateBatteryState(entity: Battery, state: BatteryState): ValidatedNec[DomainError, BatteryState] =
       state.currentCharge.toDouble.mustBeInRange(
         "Current Charge",
         0.0,
         entity.maxCapacity.toDouble
       ).map(_ => state)
-

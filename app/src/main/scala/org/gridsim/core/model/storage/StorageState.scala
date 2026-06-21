@@ -9,7 +9,7 @@ trait StorageState extends GridEntityState:
 
 object StorageState:
   /**
-   * Extension methods providing utility calculations that require merging 
+   * Extension methods providing utility calculations that require merging
    * the static entity topology with its dynamic state snapshot.
    */
   extension (storage: Storage)

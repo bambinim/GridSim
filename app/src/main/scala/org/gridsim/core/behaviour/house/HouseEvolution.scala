@@ -21,8 +21,7 @@ import scala.concurrent.duration.FiniteDuration
  * currently neutral. Future producer components should update `productionFlow`
  * before storage exchange runs.
  */
-object HouseEvolution
-    extends GridEvolution[HouseState, House, EvolutionContext[HouseEvolutionDependencies]]:
+object HouseEvolution extends GridEvolution[HouseState, House, EvolutionContext[HouseEvolutionDependencies]]:
 
   extension (state: HouseState)
     /**

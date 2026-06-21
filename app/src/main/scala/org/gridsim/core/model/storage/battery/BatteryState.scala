@@ -1,6 +1,5 @@
 package org.gridsim.core.model.storage.battery
 
-import cats.syntax.all.*
 import org.gridsim.core.common.Energy
 import org.gridsim.core.model.storage.StorageState
 

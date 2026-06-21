@@ -80,8 +80,8 @@ object Temperatures:
 
   // Arithmetic extensions (require a TempValidator)
   extension [U <: TemperatureUnit : Temperature.TempValidator](t: Temperature[U])
-    def +(delta: Double): Temperature[U] = Temperature.validated[U](t.toDouble + delta)
-    def -(delta: Double): Temperature[U] = Temperature.validated[U](t.toDouble - delta)
+    def +(delta: Double): Temperature[U] = Temperature.validated[U](t + delta)
+    def -(delta: Double): Temperature[U] = Temperature.validated[U](t - delta)
   end extension
 
   private def celsiusToKelvin(t: Temperature[Celsius]): Temperature[Kelvin] =

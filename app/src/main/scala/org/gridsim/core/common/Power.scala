@@ -2,12 +2,13 @@ package org.gridsim.core.common
 
 import cats.{Order, Show}
 import cats.kernel.CommutativeMonoid
-import java.util.Locale
-import java.lang.Math.abs
 import java.util.concurrent.TimeUnit
 import scala.annotation.targetName
 import scala.concurrent.duration.FiniteDuration
 
+import Formatting.show2
+
+/** Represents electrical power (kW). */
 opaque type Power = Double
 
 object Power:
@@ -16,7 +17,7 @@ object Power:
 
   given CommutativeMonoid[Power] = cats.instances.double.catsKernelStdGroupForDouble
   given Order[Power] = cats.instances.double.catsKernelStdOrderForDouble
-  given showPower: Show[Power] = Show.show(p => String.format(java.util.Locale.US, "%.2f kW", p.toDouble))
+  given showPower: Show[Power] = Show.show(p => s"${p.show2} kW")
 
   extension (p: Power)
     def toDouble: Double = p

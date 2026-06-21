@@ -1,6 +1,5 @@
 package org.gridsim.core.behaviour.storage.battery
 
-import cats.data.State
 import cats.syntax.all.*
 import org.gridsim.core.common.*
 import org.gridsim.core.common.Flow.{Balanced, Deficit, Surplus}
@@ -35,4 +34,3 @@ object StandardBatteryStrategy extends BatteryStrategy:
       val nextState = state.copy(currentCharge = state.currentCharge - discharged)
 
       (nextState, residue)
-    
