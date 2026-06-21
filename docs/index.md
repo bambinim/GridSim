@@ -13,4 +13,4 @@ Per un veloce consulto sulla struttura vedi la [guida rapida](report_core.md).
 Guarda anche le [linee guida sui commit](guidelines/commit_guidelines.md) e il [flusso di lavoro](guidelines/workflow.md)
 scelti per la collaborazione su GitHub.
 
-[README](../README.md)
+[Home](../README.md)

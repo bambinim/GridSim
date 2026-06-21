@@ -31,6 +31,6 @@ Di seguito vengono elencati il *product backlog* e le documentazioni relative ai
 [//]: # (- [Third Sprint]&#40;third_sprint.md&#41;)
 [//]: # (- [Fourth Sprint]&#40;fourth_sprint.md&#41;)
 
-[Indice](../index.md) |
+[Sommario](../index.md) |
 [Capitolo precedente](../01-introduction.md) |
 [Capitolo successivo](../03-requirements.md)

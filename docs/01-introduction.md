@@ -31,5 +31,5 @@ L'obiettivo del progetto è quindi fornire uno strumento didattico e sperimental
 micro-reti energetiche, permettendo la configurazione, l'esecuzione e l'analisi di scenari complessi attraverso un
 linguaggio di dominio dedicato (DSL) e un motore di simulazione funzionale.
 
-[Indice](index.md) |
+[Sommario](index.md) |
 [Capitolo successivo](02-development_process/02-development_process.md)

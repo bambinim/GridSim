@@ -8,6 +8,6 @@
 - [Matteo Bambini]()
 - [Michele Nardini]()
 
-[Indice](../index.md) |
+[Sommario](../index.md) |
 [Capitolo precedente](../04-architectural_design.md) |
 [Capitolo successivo](../06-implementation/06-implementation.md)
