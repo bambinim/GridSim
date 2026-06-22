@@ -4,7 +4,12 @@ import org.gridsim.core.behaviour.EntityEvolutionDispatcher
 import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.{GridEntity, GridEntityState}
 import org.gridsim.core.solver.PowerFlowSolver
+import org.gridsim.core.model.Environment
 
+import cats.data.State
+import cats.Monad
+import cats.syntax.functorFilter._
+import cats.instances.option._
 /**
  * Default pure implementation of [[SimulationEngine]].
  *
@@ -34,19 +39,31 @@ final case class DefaultSimulationEngine(
    *         entity flows and cable loads
    */
   override def step(state: SimulationState): SimulationState =
-    val newEnv = state.environment.advance(model.delta)
-    val resolvedEntities =
-      resolveEntities(state.entityStates, model.grid.nodes, newEnv)
-    val newEntityStates = resolvedEntities.map((s, f) => s)
-    val newEntityFlows = resolvedEntities.map((s, f) => s.entityId -> f).toMap
-    val newCableLoads = flowSolver.solve(newEntityFlows).toMap
+    simulationPipeline.run(state).value._1
 
-    state.copy(
-      environment = newEnv,
-      entityStates = newEntityStates,
-      entityFlows = newEntityFlows,
-      cableLoads = newCableLoads
+  private def simulationPipeline: State[SimulationState, Unit] =
+    for {
+      _ <- advanceEnvironment
+      _ <- evolveEntities
+      _ <- calculateCableLoads
+    } yield()
+
+  private def advanceEnvironment: State[SimulationState, Unit] = State.modify {
+    s => s.copy(environment = s.environment.advance(model.delta))
+  }
+
+  private def evolveEntities: State[SimulationState, Unit] = State.modify { s =>
+    val resolved = resolveEntities(s.entityStates, model.grid.nodes, s.environment)
+
+    s.copy(
+      entityStates = resolved.map(_._1),
+      entityFlows = resolved.map(pair => pair._1.entityId -> pair._2).toMap
     )
+  }
+
+  private def calculateCableLoads: State[SimulationState, Unit] = State.modify {
+    s => s.copy(cableLoads = flowSolver.solve(s.entityFlows).toMap)
+  }
 
   /**
    * Evolves all dynamic entity states using their matching static models.
@@ -59,7 +76,7 @@ final case class DefaultSimulationEngine(
   private def resolveEntities(
     entityStates: Iterable[GridEntityState],
     entityModels: Iterable[GridEntity],
-    environment: org.gridsim.core.model.Environment
+    environment: Environment
   ): Iterable[(GridEntityState, Flow[Energy])] =
     pairEntities(entityStates, entityModels).map {
       case (entityState, entityModel) =>
