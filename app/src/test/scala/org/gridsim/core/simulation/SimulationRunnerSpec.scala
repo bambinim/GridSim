@@ -8,6 +8,8 @@ import org.scalatestplus.junit.JUnitRunner
 
 import scala.concurrent.duration.*
 
+import org.gridsim.core.simulation.scheduling.{DefaultScheduler, Scheduler}
+
 @RunWith(classOf[JUnitRunner])
 class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
@@ -27,14 +29,16 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   "DefaultSimulationRunner" should "expose the initial state before running" in:
     val engine = CountingEngine()
-    val runner = DefaultSimulationRunner(engine, initialState, 50.millis)
+    val scheduler = DefaultScheduler()
+    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     runner.currentState shouldBe initialState
     engine.calls shouldBe 0
 
   it should "advance the current state when stepped manually" in:
     val engine = CountingEngine()
-    val runner = DefaultSimulationRunner(engine, initialState, 50.millis)
+    val scheduler = DefaultScheduler()
+    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     val next = runner.stepOnce()
 
@@ -44,7 +48,8 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "advance from the latest state on every manual step" in:
     val engine = CountingEngine()
-    val runner = DefaultSimulationRunner(engine, initialState, 50.millis)
+    val scheduler = DefaultScheduler()
+    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     runner.stepOnce()
     val second = runner.stepOnce()
@@ -55,7 +60,8 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "start a periodic simulation loop" in:
     val engine = CountingEngine()
-    val runner = DefaultSimulationRunner(engine, initialState, 20.millis)
+    val scheduler = DefaultScheduler()
+    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
 
     runner.start()
     Thread.sleep(80)
@@ -66,7 +72,8 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "stop the periodic simulation loop" in:
     val engine = CountingEngine()
-    val runner = DefaultSimulationRunner(engine, initialState, 20.millis)
+    val scheduler = DefaultScheduler()
+    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
 
     runner.start()
     Thread.sleep(80)
@@ -82,7 +89,8 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "not create more than one active loop when started repeatedly" in:
     val engine = CountingEngine()
-    val runner = DefaultSimulationRunner(engine, initialState, 50.millis)
+    val scheduler = DefaultScheduler()
+    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     runner.start()
     runner.start()
@@ -98,19 +106,20 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "resume the simulation after it has been paused" in:
     val engine = CountingEngine()
-    val runner = DefaultSimulationRunner(engine, initialState, 20.millis)
-  
+    val scheduler = DefaultScheduler()
+    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
+
     runner.start()
     Thread.sleep(80)
     runner.pause()
-  
+
     val stateAfterPause = runner.currentState
-  
+
     Thread.sleep(80)
     runner.currentState shouldBe stateAfterPause
-  
+
     runner.resume()
     Thread.sleep(80)
     runner.stop()
-  
+
     runner.currentState.environment.time should be > stateAfterPause.environment.time

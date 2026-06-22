@@ -1,6 +1,7 @@
 package org.gridsim.core.simulation
 
 import org.gridsim.core.simulation.SimulationRunnerState.{PAUSED, RUNNING}
+import org.gridsim.core.simulation.scheduling.Scheduler
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
@@ -28,8 +29,13 @@ enum SimulationRunnerState:
  * @param state initial simulation snapshot
  * @param tickInterval real time elapsed between scheduled simulation ticks
  */
-final case class DefaultSimulationRunner(engine: SimulationEngine, state: SimulationState, tickInterval: FiniteDuration) extends SimulationRunner:
-  
+final case class DefaultSimulationRunner(
+  engine: SimulationEngine,
+  state: SimulationState,
+  scheduler: Scheduler,
+  interval: FiniteDuration
+) extends SimulationRunner:
+
   private val stateRef = AtomicReference[SimulationState](state)
   private val simulationRunnerStateRef = AtomicReference[SimulationRunnerState](PAUSED)
 
@@ -48,9 +54,6 @@ final case class DefaultSimulationRunner(engine: SimulationEngine, state: Simula
    */
   def simulationRunnerState: SimulationRunnerState = simulationRunnerStateRef.get()
 
-  private val scheduler: ScheduledExecutorService =
-    Executors.newSingleThreadScheduledExecutor()
-
   /**
    * Starts scheduling simulation ticks.
    *
@@ -60,17 +63,12 @@ final case class DefaultSimulationRunner(engine: SimulationEngine, state: Simula
    */
   override def start(): Unit =
     if simulationRunnerStateRef.compareAndSet(PAUSED, RUNNING) then
-      val task = new Runnable {
-        override def run(): Unit = {
+      scheduler.schedule(
+        () => {
           if simulationRunnerStateRef.get() == RUNNING then
             stepOnce()
-        }
-      }
-      scheduler.scheduleAtFixedRate(
-        task,
-        0L,
-        tickInterval.toMillis,
-        TimeUnit.MILLISECONDS
+        },
+        interval
       )
 
   /**
@@ -88,8 +86,8 @@ final case class DefaultSimulationRunner(engine: SimulationEngine, state: Simula
    *
    * After shutdown, the current scheduler cannot be started again.
    */
-  override def stop(): Unit = 
-    scheduler.shutdown()
+  override def stop(): Unit =
+    scheduler.stop()
 
   /**
    * Resumes periodic execution by delegating to [[start]].
