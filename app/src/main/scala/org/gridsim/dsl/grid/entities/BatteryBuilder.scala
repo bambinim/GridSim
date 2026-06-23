@@ -27,25 +27,24 @@ case class BatteryBuilder(
 
   override def build(): ValidatedNec[DSLError, (Battery, BatteryState)] =
     (
-      id.orElse(Some(java.util.UUID.randomUUID().toString))
-        .toValidNec(DSLBuilderError.MissingField("id")),
       maxCapacity.toValidNec(DSLBuilderError.MissingField("maxCapacity")),
       maxPowerCharge.toValidNec(DSLBuilderError.MissingField("maxChargePower")),
       maxPowerDischarge.toValidNec(
         DSLBuilderError.MissingField("maxDischargePower")
       ),
       minSoC.toValidNec(DSLBuilderError.MissingField("minSoC"))
-    ).mapN((id, capacity, maxChargePower, maxDischargePower, minSoC) =>
+    ).mapN((capacity, maxChargePower, maxDischargePower, minSoC) =>
+      val newId = id.getOrElse(java.util.UUID.randomUUID().toString)
       (
         Battery(
-          id,
+          newId,
           model,
           capacity,
           maxChargePower,
           maxDischargePower,
           minSoC
         ),
-        BatteryState(id, Energy.Zero)
+        BatteryState(newId, Energy.Zero)
       )
     ).andThen(validate(_))
 
