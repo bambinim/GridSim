@@ -71,24 +71,23 @@ class HouseLogicSpec extends AnyFlatSpec with Matchers {
   it should "include solar panel production before resolving the final house flow" in {
     given shaper: DemandShaper = IdentityShaper()
     val location = GeographicPoint(44.3, 11.7)
-    val panelState = SolarPanelState("Panel1")
-    val panel =
+    val (panel, panelState) =
       SolarPanel(
         id = "Panel1",
         location = location,
         maxProduction = 5.kw,
         areaSqm = 20.0,
-        efficiency = 0.20,
-        state = panelState
-      ).toOption.get.panel
+        efficiency = 0.20
+      ).toOption.get
     val entity = House("HouseSolar", List(panel))
     val state = HouseState("HouseSolar", List(panelState))
 
     val (newState, residue) = state.evolve(entity, Environment(6.hours))
 
     val finalPanelState = newState.componentStates.head.asInstanceOf[SolarPanelState]
-    finalPanelState.currentProduction.toDouble should be > 0.0
-    residue shouldBe Flow.Surplus(finalPanelState.currentProduction.toEnergy - 0.6.kwh)
+    finalPanelState.efficiency shouldBe panel.efficiency
+    val Flow.Surplus(surplus) = residue: @unchecked
+    surplus.toDouble shouldBe (3.17 +- 0.01)
   }
 
   "HouseLogic with GaussianShaper" should "produce stochastic consumption within reasonable bounds" in {

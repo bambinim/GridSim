@@ -95,16 +95,14 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     next.entityFlows.get(house.id) shouldBe Some(Flow.Balanced)
 
   it should "resolve solar panel entities through the default dispatcher" in:
-    val panelState = SolarPanelState("panel-1")
-    val panel =
+    val (panel, panelState) =
       SolarPanel(
         id = "panel-1",
         location = GeographicPoint(44.3, 11.7),
         maxProduction = 5.kw,
         areaSqm = 20.0,
-        efficiency = 0.20,
-        state = panelState
-      ).toOption.get.panel
+        efficiency = 0.20
+      ).toOption.get
     val grid =
       GridGraph(
         nodes = List(ExternalGrid("external-grid"), panel),
@@ -126,10 +124,9 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     val nextPanelState =
       next.entityStates.values.collectFirst { case state: SolarPanelState => state }
 
-    nextPanelState.map(_.currentProduction.toDouble).get should be > 0.0
-    next.entityFlows.get(panel.id) shouldBe nextPanelState.map(state =>
-      Flow.Surplus(state.currentProduction.toEnergy(using 1.hour))
-    )
+    nextPanelState.map(_.efficiency) shouldBe Some(panel.efficiency)
+    val Some(Flow.Surplus(surplus)) = next.entityFlows.get(panel.id): @unchecked
+    surplus.toDouble shouldBe (3.83 +- 0.01)
 
   it should "calculate the load on every cable" in:
     val externalGrid = ExternalGrid("external-grid")
