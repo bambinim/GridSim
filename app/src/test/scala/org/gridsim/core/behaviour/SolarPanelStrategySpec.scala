@@ -16,43 +16,35 @@ import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
 class SolarPanelStrategySpec extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks:
+
   import org.gridsim.core.validation.SolarPanelValidator.given
 
   private val location = GeographicPoint(44.3, 11.7)
-  private val initialState = SolarPanelState("panel-01")
-  private val panel = SolarPanel(
-    "panel-01",
-    location,
-    maxProduction = 5.0.kw,
-    areaSqm       = 20.0,
-    efficiency    = 0.20,
-    state         = initialState
-  ).toOption.get.panel
+  
+  private val (panel, state) =
+    SolarPanel(
+      id = "panel-01",
+      location = location,
+      maxProduction = 5.0.kw,
+      areaSqm = 20.0,
+      efficiency = 0.20
+    ).toOption.get
 
   given FiniteDuration = 1.hour
 
   "StandardSolarPanelStrategy" should "produce zero energy at zero irradiance" in:
-    val (_, flow) = StandardSolarPanelStrategy.produce(initialState, panel, Irradiance.Zero)
+    val (_, flow) = StandardSolarPanelStrategy.produce(state, panel, Irradiance.Zero)
     flow shouldBe balanced
 
   it should "produce energy proportional to irradiance, area, and efficiency" in:
     // rawKw = 1000 W/m² × 20 m² × 0.20 / 1000 = 4.0 kW → 4.0 kWh over 1 h
-    val (_, flow) = StandardSolarPanelStrategy.produce(initialState, panel, 1000.0.wm2)
+    val (_, flow) = StandardSolarPanelStrategy.produce(state, panel, 1000.0.wm2)
     flow shouldBe Flow.Surplus(4.0.kwh)
 
   it should "cap output at peak power when irradiance is very high" in:
     // rawKw = 2000 W/m² × 20 m² × 0.20 / 1000 = 8.0 kW, capped at 5 kW
-    val (_, flow) = StandardSolarPanelStrategy.produce(initialState, panel, 2000.0.wm2)
+    val (_, flow) = StandardSolarPanelStrategy.produce(state, panel, 2000.0.wm2)
     flow shouldBe Flow.Surplus(5.0.kwh)
-
-  it should "update the state's currentProduction after production" in:
-    val (nextState, _) = StandardSolarPanelStrategy.produce(initialState, panel, 1000.0.wm2)
-    nextState.currentProduction.toDouble shouldBe 4.0
-
-  it should "return Balanced flow and zero currentProduction at night (irradiance = 0)" in:
-    val (nextState, flow) = StandardSolarPanelStrategy.produce(initialState, panel, Irradiance.Zero)
-    flow shouldBe balanced
-    nextState.currentProduction shouldBe Power.Zero
 
   private val cases = Table(
     ("irradiance W/m²", "expectedKwh"),
@@ -65,7 +57,7 @@ class SolarPanelStrategySpec extends AnyFlatSpec with Matchers with TableDrivenP
 
   it should "handle a range of irradiance values correctly" in:
     forAll(cases) { (irr, expectedKwh) =>
-      val (_, flow) = StandardSolarPanelStrategy.produce(initialState, panel, irr.wm2)
+      val (_, flow) = StandardSolarPanelStrategy.produce(state, panel, irr.wm2)
       if expectedKwh == 0.0 then
         flow shouldBe balanced
       else
@@ -77,6 +69,5 @@ class SolarPanelStrategySpec extends AnyFlatSpec with Matchers with TableDrivenP
 
   "SolarPanelState.produce extension" should "delegate to the given strategy" in:
     given SolarPanelStrategy = StandardSolarPanelStrategy
-    val (nextState, flow) = initialState.produce(panel, 1000.0.wm2)
-    nextState.currentProduction.toDouble shouldBe 4.0
+    val (nextState, flow) = state.produce(panel, 1000.0.wm2)
     flow shouldBe Flow.Surplus(4.0.kwh)

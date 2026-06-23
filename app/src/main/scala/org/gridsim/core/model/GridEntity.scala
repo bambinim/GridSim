@@ -6,5 +6,3 @@ trait GridEntity:
 
 trait GridEntityState:
   def entityId: String
-
-abstract class GridEntityWithState[E <: GridEntity, S <: GridEntityState](entity: E, state: S)

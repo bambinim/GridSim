@@ -8,17 +8,20 @@ import org.gridsim.core.validation.Validator
 import org.gridsim.core.validation.Validator.validate
 import org.gridsim.core.validation.SolarPanelValidator.given
 
+import scala.runtime.Nothing$
+
 /** Physical models available for Photovoltaic production calculation. */
 enum SolarPanelPhysics:
   case Standard
 
 /** Runtime state of a photovoltaic panel. */
-case class SolarPanelState(entityId: String, currentProduction: Power = Power.Zero) extends ProducerState
+case class SolarPanelState(entityId: String, efficiency: Double) extends ProducerState
 
 /** A photovoltaic panel array that converts solar irradiance into electrical energy. */
 trait SolarPanel extends Producer:
   def physics: SolarPanelPhysics
   def location: GeographicPoint
+  /** Nominal power */
   def maxProduction: Power
   /** Total panel area (m²) */
   def areaSqm: Double
@@ -34,9 +37,6 @@ private case class SolarPanelImpl(
                                    efficiency: Double
 ) extends SolarPanel
 
-case class SolarPanelWithState(panel: SolarPanel, state: SolarPanelState)
-  extends GridEntityWithState[SolarPanel, SolarPanelState](panel, state)
-
 object SolarPanel:
   def apply(
              id: String,
@@ -44,10 +44,10 @@ object SolarPanel:
              maxProduction: Power,
              areaSqm: Double,
              efficiency: Double,
-             state: SolarPanelState,
+             state: Option[SolarPanelState] = None,
              physics: SolarPanelPhysics = SolarPanelPhysics.Standard
-      )(using Validator[SolarPanelWithState]): ValidatedNec[DomainError, SolarPanelWithState] =
-    SolarPanelWithState(
+      )(using Validator[(SolarPanel, SolarPanelState)]): ValidatedNec[DomainError, (SolarPanel, SolarPanelState)] =
+    (
       SolarPanelImpl(id, physics, location, maxProduction, areaSqm, efficiency).asInstanceOf[SolarPanel],
-      state
+      state.getOrElse(SolarPanelState(id, efficiency))
     ).validate
