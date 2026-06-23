@@ -33,7 +33,7 @@ object StandardSolarPanelStrategy extends SolarPanelStrategy:
     val production = panel.maxProduction.min(rawKw.kw)
     val energy = production.toEnergy
 
-    val nextState = state.copy(currentProduction = production)
+    val nextState = state.copy(efficiency = panel.efficiency)
     val flow = if energy > Energy.Zero then Surplus(energy) else balanced
 
     (nextState, flow)

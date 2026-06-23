@@ -11,44 +11,40 @@ import org.scalatestplus.junit.JUnitRunner
 class SolarPanelSpec extends AnyFlatSpec with Matchers:
 
   private val location   = GeographicPoint(44.3, 11.7)
-  private val peakPower  = 5.0.kw
-  private val areaSqm    = 20.0
-  private val efficiency = 0.20
-  private val zeroState  = SolarPanelState("panel-01")
 
-  private def make(
+  private def validate(
                     id: String = "panel-01",
-                    maxProduction: Power = peakPower,
-                    area: Double = areaSqm,
-                    eff: Double = efficiency,
-                    state: SolarPanelState = zeroState,
-                    physics: SolarPanelPhysics = SolarPanelPhysics.Standard
-                  ) = SolarPanel(id, location, maxProduction, area, eff, state, physics)
+                    maxProduction: Power = 5.0.kw,
+                    areaSqm: Double = 20.0,
+                    efficiency: Double = 0.20
+                  ) = SolarPanel(id, location, maxProduction, areaSqm, efficiency)
 
   // Construction
 
   "SolarPanel" should "be valid when all fields are within range" in:
-    make() shouldBe a[cats.data.Validated.Valid[?]]
+    validate() shouldBe a[cats.data.Validated.Valid[?]]
 
   it should "default to Standard physics when physics is omitted" in:
-    make().map(_.panel.physics) shouldBe cats.data.Validated.valid(SolarPanelPhysics.Standard)
+    val (panel, _) = validate().toOption.get
+    panel.physics shouldBe SolarPanelPhysics.Standard
 
-  it should "default to zero output power when state is omitted" in:
-    make().map(_.state.currentProduction) shouldBe cats.data.Validated.valid(Power.Zero)
+  it should "default state efficiency to panel efficiency" in:
+    val (panel, state) = validate().toOption.get
+    state.efficiency shouldBe panel.efficiency
 
   it should "be invalid when peak power is zero" in:
-    make(maxProduction = 0.0.kw).isInvalid shouldBe true
+    validate(maxProduction = 0.0.kw).isInvalid shouldBe true
 
   it should "be invalid when area is zero or negative" in:
-    make(area = 0.0).isInvalid shouldBe true
-    make(area = -1.0).isInvalid shouldBe true
+    validate(areaSqm = 0.0).isInvalid shouldBe true
+    validate(areaSqm = -1.0).isInvalid shouldBe true
 
   it should "be invalid when efficiency is out of (0, 1] range" in:
-    make(eff = -0.1).isInvalid shouldBe true
-    make(eff = 1.01).isInvalid shouldBe true
+    validate(efficiency = -0.1).isInvalid shouldBe true
+    validate(efficiency = 1.01).isInvalid shouldBe true
 
   it should "accumulate multiple errors when several fields are invalid" in:
-    val result = make(maxProduction = -0.1.kw, area = -5.0, eff = 1.0)
+    val result = validate(maxProduction = -0.1.kw, areaSqm = -5.0, efficiency = 0.0)
     result match
       case cats.data.Validated.Invalid(errors) => errors.length shouldBe 3
       case _                                   => fail("Expected invalid")
@@ -56,19 +52,6 @@ class SolarPanelSpec extends AnyFlatSpec with Matchers:
   // Field exposure
 
   it should "expose location and physics after successful construction" in:
-    val panelWithState = make().toOption.get
-    panelWithState.panel.location shouldBe location
-    panelWithState.panel.physics  shouldBe SolarPanelPhysics.Standard
-
-  // withState (via copy on SolarPanelWithState)
-
-  it should "return a new SolarPanelWithState with updated state" in:
-    val panelWithState = make().toOption.get
-    val newState = SolarPanelState("panel-01", 3.0.kw)
-    val updated  = panelWithState.copy(state = newState)
-    updated.state.currentProduction.toDouble shouldBe 3.0
-
-  it should "not mutate the original SolarPanelWithState when copy is called" in:
-    val panelWithState = make().toOption.get
-    panelWithState.copy(state = SolarPanelState("panel-01", 3.0.kw))
-    panelWithState.state.currentProduction shouldBe Power.Zero
+    val (panel, _) = validate().toOption.get
+    panel.location shouldBe location
+    panel.physics  shouldBe SolarPanelPhysics.Standard
