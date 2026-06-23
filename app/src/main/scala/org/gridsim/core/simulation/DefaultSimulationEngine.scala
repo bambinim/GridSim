@@ -7,9 +7,6 @@ import org.gridsim.core.solver.PowerFlowSolver
 import org.gridsim.core.model.Environment
 
 import cats.data.State
-import cats.Monad
-import cats.syntax.functorFilter._
-import cats.instances.option._
 /**
  * Default pure implementation of [[SimulationEngine]].
  *
@@ -56,7 +53,7 @@ final case class DefaultSimulationEngine(
     val resolved = resolveEntities(s.entityStates, model.grid.nodes, s.environment)
 
     s.copy(
-      entityStates = resolved.map(_._1),
+      entityStates = resolved.map(pair => pair._1.entityId -> pair._1).toMap,
       entityFlows = resolved.map(pair => pair._1.entityId -> pair._2).toMap
     )
   }
@@ -74,7 +71,7 @@ final case class DefaultSimulationEngine(
    * @return one updated state and residual energy flow for each input state
    */
   private def resolveEntities(
-    entityStates: Iterable[GridEntityState],
+    entityStates: Map[String, GridEntityState],
     entityModels: Iterable[GridEntity],
     environment: Environment
   ): Iterable[(GridEntityState, Flow[Energy])] =
@@ -100,13 +97,13 @@ final case class DefaultSimulationEngine(
    * @throws IllegalArgumentException if a state has no model with the same ID
    */
   private def pairEntities(
-    states: Iterable[GridEntityState],
+    states: Map[String, GridEntityState],
     entities: Iterable[GridEntity]
   ): Iterable[(GridEntityState, GridEntity)] =
     val modelsById =
       entities.map(entity => entity.id -> entity).toMap
 
-    states.map { state =>
+    states.values.map { state =>
       val model = modelsById.getOrElse(
         state.entityId,
         throw IllegalArgumentException(

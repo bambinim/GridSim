@@ -14,7 +14,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 
-import scala.collection.Map
 import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
@@ -45,7 +44,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     val current =
       SimulationState(
         environment = Environment(2.hours),
-        entityStates = Nil
+        entityStates = Map.empty
       )
 
     val next = engine.step(current)
@@ -78,13 +77,14 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     val current =
       SimulationState(
         environment = Environment(2.hours),
-        entityStates = List(houseState)
+        entityStates = Map(houseState.entityId -> houseState)
       )
 
     val next = engine.step(current)
 
     val nextBatteryCharge =
       next.entityStates
+        .values
         .collectFirst { case state: HouseState => state }
         .flatMap(
           _.componentStates
@@ -118,13 +118,13 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     val current =
       SimulationState(
         environment = Environment(6.hours),
-        entityStates = List(panelState)
+        entityStates = Map(panelState.entityId -> panelState)
       )
 
     val next = engine.step(current)
 
     val nextPanelState =
-      next.entityStates.collectFirst { case state: SolarPanelState => state }
+      next.entityStates.values.collectFirst { case state: SolarPanelState => state }
 
     nextPanelState.map(_.currentProduction.toDouble).get should be > 0.0
     next.entityFlows.get(panel.id) shouldBe nextPanelState.map(state =>
@@ -153,7 +153,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     val current =
       SimulationState(
         environment = Environment(2.hours),
-        entityStates = List(houseState)
+        entityStates = Map(houseState.entityId -> houseState)
       )
 
     val next = engine.step(current)

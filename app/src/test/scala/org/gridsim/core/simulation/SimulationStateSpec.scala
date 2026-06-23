@@ -37,13 +37,13 @@ class SimulationStateSpec extends AnyFlatSpec with Matchers:
     val state =
       SimulationState(
         environment = environment,
-        entityStates = List(houseState),
+        entityStates = Map(houseState.entityId -> houseState),
         entityFlows = entityFlows,
         cableLoads = cableLoads
       )
 
     state.environment shouldBe environment
-    state.entityStates should contain only houseState
+    state.entityStates shouldBe Map(houseState.entityId -> houseState)
     state.entityFlows shouldBe entityFlows
     state.cableLoads shouldBe cableLoads
 
@@ -51,7 +51,7 @@ class SimulationStateSpec extends AnyFlatSpec with Matchers:
     val state =
       SimulationState(
         environment = environment,
-        entityStates = List(houseState),
+        entityStates = Map(houseState.entityId -> houseState),
         entityFlows = entityFlows,
         cableLoads = cableLoads
       )
@@ -62,7 +62,7 @@ class SimulationStateSpec extends AnyFlatSpec with Matchers:
     val initial =
       SimulationState(
         environment = Environment(0.hours),
-        entityStates = List(houseState),
+        entityStates = Map(houseState.entityId -> houseState),
         entityFlows = Map.empty,
         cableLoads = Map.empty
       )
@@ -72,15 +72,15 @@ class SimulationStateSpec extends AnyFlatSpec with Matchers:
 
   it should "support structural equality" in:
     val first =
-      SimulationState(environment, List(houseState), entityFlows, cableLoads)
+      SimulationState(environment, Map(houseState.entityId -> houseState), entityFlows, cableLoads)
     val second =
-      SimulationState(environment, List(houseState), entityFlows, cableLoads)
+      SimulationState(environment, Map(houseState.entityId -> houseState), entityFlows, cableLoads)
 
     first shouldBe second
 
   it should "produce a new immutable snapshot through copy" in:
     val current =
-      SimulationState(environment, List(houseState), entityFlows, cableLoads)
+      SimulationState(environment, Map(houseState.entityId -> houseState), entityFlows, cableLoads)
     val nextEnvironment = environment.advance(15.minutes)
 
     val next =

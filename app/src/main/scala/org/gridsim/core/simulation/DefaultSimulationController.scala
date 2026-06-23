@@ -1,6 +1,6 @@
 package org.gridsim.core.simulation
 
-import org.gridsim.core.simulation.SimulationRunnerState.{PAUSED, RUNNING}
+import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.core.simulation.scheduling.{ScheduledTask, Scheduler}
 
 import java.util.concurrent.atomic.AtomicReference
@@ -9,7 +9,7 @@ import scala.concurrent.duration.FiniteDuration
 /**
  * Lifecycle state of a [[SimulationRunner]].
  */
-enum SimulationRunnerState:
+enum SimulationControllerState:
   /** The runner is executing scheduled simulation ticks. */
   case RUNNING
 
@@ -29,15 +29,15 @@ enum SimulationRunnerState:
  * @param scheduler the entity responsible to schedule the step task.
  * @param interval real time elapsed between scheduled simulation ticks
  */
-final case class DefaultSimulationRunner(
+final case class DefaultSimulationController(
   engine: SimulationEngine,
   state: SimulationState,
   scheduler: Scheduler,
   interval: FiniteDuration
-) extends SimulationRunner:
+) extends SimulationController:
 
   private val stateRef = AtomicReference[SimulationState](state)
-  private val simulationRunnerStateRef = AtomicReference[SimulationRunnerState](PAUSED)
+  private val simulationControllerStateRef = AtomicReference[SimulationControllerState](PAUSED)
   private val activeTaskRef = AtomicReference[Option[ScheduledTask]](None)
 
   /**
@@ -53,7 +53,7 @@ final case class DefaultSimulationRunner(
    * @return [[SimulationRunnerState.RUNNING]] when ticks are active,
    *         [[SimulationRunnerState.PAUSED]] otherwise
    */
-  def simulationRunnerState: SimulationRunnerState = simulationRunnerStateRef.get()
+  def simulationControllerState: SimulationControllerState = simulationControllerStateRef.get()
 
   /**
    * Starts scheduling simulation ticks.
@@ -63,10 +63,10 @@ final case class DefaultSimulationRunner(
    * applied more than once concurrently.
    */
   override def start(): Unit =
-    if simulationRunnerStateRef.compareAndSet(PAUSED, RUNNING) then
+    if simulationControllerStateRef.compareAndSet(PAUSED, RUNNING) then
       val task = scheduler.schedule(
         () => {
-          if simulationRunnerStateRef.get() == RUNNING then
+          if simulationControllerStateRef.get() == RUNNING then
             stepOnce()
         },
         interval
@@ -80,8 +80,8 @@ final case class DefaultSimulationRunner(
    * simulation while the runner state is [[SimulationRunnerState.PAUSED]].
    */
   override def pause(): Unit =
-    if simulationRunnerStateRef.get() == RUNNING then
-      simulationRunnerStateRef.set(PAUSED)
+    if simulationControllerStateRef.get() == RUNNING then
+      simulationControllerStateRef.set(PAUSED)
       cancelActiveTask()
 
   /**
@@ -90,7 +90,7 @@ final case class DefaultSimulationRunner(
    * After shutdown, the current scheduler cannot be started again.
    */
   override def stop(): Unit =
-    simulationRunnerStateRef.set(PAUSED)
+    simulationControllerStateRef.set(PAUSED)
     cancelActiveTask()
     scheduler.stop()
 

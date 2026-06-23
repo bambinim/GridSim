@@ -12,7 +12,7 @@ import scala.concurrent.duration.FiniteDuration
  * thermal stores, etc.) evolve their state based on energy flows.
  *
  * @tparam S    The specific type of [[StorageState]].
- * @tparam Spec The specific type of [[StorageSpecification]].
+ * @tparam E The specific type of [[Storage]].
  */
 trait StorageStrategy[S <: StorageState, E <: Storage]:
   /**

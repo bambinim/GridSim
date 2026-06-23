@@ -8,7 +8,7 @@ package org.gridsim.core.simulation
  * Domain evolution remains delegated to [[SimulationEngine]], which performs
  * a single pure state transition.
  */
-trait SimulationRunner:
+trait SimulationController:
 
   /**
    * Returns the latest simulation snapshot known by this runner.
@@ -22,7 +22,7 @@ trait SimulationRunner:
    *
    * @return whether the runner is actively ticking or paused
    */
-  def simulationRunnerState: SimulationRunnerState
+  def simulationControllerState: SimulationControllerState
 
   /**
    * Starts the periodic simulation loop.

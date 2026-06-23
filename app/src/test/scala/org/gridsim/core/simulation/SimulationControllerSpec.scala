@@ -11,7 +11,7 @@ import scala.concurrent.duration.*
 import org.gridsim.core.simulation.scheduling.{ScheduledTask, Scheduler, SimulationTask}
 
 @RunWith(classOf[JUnitRunner])
-class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
+class SimulationControllerSpec extends AnyFlatSpec with Matchers:
 
   private class CountingEngine extends SimulationEngine:
 
@@ -55,82 +55,82 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
   private def initialState: SimulationState =
     SimulationState(
       environment = Environment(0.minutes),
-      entityStates = Nil
+      entityStates = Map.empty
     )
 
   "DefaultSimulationRunner" should "expose the initial state before running" in:
     val engine = CountingEngine()
     val scheduler = ManualScheduler()
-    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 50.millis)
 
-    runner.currentState shouldBe initialState
+    controller.currentState shouldBe initialState
     engine.calls shouldBe 0
 
   it should "advance the current state when stepped manually" in:
     val engine = CountingEngine()
     val scheduler = ManualScheduler()
-    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 50.millis)
 
-    val next = runner.stepOnce()
+    val next = controller.stepOnce()
 
     next.environment.time shouldBe 1.minute
-    runner.currentState shouldBe next
+    controller.currentState shouldBe next
     engine.calls shouldBe 1
 
   it should "advance from the latest state on every manual step" in:
     val engine = CountingEngine()
     val scheduler = ManualScheduler()
-    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 50.millis)
 
-    runner.stepOnce()
-    val second = runner.stepOnce()
+    controller.stepOnce()
+    val second = controller.stepOnce()
 
     second.environment.time shouldBe 2.minutes
-    runner.currentState.environment.time shouldBe 2.minutes
+    controller.currentState.environment.time shouldBe 2.minutes
     engine.calls shouldBe 2
 
   it should "start a periodic simulation loop" in:
     val engine = CountingEngine()
     val scheduler = ManualScheduler()
-    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 20.millis)
 
-    runner.start()
+    controller.start()
     scheduler.tick()
     scheduler.tick()
-    runner.stop()
+    controller.stop()
 
-    runner.currentState.environment.time.toMinutes shouldBe 2L
+    controller.currentState.environment.time.toMinutes shouldBe 2L
     engine.calls shouldBe 2
 
   it should "stop the periodic simulation loop" in:
     val engine = CountingEngine()
     val scheduler = ManualScheduler()
-    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 20.millis)
 
-    runner.start()
+    controller.start()
     scheduler.tick()
-    runner.stop()
+    controller.stop()
 
     val callsAfterStop = engine.calls
-    val stateAfterStop = runner.currentState
+    val stateAfterStop = controller.currentState
 
     scheduler.tick()
 
     engine.calls shouldBe callsAfterStop
-    runner.currentState shouldBe stateAfterStop
+    controller.currentState shouldBe stateAfterStop
 
   it should "not create more than one active loop when started repeatedly" in:
     val engine = CountingEngine()
     val scheduler = ManualScheduler()
-    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 50.millis)
 
-    runner.start()
-    runner.start()
-    runner.start()
+    controller.start()
+    controller.start()
+    controller.start()
 
     scheduler.activeTaskCount shouldBe 1
     scheduler.tick()
-    runner.stop()
+    controller.stop()
 
     val callsAfterStop = engine.calls
     scheduler.tick()
@@ -140,20 +140,20 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
   it should "resume the simulation after it has been paused" in:
     val engine = CountingEngine()
     val scheduler = ManualScheduler()
-    val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 20.millis)
 
-    runner.start()
+    controller.start()
     scheduler.tick()
-    runner.pause()
+    controller.pause()
 
-    val stateAfterPause = runner.currentState
+    val stateAfterPause = controller.currentState
 
     scheduler.tick()
-    runner.currentState shouldBe stateAfterPause
+    controller.currentState shouldBe stateAfterPause
 
-    runner.resume()
+    controller.resume()
     scheduler.activeTaskCount shouldBe 1
     scheduler.tick()
-    runner.stop()
+    controller.stop()
 
-    runner.currentState.environment.time should be > stateAfterPause.environment.time
+    controller.currentState.environment.time should be > stateAfterPause.environment.time

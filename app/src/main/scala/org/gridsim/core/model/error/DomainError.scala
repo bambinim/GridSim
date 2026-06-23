@@ -37,7 +37,42 @@ enum DomainError:
    * @param id    The duplicated identifier.
    */
   case DuplicateId(field: String, id: String)
+  /**
+   * Indicates that a referenced identifier has no matching domain object.
+   *
+   * @param id The missing identifier.
+   */
   case IdNotFound(id: String)
+  /**
+   * Indicates that a state entry is indexed by a key different from the state's
+   * own entity identifier.
+   *
+   * @param key      The key used in the simulation state's entity-state map.
+   * @param entityId The identifier stored inside the entity state.
+   */
+  case EntityStateKeyMismatch(key: String, entityId: String)
+  /**
+   * Indicates that the initial simulation state contains an entity state whose
+   * identifier does not exist in the selected simulation model.
+   *
+   * @param entityId The state identifier that could not be matched to a model node.
+   */
+  case EntityStateWithoutModel(entityId: String)
+  /**
+   * Indicates that a stored entity flow references an entity that is not present
+   * in the selected simulation model.
+   *
+   * @param entityId The flow identifier that could not be matched to a model node.
+   */
+  case EntityFlowWithoutModel(entityId: String)
+  /**
+   * Indicates that a stored cable load references a cable that is not present
+   * in the selected simulation model.
+   *
+   * @param e1 One endpoint of the unknown cable.
+   * @param e2 The other endpoint of the unknown cable.
+   */
+  case CableLoadWithoutCable(e1: String, e2: String)
 
 object DomainError:
   /**
@@ -57,4 +92,12 @@ object DomainError:
       s"[Error] Field '$f' must be in range between $min and $max. Provided: $v"
     case IdNotFound(i) =>
       s"[ERROR] Identifier match not found for id '$i'"
+    case EntityStateKeyMismatch(key, entityId) =>
+      s"[ERROR] Entity state map key '$key' does not match state entityId '$entityId'"
+    case EntityStateWithoutModel(entityId) =>
+      s"[ERROR] Entity state '$entityId' does not match any model node"
+    case EntityFlowWithoutModel(entityId) =>
+      s"[ERROR] Entity flow '$entityId' does not match any model node"
+    case CableLoadWithoutCable(e1, e2) =>
+      s"[ERROR] Cable load that connects '$e1' and '$e2' does not match any model cable"
   }

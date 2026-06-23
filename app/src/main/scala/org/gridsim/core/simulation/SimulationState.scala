@@ -19,7 +19,7 @@ import org.gridsim.core.model.{Environment, GridEntityState}
  */
 final case class SimulationState(
   environment: Environment,
-  entityStates: Iterable[GridEntityState],
+  entityStates: Map[String, GridEntityState],
   entityFlows: Map[String, Flow[Energy]] = Map.empty,
   cableLoads: Map[Cable, Energy] = Map.empty
 )
