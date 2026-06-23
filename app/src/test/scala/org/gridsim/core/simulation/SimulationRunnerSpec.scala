@@ -8,7 +8,7 @@ import org.scalatestplus.junit.JUnitRunner
 
 import scala.concurrent.duration.*
 
-import org.gridsim.core.simulation.scheduling.{DefaultScheduler, Scheduler}
+import org.gridsim.core.simulation.scheduling.{ScheduledTask, Scheduler, SimulationTask}
 
 @RunWith(classOf[JUnitRunner])
 class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
@@ -21,6 +21,37 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
       calls = calls + 1
       state.copy(environment = state.environment.advance(1.minute))
 
+  private class ManualScheduledTask(task: SimulationTask) extends ScheduledTask:
+    private var cancelled = false
+
+    def run(): Unit =
+      if !cancelled then task()
+
+    override def cancel(): Unit =
+      cancelled = true
+
+    def isActive: Boolean = !cancelled
+
+  private class ManualScheduler extends Scheduler:
+    private var tasks = List.empty[ManualScheduledTask]
+    private var stopped = false
+
+    override def schedule(task: SimulationTask, interval: FiniteDuration): ScheduledTask =
+      if stopped then throw IllegalStateException("Scheduler has been stopped")
+      val scheduledTask = ManualScheduledTask(task)
+      tasks = scheduledTask :: tasks
+      scheduledTask
+
+    override def stop(): Unit =
+      stopped = true
+      tasks.foreach(_.cancel())
+
+    def tick(): Unit =
+      tasks.reverse.foreach(_.run())
+
+    def activeTaskCount: Int =
+      tasks.count(_.isActive)
+
   private def initialState: SimulationState =
     SimulationState(
       environment = Environment(0.minutes),
@@ -29,7 +60,7 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   "DefaultSimulationRunner" should "expose the initial state before running" in:
     val engine = CountingEngine()
-    val scheduler = DefaultScheduler()
+    val scheduler = ManualScheduler()
     val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     runner.currentState shouldBe initialState
@@ -37,7 +68,7 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "advance the current state when stepped manually" in:
     val engine = CountingEngine()
-    val scheduler = DefaultScheduler()
+    val scheduler = ManualScheduler()
     val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     val next = runner.stepOnce()
@@ -48,7 +79,7 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "advance from the latest state on every manual step" in:
     val engine = CountingEngine()
-    val scheduler = DefaultScheduler()
+    val scheduler = ManualScheduler()
     val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     runner.stepOnce()
@@ -60,66 +91,69 @@ class SimulationRunnerSpec extends AnyFlatSpec with Matchers:
 
   it should "start a periodic simulation loop" in:
     val engine = CountingEngine()
-    val scheduler = DefaultScheduler()
+    val scheduler = ManualScheduler()
     val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
 
     runner.start()
-    Thread.sleep(80)
+    scheduler.tick()
+    scheduler.tick()
     runner.stop()
 
-    runner.currentState.environment.time.toMinutes should be >= 2L
-    engine.calls should be >= 2
+    runner.currentState.environment.time.toMinutes shouldBe 2L
+    engine.calls shouldBe 2
 
   it should "stop the periodic simulation loop" in:
     val engine = CountingEngine()
-    val scheduler = DefaultScheduler()
+    val scheduler = ManualScheduler()
     val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
 
     runner.start()
-    Thread.sleep(80)
+    scheduler.tick()
     runner.stop()
 
     val callsAfterStop = engine.calls
     val stateAfterStop = runner.currentState
 
-    Thread.sleep(100)
+    scheduler.tick()
 
     engine.calls shouldBe callsAfterStop
     runner.currentState shouldBe stateAfterStop
 
   it should "not create more than one active loop when started repeatedly" in:
     val engine = CountingEngine()
-    val scheduler = DefaultScheduler()
+    val scheduler = ManualScheduler()
     val runner = DefaultSimulationRunner(engine, initialState, scheduler, 50.millis)
 
     runner.start()
     runner.start()
     runner.start()
 
-    Thread.sleep(120)
+    scheduler.activeTaskCount shouldBe 1
+    scheduler.tick()
     runner.stop()
 
     val callsAfterStop = engine.calls
-    Thread.sleep(120)
+    scheduler.tick()
 
     engine.calls shouldBe callsAfterStop
 
   it should "resume the simulation after it has been paused" in:
     val engine = CountingEngine()
-    val scheduler = DefaultScheduler()
+    val scheduler = ManualScheduler()
     val runner = DefaultSimulationRunner(engine, initialState, scheduler, 20.millis)
 
     runner.start()
-    Thread.sleep(80)
+    scheduler.tick()
     runner.pause()
 
     val stateAfterPause = runner.currentState
 
-    Thread.sleep(80)
+    scheduler.tick()
     runner.currentState shouldBe stateAfterPause
 
     runner.resume()
-    Thread.sleep(80)
+    scheduler.activeTaskCount shouldBe 1
+    scheduler.tick()
     runner.stop()
 
     runner.currentState.environment.time should be > stateAfterPause.environment.time

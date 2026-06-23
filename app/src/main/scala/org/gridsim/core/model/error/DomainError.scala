@@ -29,6 +29,14 @@ enum DomainError:
    * @param str   The invalid string that was provided.
    */
   case InvalidId(field: String, str: String)
+  /**
+   * Indicates that an identifier appears more than once in a collection that
+   * requires unique IDs.
+   *
+   * @param field The collection or property where the duplicate was found.
+   * @param id    The duplicated identifier.
+   */
+  case DuplicateId(field: String, id: String)
   case IdNotFound(id: String)
 
 object DomainError:
@@ -41,6 +49,8 @@ object DomainError:
   given Show[DomainError] = Show.show {
     case DomainError.InvalidId(f, s) =>
       s"[ERROR] Identifier '$f' for $s is invalid"
+    case DuplicateId(f, id) =>
+      s"[ERROR] Duplicate identifier '$id' found in '$f'"
     case ValueMustBePositive(f, v) =>
       s"[ERROR] Field '$f' cannot be negative. Provided: $v"
     case OutOfRange(f, v, min, max) =>

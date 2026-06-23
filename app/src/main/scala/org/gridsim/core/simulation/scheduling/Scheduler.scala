@@ -8,6 +8,15 @@ import scala.concurrent.duration.FiniteDuration
 type SimulationTask = () => Unit
 
 /**
+ * Handle returned by a scheduler for a submitted task.
+ */
+trait ScheduledTask:
+  /**
+   * Cancels future executions of the scheduled task.
+   */
+  def cancel(): Unit
+
+/**
  * Abstraction for scheduling periodic tasks.
  *
  * Implementations are responsible for managing the execution lifecycle
@@ -20,10 +29,9 @@ trait Scheduler:
    * @param task the unit of work to execute.
    * @param interval the time between task executions.
    */
-  def schedule(task: SimulationTask, interval: FiniteDuration): Unit
+  def schedule(task: SimulationTask, interval: FiniteDuration): ScheduledTask
 
   /**
    * Stops the scheduler and releases any underlying resources.
    */
   def stop(): Unit
-

@@ -1,10 +1,9 @@
 package org.gridsim.core.simulation
 
 import org.gridsim.core.simulation.SimulationRunnerState.{PAUSED, RUNNING}
-import org.gridsim.core.simulation.scheduling.Scheduler
+import org.gridsim.core.simulation.scheduling.{ScheduledTask, Scheduler}
 
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 import scala.concurrent.duration.FiniteDuration
 
 /**
@@ -27,7 +26,8 @@ enum SimulationRunnerState:
  *
  * @param engine pure simulation engine used to compute each tick
  * @param state initial simulation snapshot
- * @param tickInterval real time elapsed between scheduled simulation ticks
+ * @param scheduler the entity responsible to schedule the step task.
+ * @param interval real time elapsed between scheduled simulation ticks
  */
 final case class DefaultSimulationRunner(
   engine: SimulationEngine,
@@ -38,6 +38,7 @@ final case class DefaultSimulationRunner(
 
   private val stateRef = AtomicReference[SimulationState](state)
   private val simulationRunnerStateRef = AtomicReference[SimulationRunnerState](PAUSED)
+  private val activeTaskRef = AtomicReference[Option[ScheduledTask]](None)
 
   /**
    * Returns the latest simulation snapshot.
@@ -63,13 +64,14 @@ final case class DefaultSimulationRunner(
    */
   override def start(): Unit =
     if simulationRunnerStateRef.compareAndSet(PAUSED, RUNNING) then
-      scheduler.schedule(
+      val task = scheduler.schedule(
         () => {
           if simulationRunnerStateRef.get() == RUNNING then
             stepOnce()
         },
         interval
       )
+      activeTaskRef.set(Some(task))
 
   /**
    * Pauses scheduled execution.
@@ -80,6 +82,7 @@ final case class DefaultSimulationRunner(
   override def pause(): Unit =
     if simulationRunnerStateRef.get() == RUNNING then
       simulationRunnerStateRef.set(PAUSED)
+      cancelActiveTask()
 
   /**
    * Stops the scheduler and releases its thread.
@@ -87,6 +90,8 @@ final case class DefaultSimulationRunner(
    * After shutdown, the current scheduler cannot be started again.
    */
   override def stop(): Unit =
+    simulationRunnerStateRef.set(PAUSED)
+    cancelActiveTask()
     scheduler.stop()
 
   /**
@@ -102,3 +107,6 @@ final case class DefaultSimulationRunner(
    */
   override def stepOnce(): SimulationState =
     stateRef.updateAndGet(current => engine.step(current))
+
+  private def cancelActiveTask(): Unit =
+    activeTaskRef.getAndSet(None).foreach(_.cancel())
