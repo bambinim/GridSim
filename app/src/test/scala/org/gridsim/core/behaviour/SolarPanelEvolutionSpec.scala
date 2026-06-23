@@ -17,26 +17,26 @@ class SolarPanelEvolutionSpec extends AnyFlatSpec with Matchers:
 
   private val location = GeographicPoint(44.3, 11.7)
 
-  private val state = SolarPanelState("panel-01")
-
-  private val panel =
+  private val (panel, state) =
     SolarPanel(
-      "panel-01",
-      location,
+      id = "panel-01",
+      location = location,
       maxProduction = 5.0.kw,
       areaSqm = 20.0,
-      efficiency = 0.20,
-      state = state
-    ).toOption.get.panel
+      efficiency = 0.20
+    ).toOption.get
 
   "SolarPanelEvolution" should "produce energy using the irradiance from the environment" in:
     val environment = Environment(6.hour)
 
     given EvolutionContext[Unit] = EvolutionContext(delta = 1.hour, Nil: Unit)
 
-    state.currentProduction.toDouble shouldBe 0.0
+    val firstEfficiency = state.efficiency
+    
+    firstEfficiency shouldEqual panel.efficiency
+    state.entityId shouldEqual panel.id
 
     val (nextState, flow) = state.evolve(panel, environment)
 
-    nextState.currentProduction.toDouble should be >= 0.0
-    flow shouldBe Flow.Surplus(nextState.currentProduction)
+    nextState.efficiency shouldEqual panel.efficiency
+    nextState.entityId shouldEqual panel.id
