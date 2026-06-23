@@ -10,6 +10,11 @@ import org.gridsim.core.model.storage.battery.{
   BatteryState
 }
 import org.gridsim.dsl.Builder
+import cats.Show
+import org.gridsim.dsl.DSLError
+import org.gridsim.core.validation.Validator.validate
+import org.gridsim.core.validation.BatteryValidator.given
+import org.gridsim.dsl.DSLBuilderError
 
 case class BatteryBuilder(
     private[dsl] val id: Option[String],
@@ -18,21 +23,31 @@ case class BatteryBuilder(
     private[dsl] val maxPowerCharge: Option[Power],
     private[dsl] val maxPowerDischarge: Option[Power],
     private[dsl] val minSoC: Option[Double]
-) extends Builder[GridEntity, GridEntityState]:
-  override def build(): ValidatedNec[String, (GridEntity, GridEntityState)] =
+) extends Builder[Battery, BatteryState]:
+
+  override def build(): ValidatedNec[DSLError, (Battery, BatteryState)] =
     (
       id.orElse(Some(java.util.UUID.randomUUID().toString))
-        .toValidNec("Battery id is required"),
-      maxCapacity.toValidNec("Battery capacity is required"),
-      maxPowerCharge.toValidNec("Battery max charge power is required"),
-      maxPowerDischarge.toValidNec("Battery max discharge power is required"),
-      minSoC.toValidNec("Battery min SoC is required")
-    ).mapN { (id, capacity, maxChargePower, maxDischargePower, minSoC) =>
+        .toValidNec(DSLBuilderError.MissingField("id")),
+      maxCapacity.toValidNec(DSLBuilderError.MissingField("maxCapacity")),
+      maxPowerCharge.toValidNec(DSLBuilderError.MissingField("maxChargePower")),
+      maxPowerDischarge.toValidNec(
+        DSLBuilderError.MissingField("maxDischargePower")
+      ),
+      minSoC.toValidNec(DSLBuilderError.MissingField("minSoC"))
+    ).mapN((id, capacity, maxChargePower, maxDischargePower, minSoC) =>
       (
-        Battery(id, model, capacity, maxChargePower, maxDischargePower, minSoC),
+        Battery(
+          id,
+          model,
+          capacity,
+          maxChargePower,
+          maxDischargePower,
+          minSoC
+        ),
         BatteryState(id, Energy.Zero)
       )
-    }
+    ).andThen(validate(_))
 
 object BatteryBuilder:
   def battery: BatteryBuilder =
