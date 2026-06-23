@@ -1,6 +1,6 @@
 package org.gridsim.core.model.house
 
-import org.gridsim.core.model.{GridEntityState}
+import org.gridsim.core.model.GridEntityState
 
 /**
  * Dynamic state for a house and each of its installed components.
@@ -10,5 +10,5 @@ import org.gridsim.core.model.{GridEntityState}
  */
 case class HouseState(
  entityId: String,
- componentStates: List[GridEntityState]
+ componentStates: Iterable[GridEntityState]
 ) extends GridEntityState

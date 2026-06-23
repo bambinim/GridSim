@@ -18,7 +18,7 @@ import org.gridsim.core.validation.HouseComponentValidator.componentValidator
  */
 case class House(
   id: String,
-  components: List[GridEntity],
+  components: Iterable[GridEntity],
   strategy: ConsumptionStrategy = DefaultConsumptionStrategy.traditionalProfile
 ) extends GridEntity
 

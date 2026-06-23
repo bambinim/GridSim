@@ -24,7 +24,7 @@ object StorageState:
     def percentage(state: StorageState): Double =
       require(
         storage.id == state.entityId,
-        s"ID Mismatch: Impossible to calculate percentuage. Entity ID [${storage.id}] non corrisponde allo State ID [${state.entityId}]"
+        s"ID Mismatch: Impossible to calculate percentuage. Entity ID [${storage.id}] not match the State ID [${state.entityId}]"
       )
 
       if storage.maxCapacity > Energy.Zero then

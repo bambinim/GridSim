@@ -47,8 +47,7 @@ object Validator:
     /** Checks that the value falls within the specified [min, max) range. */
     def mustBeInRangeEndExclusive(field: String, min: Double, max: Double): ValidatedNec[DomainError, Double] =
       Validated.condNec(value >= min && value < max, value, OutOfRange(field, value, min, max))
-
-  // TODO can be defined better rules for validate the ID.
+  
   extension (value: String)
     /**
      * Ensures an ID meets the minimum length requirement.

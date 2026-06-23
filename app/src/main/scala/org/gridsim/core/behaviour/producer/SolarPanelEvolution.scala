@@ -7,9 +7,9 @@ import org.gridsim.core.behaviour.producer.SolarPanelStrategy.produce
 
 import scala.concurrent.duration.FiniteDuration
 
-object SolarPanelEvolution extends GridEvolution[SolarPanelState, SolarPanel, EvolutionContext[_]]:
+object SolarPanelEvolution extends GridEvolution[SolarPanelState, SolarPanel, EvolutionContext[Unit]]:
   extension (state: SolarPanelState)
-    def evolve(panel: SolarPanel, environment: Environment)(using context: EvolutionContext[_]): (SolarPanelState, Flow[Energy]) =
+    def evolve(panel: SolarPanel, environment: Environment)(using context: EvolutionContext[Unit]): (SolarPanelState, Flow[Energy]) =
       given FiniteDuration = context.delta
       given SolarPanelStrategy = SolarPanelStrategy.forPhysics(panel.physics)
 
