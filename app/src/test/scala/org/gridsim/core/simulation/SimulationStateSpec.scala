@@ -23,7 +23,7 @@ class SimulationStateSpec extends AnyFlatSpec with Matchers:
   private val cable =
     Cable(
       CableConnections("external-grid", "house-1"),
-      10.kwh
+      10.kw
     )
 
   private val entityFlows: Map[String, Flow[Energy]] = Map(

@@ -135,7 +135,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     val cable =
       Cable(
         CableConnections(externalGrid.id, house.id),
-        maxCapacity = 1.kwh
+        maxCapacity = 1.kw
       )
     val grid =
       GridGraph(
