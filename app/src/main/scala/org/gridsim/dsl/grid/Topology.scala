@@ -15,7 +15,6 @@ private[dsl] case class RightConnectedCable(
 import scala.annotation.targetName
 
 object Topology:
-
   extension (p: Power)
     infix def -->(rightEntity: String): RightConnectedCable =
       RightConnectedCable(p, rightEntity)
@@ -34,8 +33,8 @@ object Topology:
 
   extension [T: Connectable](left: T)
     infix def <--(rightCable: RightConnectedCable)(using
-        ctx: Option[TopologyBuilderContext] = None
-    ): Cable =
+        ctx: TopologyBuilderContext
+    ): Unit =
       val cable = Cable(
         CableConnections(
           summon[Connectable[T]].idOf(left),
@@ -43,5 +42,4 @@ object Topology:
         ),
         rightCable.maxCapacity
       )
-      ctx.map(c => c.cables = c.cables :+ cable)
-      cable
+      ctx.cables = ctx.cables :+ cable

@@ -14,10 +14,12 @@ given Show[DSLError] = Show.show {
 enum DSLBuilderError:
   case MissingField(field: String)
   case InvalidValue(field: String, value: Any)
+  case MissingBlock(block: String)
 
 object DSLBuilderError:
   given Show[DSLBuilderError] = Show.show { e =>
     e match
       case MissingField(f)    => s"Missing field $f"
       case InvalidValue(f, v) => s"Invalid value for field $f: $v"
+      case MissingBlock(b)    => s"Missing block $b"
   }

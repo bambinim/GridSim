@@ -18,17 +18,21 @@ class TopologySpec extends AnyFlatSpec with Matchers:
   val e2 = DummyEntity("e2")
 
   "A GridEntity" should "be connectable to another one with a cable" in:
-    val cable = e1 <-- 10.kw --> e2
-    cable shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
+    given ctx: TopologyBuilderContext = new TopologyBuilderContext()
+    e1 <-- 10.kw --> e2
+    ctx.cables.head shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
 
   it should "also be connectable to an entity id" in:
-    val cable = e1 <-- 10.kw --> "e2"
-    cable shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
+    given ctx: TopologyBuilderContext = new TopologyBuilderContext()
+    e1 <-- 10.kw --> "e2"
+    ctx.cables.head shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
 
   "A String representing an entity id" should "be connectable to a grid entity" in:
-    val cable = "e1" <-- 10.kw --> e2
-    cable shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
+    given ctx: TopologyBuilderContext = new TopologyBuilderContext()
+    "e1" <-- 10.kw --> e2
+    ctx.cables.head shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
 
   it should "also be connectable to an entity id" in:
-    val cable = "e1" <-- 10.kw --> "e2"
-    cable shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
+    given ctx: TopologyBuilderContext = new TopologyBuilderContext()
+    "e1" <-- 10.kw --> "e2"
+    ctx.cables.head shouldBe Cable(CableConnections("e1", "e2"), 10.kw)
