@@ -15,7 +15,8 @@ object Power:
   def apply(v: Double): Power = v
   val Zero: Power = 0.0
 
-  given CommutativeMonoid[Power] = cats.instances.double.catsKernelStdGroupForDouble
+  given CommutativeMonoid[Power] =
+    cats.instances.double.catsKernelStdGroupForDouble
   given Order[Power] = cats.instances.double.catsKernelStdOrderForDouble
   given showPower: Show[Power] = Show.show(p => s"${p.show2} kW")
 
@@ -27,10 +28,13 @@ object Power:
     @targetName("powerTimes") def *(scalar: Double): Power = p * scalar
     @targetName("powerDiv") def /(o: Power): Double = p / o
     @targetName("powerDivScalar") def /(scalar: Double): Power = p / scalar
-    def toEnergy(using tick: FiniteDuration): Energy = Energy(p * tick.toUnit(TimeUnit.HOURS))
+    def toEnergy(using tick: FiniteDuration): Energy = Energy(
+      p * tick.toUnit(TimeUnit.HOURS)
+    )
     def min(o: Power): Power = if p <= o then p else o
     def max(o: Power): Power = if p >= o then p else o
     def abs: Power = Math.abs(p.toDouble).kw
 
-extension (d: Double)
-  def kw: Power = Power(d)
+extension (d: Double) def kw: Power = Power(d)
+
+extension (i: Integer) def kw: Power = Power(i.toDouble)

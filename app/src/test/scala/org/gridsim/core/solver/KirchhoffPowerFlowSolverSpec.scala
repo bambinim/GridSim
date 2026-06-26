@@ -4,7 +4,12 @@ import org.gridsim.core.common.*
 import org.gridsim.core.common.Flow.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
+import org.gridsim.core.model.network.{
+  Cable,
+  CableConnections,
+  ExternalGrid,
+  GridGraph
+}
 import org.gridsim.core.model.GridEntity
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
@@ -22,12 +27,16 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
   // ─── Helpers ──────────────────────────────────────────────────────────
 
   private def mkCable(a: String, b: String, cap: Double = 1000.0): Cable =
-    Cable(CableConnections(a, b), Energy(cap))
+    Cable(CableConnections(a, b), cap.kw)
 
   private def surplus(kWh: Double): Flow[Energy] = Flow.Surplus(Energy(kWh))
   private def deficit(kWh: Double): Flow[Energy] = Flow.Deficit(Energy(kWh))
 
-  private def assertCableLoad(result: CMap[Cable, Energy], cable: Cable, expected: Double): Unit =
+  private def assertCableLoad(
+      result: CMap[Cable, Energy],
+      cable: Cable,
+      expected: Double
+  ): Unit =
     result(cable).toDouble shouldBe expected +- tolerance
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -125,7 +134,7 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
       "c" -> surplus(1.0)
     )
 
-    val result =  KirchhoffPowerFlowSolver(graph).solve(flows)
+    val result = KirchhoffPowerFlowSolver(graph).solve(flows)
 
     assertCableLoad(result, cBC, 1.0)
     assertCableLoad(result, cAB, 4.0)
@@ -243,7 +252,8 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val cAB = mkCable("a", "b")
     val cAC = mkCable("a", "c")
     val cBC = mkCable("b", "c")
-    val graph = GridGraph(List(grid, a, b, c), List(cGA, cGB, cGC, cAB, cAC, cBC))
+    val graph =
+      GridGraph(List(grid, a, b, c), List(cGA, cGB, cGC, cAB, cAC, cBC))
     val flows = Map("a" -> surplus(12.0))
 
     val result = KirchhoffPowerFlowSolver(graph).solve(flows)
@@ -337,7 +347,9 @@ class KirchhoffPowerFlowSolverSpec extends AnyFlatSpec with Matchers {
     val simpleResult = SimplePowerFlowSolver(graph).solve(flows)
 
     List(cGH, cH1, cH2).foreach { cable =>
-      kirchhoffResult(cable).toDouble shouldBe simpleResult(cable).toDouble +- tolerance
+      kirchhoffResult(cable).toDouble shouldBe simpleResult(
+        cable
+      ).toDouble +- tolerance
     }
   }
 }

@@ -4,9 +4,18 @@ import cats.syntax.all.*
 import org.gridsim.core.common.*
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.model.error.DomainError.*
-import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
+import org.gridsim.core.model.network.{
+  Cable,
+  CableConnections,
+  ExternalGrid,
+  GridGraph
+}
 import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
-import org.gridsim.core.simulation.{SimulationModel, SimulationSetup, SimulationState}
+import org.gridsim.core.simulation.{
+  SimulationModel,
+  SimulationSetup,
+  SimulationState
+}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -19,7 +28,8 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
   import SimulationValidator.given
 
   private final case class TestEntity(id: String) extends GridEntity
-  private final case class TestEntityState(entityId: String) extends GridEntityState
+  private final case class TestEntityState(entityId: String)
+      extends GridEntityState
 
   private val externalGrid = ExternalGrid("external-grid")
   private val house = TestEntity("house-1")
@@ -27,7 +37,7 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
   private val cable =
     Cable(
       CableConnections(externalGrid.id, house.id),
-      10.kwh
+      10.kw
     )
   private val grid =
     GridGraph(
@@ -52,7 +62,10 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
     val result = SimulationSetup.make(state, invalidModel)
 
     result.fold(
-      errors => errors.toList should contain(ValueMustBePositive("Simulation Delta", 0.0)),
+      errors =>
+        errors.toList should contain(
+          ValueMustBePositive("Simulation Delta", 0.0)
+        ),
       _ => fail("It should have failed")
     )
 
@@ -65,7 +78,10 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
     val result = SimulationSetup.make(invalidState, model)
 
     result.fold(
-      errors => errors.toList should contain(EntityStateKeyMismatch("wrong-id", house.id)),
+      errors =>
+        errors.toList should contain(
+          EntityStateKeyMismatch("wrong-id", house.id)
+        ),
       _ => fail("It should have failed")
     )
 
@@ -79,7 +95,10 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
     val result = SimulationSetup.make(invalidState, model)
 
     result.fold(
-      errors => errors.toList should contain(EntityStateWithoutModel(orphanState.entityId)),
+      errors =>
+        errors.toList should contain(
+          EntityStateWithoutModel(orphanState.entityId)
+        ),
       _ => fail("It should have failed")
     )
 
@@ -92,7 +111,8 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
     val result = SimulationSetup.make(invalidState, model)
 
     result.fold(
-      errors => errors.toList should contain(EntityFlowWithoutModel("missing-node")),
+      errors =>
+        errors.toList should contain(EntityFlowWithoutModel("missing-node")),
       _ => fail("It should have failed")
     )
 
@@ -100,7 +120,7 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
     val unknownCable =
       Cable(
         CableConnections("house-1", "unknown-node"),
-        5.kwh
+        5.kw
       )
     val invalidState =
       state.copy(
@@ -110,7 +130,10 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
     val result = SimulationSetup.make(invalidState, model)
 
     result.fold(
-      errors => errors.toList should contain(CableLoadWithoutCable("house-1", "unknown-node")),
+      errors =>
+        errors.toList should contain(
+          CableLoadWithoutCable("house-1", "unknown-node")
+        ),
       _ => fail("It should have failed")
     )
 
@@ -119,10 +142,11 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
       state.copy(
         entityStates = Map("wrong-id" -> houseState),
         entityFlows = Map("missing-flow-node" -> Flow.Balanced),
-        cableLoads = Map(Cable(CableConnections("x", "y"), 1.kwh) -> 1.kwh)
+        cableLoads = Map(Cable(CableConnections("x", "y"), 1.kw) -> 1.kwh)
       )
 
-    val result = SimulationSetup.make(invalidState, model.copy(delta = 0.minutes))
+    val result =
+      SimulationSetup.make(invalidState, model.copy(delta = 0.minutes))
 
     result.fold(
       errors =>

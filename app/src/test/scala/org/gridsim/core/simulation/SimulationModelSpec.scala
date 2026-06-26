@@ -20,7 +20,7 @@ class SimulationModelSpec extends AnyFlatSpec with Matchers:
   private val cable =
     Cable(
       CableConnections(externalGrid.id, house.id),
-      10.kwh
+      10.kw
     )
   private val graph =
     GridGraph(

@@ -2,7 +2,7 @@ package org.gridsim.core.model.network
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.gridsim.core.common.Energy
+import org.gridsim.core.common.{kw, kwh}
 import org.gridsim.core.common.*
 import org.gridsim.core.model.GridEntity
 import org.junit.runner.RunWith
@@ -27,25 +27,24 @@ class CablesSpec extends AnyFlatSpec with Matchers:
   // ─── Cable ────────────────────────────────────────────────────────────
 
   "Cable" should "store its connections and max capacity" in:
-    val cable = Cable(CableConnections("n1", "n2"), Energy(100.0))
+    val cable = Cable(CableConnections("n1", "n2"), 100.kw)
     cable.connections shouldBe CableConnections("n1", "n2")
     cable.maxCapacity.toDouble shouldBe 100.0
 
   it should "support structural equality" in:
-    val a = Cable(CableConnections("a", "b"), Energy(50.0))
-    val b = Cable(CableConnections("a", "b"), Energy(50.0))
+    val a = Cable(CableConnections("a", "b"), 50.kw)
+    val b = Cable(CableConnections("a", "b"), 50.kw)
     a shouldBe b
 
   it should "not be equal when connections differ" in:
-    val a = Cable(CableConnections("a", "b"), Energy(50.0))
-    val b = Cable(CableConnections("a", "c"), Energy(50.0))
+    val a = Cable(CableConnections("a", "b"), 50.kw)
+    val b = Cable(CableConnections("a", "c"), 50.kw)
     a should not be b
 
   it should "not be equal when capacity differs" in:
-    val a = Cable(CableConnections("a", "b"), Energy(50.0))
-    val b = Cable(CableConnections("a", "b"), Energy(99.0))
+    val a = Cable(CableConnections("a", "b"), 50.kw)
+    val b = Cable(CableConnections("a", "b"), 99.kw)
     a should not be b
-
 
 @RunWith(classOf[JUnitRunner])
 class GridSpec extends AnyFlatSpec with Matchers:
@@ -65,7 +64,7 @@ class GridSpec extends AnyFlatSpec with Matchers:
 
   "GridGraph" should "store nodes and cables" in:
     val nodes = List(ExternalGrid("grid"), GridEntityStub("h1"))
-    val cables = List(Cable(CableConnections("grid", "h1"), Energy(100.0)))
+    val cables = List(Cable(CableConnections("grid", "h1"), 100.kw))
     val graph = GridGraph(nodes, cables)
 
     graph.nodes should contain theSameElementsAs nodes
@@ -77,8 +76,8 @@ class GridSpec extends AnyFlatSpec with Matchers:
     graph.cables shouldBe empty
 
   it should "allow multiple cables between the same nodes" in:
-    val c1 = Cable(CableConnections("a", "b"), Energy(50.0))
-    val c2 = Cable(CableConnections("a", "b"), Energy(100.0))
+    val c1 = Cable(CableConnections("a", "b"), 50.kw)
+    val c2 = Cable(CableConnections("a", "b"), 100.kw)
     val graph =
       GridGraph(List(GridEntityStub("a"), GridEntityStub("b")), List(c1, c2))
 
@@ -86,5 +85,5 @@ class GridSpec extends AnyFlatSpec with Matchers:
 
   it should "support structural equality" in:
     val nodes = List(ExternalGrid("grid"))
-    val cables = List(Cable(CableConnections("grid", "h1"), Energy(10.0)))
+    val cables = List(Cable(CableConnections("grid", "h1"), 10.kw))
     GridGraph(nodes, cables) shouldBe GridGraph(nodes, cables)
