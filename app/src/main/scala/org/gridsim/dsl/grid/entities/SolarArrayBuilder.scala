@@ -1,7 +1,7 @@
 package org.gridsim.dsl.grid.entities
 
 import org.gridsim.core.common.{GeographicPoint, Power}
-import org.gridsim.dsl.Builder
+import org.gridsim.dsl.GridEntityBuilder
 import org.gridsim.core.model.{
   GridEntity,
   GridEntityState,
@@ -22,7 +22,7 @@ case class SolarArrayBuilder private (
     private[dsl] val surface: Option[Double],
     private[dsl] val efficiency: Option[Double],
     private[dsl] val physics: SolarPanelPhysics
-) extends Builder[SolarPanel, SolarPanelState]:
+) extends GridEntityBuilder[SolarPanel, SolarPanelState]:
 
   import org.gridsim.dsl.DSLError
   override def build(): ValidatedNec[DSLError, (SolarPanel, SolarPanelState)] =

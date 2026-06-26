@@ -1,7 +1,7 @@
 package org.gridsim.dsl.grid.entities
 
 import cats.data.ValidatedNec
-import org.gridsim.dsl.Builder
+import org.gridsim.dsl.GridEntityBuilder
 import org.gridsim.core.behaviour.house.ConsumptionStrategy
 import org.gridsim.core.model.house.{House, HouseState}
 import org.gridsim.core.model.{GridEntity, GridEntityState}
@@ -16,9 +16,11 @@ import org.gridsim.core.validation.HouseComponentValidator.componentValidator
 case class HouseBuilder(
     private[dsl] val id: Option[String],
     private[dsl] val consumptionStrategy: Option[ConsumptionStrategy],
-    private[dsl] val otherEntities: List[Builder[GridEntity, GridEntityState]],
-    private[dsl] val storages: List[Builder[Storage, StorageState]]
-) extends Builder[House, HouseState]:
+    private[dsl] val otherEntities: List[
+      GridEntityBuilder[GridEntity, GridEntityState]
+    ],
+    private[dsl] val storages: List[GridEntityBuilder[Storage, StorageState]]
+) extends GridEntityBuilder[House, HouseState]:
   import org.gridsim.dsl.DSLError
   override def build(): ValidatedNec[DSLError, (House, HouseState)] = {
     val validatedStrategy = consumptionStrategy.toValidNec(
@@ -42,8 +44,9 @@ object HouseBuilder:
   class HouseBuilderContext:
     var entityId: Option[String] = None
     var consumptionStrategy: Option[ConsumptionStrategy] = None
-    var otherEntities: List[Builder[GridEntity, GridEntityState]] = List.empty
-    var storages: List[Builder[Storage, StorageState]] = List.empty
+    var otherEntities: List[GridEntityBuilder[GridEntity, GridEntityState]] =
+      List.empty
+    var storages: List[GridEntityBuilder[Storage, StorageState]] = List.empty
 
   def house(block: HouseBuilderContext ?=> Unit): HouseBuilder =
     val ctx = new HouseBuilderContext()
@@ -64,13 +67,15 @@ object HouseBuilder:
     ctx.consumptionStrategy = Some(strategy)
 
   def contains[E <: GridEntity, S <: GridEntityState](
-      builders: Builder[E, S]*
+      builders: GridEntityBuilder[E, S]*
   )(using ctx: HouseBuilderContext): Unit =
-    ctx.otherEntities =
-      builders.map(_.asInstanceOf[Builder[GridEntity, GridEntityState]]).toList
+    ctx.otherEntities = builders
+      .map(_.asInstanceOf[GridEntityBuilder[GridEntity, GridEntityState]])
+      .toList
 
   def energyStorageSystems[E <: Storage, S <: StorageState](
-      storages: Builder[E, S]*
+      storages: GridEntityBuilder[E, S]*
   )(using ctx: HouseBuilderContext): Unit =
-    ctx.storages =
-      storages.map(_.asInstanceOf[Builder[Storage, StorageState]]).toList
+    ctx.storages = storages
+      .map(_.asInstanceOf[GridEntityBuilder[Storage, StorageState]])
+      .toList

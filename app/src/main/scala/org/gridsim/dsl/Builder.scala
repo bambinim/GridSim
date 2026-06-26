@@ -4,6 +4,9 @@ import org.gridsim.core.model.{GridEntity, GridEntityState}
 import cats.data.ValidatedNec
 import cats.Show
 
-trait Builder[E <: GridEntity, S <: GridEntityState]:
-  def build(): ValidatedNec[DSLError, (E, S)]
-  def flatMap(): ValidatedNec[DSLError, (E, S)] = build()
+trait Builder[+T]:
+  def build(): ValidatedNec[DSLError, T]
+  def flatMap(): ValidatedNec[DSLError, T] = build()
+
+trait GridEntityBuilder[+E <: GridEntity, +S <: GridEntityState]
+    extends Builder[(E, S)]

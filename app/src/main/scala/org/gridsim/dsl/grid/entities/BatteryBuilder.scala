@@ -9,7 +9,7 @@ import org.gridsim.core.model.storage.battery.{
   BatteryModel,
   BatteryState
 }
-import org.gridsim.dsl.Builder
+import org.gridsim.dsl.GridEntityBuilder
 import cats.Show
 import org.gridsim.dsl.DSLError
 import org.gridsim.core.validation.Validator.validate
@@ -23,7 +23,7 @@ case class BatteryBuilder(
     private[dsl] val maxPowerCharge: Option[Power],
     private[dsl] val maxPowerDischarge: Option[Power],
     private[dsl] val minSoC: Option[Double]
-) extends Builder[Battery, BatteryState]:
+) extends GridEntityBuilder[Battery, BatteryState]:
 
   override def build(): ValidatedNec[DSLError, (Battery, BatteryState)] =
     (
