@@ -1,21 +1,25 @@
 package org.gridsim.gui.app
 
 import org.gridsim.gui.controller.ScenarioSelectionController
-import org.gridsim.gui.ports.{DslScenarioPresetRepository, DslScenarioPresetLoader}
+import org.gridsim.gui.ports.{DslScenarioPresetLoader, DslScenarioPresetRepository}
+import org.gridsim.gui.runtime.SimulationFactory
 import org.gridsim.gui.view.ScenarioSelectionView
-
 import scalafx.application.JFXApp3
 import scalafx.scene.Scene
 
 object GuiApp extends JFXApp3:
   override def start(): Unit =
-    val repository = new DslScenarioPresetRepository
-    val loader = new DslScenarioPresetLoader
-    val controller = new ScenarioSelectionController(repository, loader)
-    val selectionView = new ScenarioSelectionView(controller)
+    val renderer = new SceneBuilder(
+      scenarioRepo = new DslScenarioPresetRepository,
+      scenarioLoader = new DslScenarioPresetLoader,
+      simulationFactory = SimulationFactory
+    )
+    val router = new AppRouter(
+      render = renderer.render
+    )
 
     stage = new JFXApp3.PrimaryStage:
       title = "GridSim"
-      scene = new Scene(500, 400):
+      scene = new Scene(900, 600):
         stylesheets.add(getClass.getResource("/gui/gridsim.css").toExternalForm)
-        root = selectionView.root
+        root = router.root
