@@ -41,6 +41,6 @@ object Energy:
       else if e < 0.0 then Flow.Deficit(e.abs)
       else Flow.Balanced
 
-extension (d: Double) def kwh: Energy = Energy(d)
+extension (d: Double) infix def kwh: Energy = Energy(d)
 
-extension (i: Integer) def kwh: Energy = Energy(i.toDouble)
+extension (i: Integer) infix def kwh: Energy = Energy(i.toDouble)

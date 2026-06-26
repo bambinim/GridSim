@@ -4,7 +4,12 @@ import org.gridsim.core.common.*
 import org.gridsim.core.common.Flow.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
+import org.gridsim.core.model.network.{
+  Cable,
+  CableConnections,
+  ExternalGrid,
+  GridGraph
+}
 import org.gridsim.core.model.GridEntity
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
@@ -22,10 +27,10 @@ class SimplePowerFlowSolverSpec extends AnyFlatSpec with Matchers {
   // ─── Helpers ──────────────────────────────────────────────────────────
 
   private def mkCable(a: String, b: String, cap: Double = 1000.0): Cable =
-    Cable(CableConnections(a, b), Energy(cap))
+    Cable(CableConnections(a, b), cap.kw)
 
-  private def surplus(kWh: Double): Flow[Energy] = Flow.Surplus(Energy(kWh))
-  private def deficit(kWh: Double): Flow[Energy] = Flow.Deficit(Energy(kWh))
+  private def surplus(kWh: Double): Flow[Energy] = Flow.Surplus(kWh.kwh)
+  private def deficit(kWh: Double): Flow[Energy] = Flow.Deficit(kWh.kwh)
 
   private def assertCableLoad(
       result: CMap[Cable, Energy],
