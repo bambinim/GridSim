@@ -24,6 +24,8 @@ dependencies {
 
     // Cats for functional programming constructs
     implementation(libs.cats.core)
+    implementation(libs.cats.effect)
+    implementation(libs.fs2.core)
 
     // This dependency is used by the application.
     implementation(libs.guava)
