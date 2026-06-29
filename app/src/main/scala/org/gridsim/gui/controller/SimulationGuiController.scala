@@ -1,6 +1,8 @@
 package org.gridsim.gui.controller
 
-import org.gridsim.core.simulation.{SimulationController, SimulationControllerState, SimulationState, SimulationSnapshot}
+import org.gridsim.core.simulation.*
+import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
+import org.gridsim.gui.model.*
 import scalafx.application.Platform
 
 /**
@@ -8,53 +10,58 @@ import scalafx.application.Platform
  * It respects the Single Responsibility Principle by hiding core simulation controller implementation
  * details from the view.
  *
- * @param coreController the core simulation runner to delegate simulation tasks to.
+ * @param running the active simulation model and core controller.
  */
-class SimulationGuiController(private val coreController: SimulationController):
+class SimulationGuiController(running: RunningSimulation):
 
-  private var onChangedCallback: Option[SimulationSnapshot => Unit] = None
+  private var selectedEntityId: Option[String] = None
+  private var onChanged: SimulationDashboardState => Unit = _ => ()
 
-  coreController.addStateListener { snapshot =>
-    Platform.runLater {
-      onChangedCallback.foreach(_(snapshot))
-    }
+  private var dashboard: SimulationDashboardState =
+    dashboardFromCurrentState()
+
+  running.controller.addStateListener { snapshot =>
+    publish(SimulationDashboardMapper.toDashboard(running.model, snapshot, selectedEntityId))
   }
 
-  def setOnChanged(callback: SimulationSnapshot => Unit): Unit =
-    onChangedCallback = Some(callback)
+  def currentDashboard: SimulationDashboardState =
+    dashboard
+
+  def setOnChanged(callback: SimulationDashboardState => Unit): Unit =
+    onChanged = callback
+    callback(dashboard)
 
   def togglePlayPause(): Unit =
-    if coreController.simulationControllerState == SimulationControllerState.RUNNING then
-      coreController.pause()
-    else
-      coreController.start()
+    running.controller.simulationControllerState match
+      case RUNNING => running.controller.pause()
+      case PAUSED => running.controller.resume()
 
-  /**
-   * Returns the current state of the simulation.
-   */
-  def currentState: SimulationState =
-    coreController.currentState
-
-  /**
-   * Returns whether the simulation is currently running.
-   */
-  def isRunning: Boolean =
-    coreController.simulationControllerState == SimulationControllerState.RUNNING
-
-  /**
-   * Returns the current lifecycle state of the simulation controller.
-   */
-  def controllerState: SimulationControllerState =
-    coreController.simulationControllerState
-
-  /**
-   * Advances the simulation by a single tick.
-   */
   def stepOnce(): Unit =
-    coreController.stepOnce()
+    running.controller.stepOnce()
 
-  /**
-   * Stops the simulation and cleans up resources.
-   */
   def stop(): Unit =
-    coreController.stop()
+    running.controller.stop()
+
+  def selectEntity(entityId: String): Unit =
+    selectedEntityId = Some(entityId)
+    publish(dashboardFromCurrentState())
+
+  def clearSelection(): Unit =
+    selectedEntityId = None
+    publish(dashboardFromCurrentState())
+
+  private def publish(next: SimulationDashboardState): Unit =
+    Platform.runLater {
+      dashboard = next
+      onChanged(next)
+    }
+
+  private def dashboardFromCurrentState(): SimulationDashboardState =
+    SimulationDashboardMapper.toDashboard(
+      running.model,
+      SimulationSnapshot(
+        running.controller.currentState,
+        running.controller.simulationControllerState
+      ),
+      selectedEntityId
+    )

@@ -1,21 +1,21 @@
 package org.gridsim.gui.app
 
-import org.gridsim.core.simulation.SimulationController
 import org.gridsim.gui.app.AppEvent.ScenarioLoaded
 import org.gridsim.gui.app.Route.{ScenarioSelection, Simulation}
+import org.gridsim.gui.model.RunningSimulation
 import scalafx.scene.Parent
 import scalafx.scene.layout.BorderPane
 
 enum Route:
   case ScenarioSelection
-  case Simulation(controller: SimulationController)
+  case Simulation(running: RunningSimulation)
   
 case class AppState(
   route: Route                   
 )
 
 enum AppEvent:
-  case ScenarioLoaded(simController: SimulationController)
+  case ScenarioLoaded(running: RunningSimulation)
 
 class AppRouter(
   render: (Route, AppEvent => Unit) => Parent
@@ -30,8 +30,8 @@ class AppRouter(
     
   def dispatch(event: AppEvent): Unit =
     event match
-      case ScenarioLoaded(simController) => 
-        state = state.copy(route = Simulation(simController))
+      case ScenarioLoaded(running) =>
+        state = state.copy(route = Simulation(running))
         rootPane.center = render(state.route, dispatch)
       
     
