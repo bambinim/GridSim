@@ -2,7 +2,6 @@ package org.gridsim.gui.app
 
 import org.gridsim.gui.controller.ScenarioSelectionController
 import org.gridsim.gui.ports.{DslScenarioPresetLoader, DslScenarioPresetRepository}
-import org.gridsim.gui.runtime.SimulationFactory
 import org.gridsim.gui.view.ScenarioSelectionView
 import scalafx.application.JFXApp3
 import scalafx.scene.Scene
@@ -11,8 +10,7 @@ object GuiApp extends JFXApp3:
   override def start(): Unit =
     val renderer = new SceneBuilder(
       scenarioRepo = new DslScenarioPresetRepository,
-      scenarioLoader = new DslScenarioPresetLoader,
-      simulationFactory = SimulationFactory
+      scenarioLoader = new DslScenarioPresetLoader
     )
     val router = new AppRouter(
       render = renderer.render

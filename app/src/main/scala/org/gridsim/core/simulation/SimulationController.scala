@@ -53,3 +53,10 @@ trait SimulationController:
    * @return the new current state produced by the engine
    */
   def stepOnce(): SimulationState
+
+  /**
+   * Registers a listener to be notified of simulation state changes.
+   *
+   * @param listener callback function executed on each simulation tick
+   */
+  def addStateListener(listener: SimulationSnapshot => Unit): Unit

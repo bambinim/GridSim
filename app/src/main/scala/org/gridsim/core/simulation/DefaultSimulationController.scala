@@ -3,8 +3,14 @@ package org.gridsim.core.simulation
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.core.simulation.scheduling.{ScheduledTask, Scheduler}
 
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
+
+final case class SimulationSnapshot(
+ state: SimulationState,
+ controllerState: SimulationControllerState
+)
 
 /**
  * Lifecycle state of a [[SimulationRunner]].
@@ -72,6 +78,7 @@ final case class DefaultSimulationController(
         interval
       )
       activeTaskRef.set(Some(task))
+      notifyListeners()
 
   /**
    * Pauses scheduled execution.
@@ -83,6 +90,7 @@ final case class DefaultSimulationController(
     if simulationControllerStateRef.get() == RUNNING then
       simulationControllerStateRef.set(PAUSED)
       cancelActiveTask()
+      notifyListeners()
 
   /**
    * Stops the scheduler and releases its thread.
@@ -93,6 +101,7 @@ final case class DefaultSimulationController(
     simulationControllerStateRef.set(PAUSED)
     cancelActiveTask()
     scheduler.stop()
+    notifyListeners()
 
   /**
    * Resumes periodic execution by delegating to [[start]].
@@ -100,13 +109,31 @@ final case class DefaultSimulationController(
   override def resume(): Unit =
     start()
 
+  private val listeners =
+    new CopyOnWriteArrayList[SimulationSnapshot => Unit]()
+
+  def addStateListener(listener: SimulationSnapshot => Unit): Unit =
+    listeners.add(listener)
+
+  private def notifyListeners(): Unit =
+    val snapshot = SimulationSnapshot(
+      currentState,
+      simulationControllerState
+    )
+
+    val it = listeners.iterator()
+    while it.hasNext do
+      it.next()(snapshot)
+
   /**
    * Advances the current state by one engine tick.
    *
    * @return the updated simulation state
    */
   override def stepOnce(): SimulationState =
-    stateRef.updateAndGet(current => engine.step(current))
+    val newState = stateRef.updateAndGet(current => engine.step(current))
+    notifyListeners()
+    newState
 
   private def cancelActiveTask(): Unit =
     activeTaskRef.getAndSet(None).foreach(_.cancel())

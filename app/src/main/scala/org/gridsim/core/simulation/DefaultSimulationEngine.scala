@@ -20,6 +20,7 @@ import cats.data.State
  * @param entityDispatcher dispatcher used to evolve each supported entity type
  * @param flowSolver strategy used to calculate loads on the grid cables
  */
+
 final case class DefaultSimulationEngine(
   model: SimulationModel,
   flowSolver: PowerFlowSolver
