@@ -21,6 +21,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
   private val sampleState = SimulationState(
     environment = sampleEnvironment,
     entityStates = Map.empty,
+    entityFlows = Map.empty,
     cableLoads = Map.empty
   )
 
@@ -71,18 +72,20 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
     val testIO = for {
       qEnv <- Queue.unbounded[IO, SimulationData.EnvironmentData]
       qEnt <- Queue.unbounded[IO, SimulationData.EntityStatesData]
+      qFlow <- Queue.unbounded[IO, SimulationData.EntityFlowsData]
       qCab <- Queue.unbounded[IO, SimulationData.CableLoadsData]
       qSnp <- Queue.unbounded[IO, SimulationData.SimulationSnapshot]
 
       obsEnv = Observer[IO, SimulationData.EnvironmentData](d => qEnv.offer(d))
       obsEnt = Observer[IO, SimulationData.EntityStatesData](d => qEnt.offer(d))
+      obsFlow = Observer[IO, SimulationData.EntityFlowsData](d => qFlow.offer(d))
       obsCab = Observer[IO, SimulationData.CableLoadsData](d => qCab.offer(d))
       obsSnp = Observer[IO, SimulationData.SimulationSnapshot](d =>
         qSnp.offer(d)
       )
 
       dispatcher <- Fs2DataDispatcher.apply[IO](
-        List(obsEnv, obsEnt, obsCab, obsSnp)
+        List(obsEnv, obsEnt, obsFlow, obsCab, obsSnp)
       )
       _ <- IO.sleep(100.millis)
 
@@ -90,16 +93,19 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
 
       envData <- qEnv.take
       entData <- qEnt.take
+      flowData <- qFlow.take
       cabData <- qCab.take
       snpData <- qSnp.take
-    } yield (envData, entData, cabData, snpData)
+    } yield (envData, entData, flowData, cabData, snpData)
 
-    val (env, ent, cab, snp) = testIO.unsafeRunSync()
+    val (env, ent, flow, cab, snp) = testIO.unsafeRunSync()
     env.environment shouldBe sampleState.environment
     ent.states shouldBe sampleState.entityStates
+    flow.flows shouldBe sampleState.entityFlows
     cab.loads shouldBe sampleState.cableLoads
     snp.environment shouldBe sampleState.environment
     snp.entityStates shouldBe sampleState.entityStates
+    snp.entityFlows shouldBe sampleState.entityFlows
     snp.cableLoads shouldBe sampleState.cableLoads
 
   "Simulation integration" should "dispatch events correctly over multiple ticks" in:

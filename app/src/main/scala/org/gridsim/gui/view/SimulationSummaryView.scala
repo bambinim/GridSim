@@ -1,6 +1,6 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.model.{FlowDirection, GridNodeViewData, SimulationDashboardState}
+import org.gridsim.gui.model.{FlowDirection, SummaryViewState}
 import scalafx.scene.Parent
 import scalafx.scene.control.Label
 import scalafx.scene.layout.VBox
@@ -13,28 +13,36 @@ class SimulationSummaryView extends VBox with ViewFX:
       styleClass += "title"
       
   private val numEntities =
-    new Label("Number of entities")
+    new Label("Entities: 0")
+
+  private val numCables =
+    new Label("Cables: 0")
     
   private val simHours =
-    new Label("Simulated hour")
+    new Label("Hour of day: 0")
 
   children = Seq(
     netFlowLabel,
     numEntities,
+    numCables,
     simHours
   )
   
-  def render(state: SimulationDashboardState): Unit = 
+  def render(state: SummaryViewState): Unit =
     renderFlowLabel(state.netFlowKwh, state.netFlowKind)
-    renderNumEntities(state.nodes)
+    renderNumEntities(state.entityCount)
+    renderNumCables(state.cableCount)
     renderSimHours(state.hourOfDay)
     
   private def renderFlowLabel(flow: Double, direction: FlowDirection): Unit =
     val dir = direction.toString
-    netFlowLabel.text = s"${flow} kWh ${dir}"
+    netFlowLabel.text = f"$flow%.2f kWh $dir"
     
-  private def renderNumEntities(entities: Seq[GridNodeViewData]): Unit =
-    numEntities.text = s"Number of entities: ${entities.size}"
+  private def renderNumEntities(count: Int): Unit =
+    numEntities.text = s"Entities: $count"
+
+  private def renderNumCables(count: Int): Unit =
+    numCables.text = s"Cables: $count"
     
   private def renderSimHours(hour: Int): Unit =
     simHours.text = s"Hour of day: ${hour}"

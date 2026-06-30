@@ -1,39 +1,18 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.controller.SimulationGuiController
-import org.gridsim.gui.model.SimulationDashboardState
-import org.gridsim.gui.view.{SimulationSummaryView, SimulationToolBar}
+import org.gridsim.gui.controller.SimulationCoordinator
+import org.gridsim.gui.model.SummaryViewState
 import scalafx.scene.Parent
-import scalafx.scene.control.Label
 import scalafx.scene.layout.{BorderPane, VBox}
-import scalafx.scene.control.Button
 
 /**
- * Main view for the active simulation dashboard.
- * It observes state changes through the SimulationGuiController.
+ * Main view for the active simulation summary.
  */
-class SimulationView(val controller: SimulationGuiController) extends BorderPane with ViewFX:
+class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane with ViewFX:
   override def root: Parent = this
 
-  private val toolbar = new SimulationToolBar(
-    onTogglePlayPause = () => controller.togglePlayPause(),
-    onStep = () => controller.stepOnce(),
-    onStop = () => controller.stop()
-  )
-
-  private val summaryView = new SimulationSummaryView
-
-  top = toolbar
-  center = new VBox(16):
-    children = Seq(
-      summaryView
-    )
+  center = new BorderPane:
+    top = coordinator.summaryPanel.root
 
 
-  render(controller.currentDashboard)
-  
-  controller.setOnChanged(render)
-  
-  private def render(state: SimulationDashboardState): Unit =
-    toolbar.render(state)
-    summaryView.render(state)
+  coordinator.renderCurrent()

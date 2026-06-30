@@ -2,7 +2,7 @@ package org.gridsim.core.observability
 
 import org.gridsim.core.model.Environment
 import org.gridsim.core.model.GridEntityState
-import org.gridsim.core.common.Energy
+import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.network.Cable
 import org.gridsim.core.simulation.SimulationState
 import scala.reflect.ClassTag
@@ -18,6 +18,8 @@ enum SimulationData:
 
   /** Contains the updated dynamic states of all grid entities */
   case EntityStatesData(states: Map[String, GridEntityState])
+  
+  case EntityFlowsData(flows: Map[String, Flow[Energy]])
 
   /** Contains the energy loads calculated for cables during the last tick */
   case CableLoadsData(loads: Map[Cable, Energy])
@@ -29,6 +31,7 @@ enum SimulationData:
   case SimulationSnapshot(
       environment: Environment,
       entityStates: Map[String, GridEntityState],
+      entityFlows: Map[String, Flow[Energy]],
       cableLoads: Map[Cable, Energy]
   )
 
@@ -62,11 +65,13 @@ given sliceableSimulationState: Sliceable[SimulationState] with
           SimulationData.EnvironmentData(s.environment).asInstanceOf[T]
         case c if c == classOf[SimulationData.EntityStatesData] =>
           SimulationData.EntityStatesData(s.entityStates).asInstanceOf[T]
+        case c if c == classOf[SimulationData.EntityFlowsData] =>
+          SimulationData.EntityFlowsData(s.entityFlows).asInstanceOf[T]
         case c if c == classOf[SimulationData.CableLoadsData] =>
           SimulationData.CableLoadsData(s.cableLoads).asInstanceOf[T]
         case c if c == classOf[SimulationData.SimulationSnapshot] =>
           SimulationData
-            .SimulationSnapshot(s.environment, s.entityStates, s.cableLoads)
+            .SimulationSnapshot(s.environment, s.entityStates, s.entityFlows, s.cableLoads)
             .asInstanceOf[T]
         case _ =>
           throw new RuntimeException(

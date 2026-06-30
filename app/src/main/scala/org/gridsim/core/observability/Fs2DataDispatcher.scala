@@ -67,12 +67,14 @@ object Fs2DataDispatcher:
   ): F[DataDispatcher[F]] = for {
     envTopic <- Topic[F, SimulationData]
     entityTopic <- Topic[F, SimulationData]
+    entityFlowsTopic <- Topic[F, SimulationData]
     cableTopic <- Topic[F, SimulationData]
     snapshotTopic <- Topic[F, SimulationData]
 
     topics = Map[Class[_ <: SimulationData], Topic[F, SimulationData]](
       classOf[SimulationData.EnvironmentData] -> envTopic,
       classOf[SimulationData.EntityStatesData] -> entityTopic,
+      classOf[SimulationData.EntityFlowsData] -> entityFlowsTopic,
       classOf[SimulationData.CableLoadsData] -> cableTopic,
       classOf[SimulationData.SimulationSnapshot] -> snapshotTopic
     )

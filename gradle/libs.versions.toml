@@ -22,7 +22,7 @@ junit-v4-v13-v2-v13 = { module = "org.scalatestplus:junit-4-13_3", version.ref =
 scala-library = { module = "org.scala-lang:scala3-library_3", version.ref = "scala-library" }
 scala-xml = { module = "org.scala-lang.modules:scala-xml_3", version.ref = "scala-xml" }
 scalatest = { module = "org.scalatest:scalatest_3", version.ref = "scalatest" }
-cats-core = { module = "org.typelevel:cats-core_3", version.ref = "cats-core"
+cats-core = { module = "org.typelevel:cats-core_3", version.ref = "cats-core" }
 scalafx = { module = "org.scalafx:scalafx_3", version.ref = "scalafx" }
 javafx-base = { module = "org.openjfx:javafx-base", version.ref = "javafx" }
 javafx-graphics = { module = "org.openjfx:javafx-graphics", version.ref = "javafx" }
