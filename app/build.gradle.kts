@@ -31,6 +31,8 @@ dependencies {
 
     // Cats for functional programming constructs
     implementation(libs.cats.core)
+    implementation(libs.cats.effect)
+    implementation(libs.fs2.core)
 
     // ScalaFX for GUI components
     implementation(libs.scalafx)
