@@ -13,7 +13,7 @@ object Irradiance:
   val Zero: Irradiance = 0.0
 
   given Order[Irradiance] = cats.instances.double.catsKernelStdOrderForDouble
-  given Show[Irradiance] = Show.show(i => s"$i W/m²")
+  given Show[Irradiance] = Show.show(i => f"${i}%.2f W/m²")
 
 extension (i: Irradiance)
   def toDouble: Double = i

@@ -17,7 +17,7 @@ object DetailExtractor:
       val percentageVal = entity.percentage(state)
       Seq(
         DetailField("Max Capacity", entity.maxCapacity.show),
-        DetailField("State of Charge", f"$percentageVal%.1f%%"),
+        DetailField("State of Charge", f"${percentageVal * 100}%.1f %%"),
         DetailField("Current Charge", state.currentCharge.show),
         DetailField("Minimum State of Charge Threshold", f"${entity.minSoC}"),
         DetailField("Max Power Charge", entity.maxPowerCharge.show),

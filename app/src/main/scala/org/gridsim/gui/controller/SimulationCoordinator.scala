@@ -2,6 +2,7 @@ package org.gridsim.gui.controller
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import scalafx.beans.property.ObjectProperty
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.*
 import org.gridsim.gui.controller.{SimulationPanel, SimulationSummaryPanel}
@@ -14,12 +15,25 @@ import scalafx.scene.Parent
  * @param running the active simulation model and core controller.
  */
 class SimulationCoordinator(running: RunningSimulation):
-  val summaryPanel = SimulationSummaryPanel(running.model)
 
-  
+  val selectedEntity: ObjectProperty[Selection] = ObjectProperty(
+    running.model.grid.nodes
+      .find(_.id == "advanced-house-2")
+      .map(Selection.SelectedNode.apply)
+      .getOrElse(Selection.NoSelection)
+  )
+
+  val summaryPanel = SimulationSummaryPanel(running.model)
+  val entityDetailsPanel = EntityDetailsPanel(running.model, selectedEntity)
+
+  selectedEntity.onChange{
+    (_, _, _) => renderCurrent()
+  }
+
   private val panels: Seq[SimulationPanel] =
     Seq(
-      SimulationSummaryPanel(running.model)
+      summaryPanel,
+      entityDetailsPanel
     )
 
   running.snapshotEvents
@@ -32,10 +46,10 @@ class SimulationCoordinator(running: RunningSimulation):
     .compile
     .drain
     .unsafeRunAndForget()
-  
+
   def allPanels: Seq[SimulationPanel] =
     panels
-    
+
   def renderCurrent(): Unit =
     Platform.runLater {
       val state = running.controller.currentState
@@ -54,8 +68,8 @@ class SimulationCoordinator(running: RunningSimulation):
   def stepOnce(): Unit =
     running.controller.stepOnce()
 
-  def stop(): Unit = 
+  def stop(): Unit =
     running.controller.stop()
     renderCurrent()
-  
+
 
