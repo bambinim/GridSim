@@ -1,12 +1,13 @@
 package org.gridsim.gui.view
 
+import org.gridsim.gui.controller.EntityDetailsViewModel
 import org.gridsim.gui.model.DetailsEntity
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
 import scalafx.scene.control.{Label, Separator, ScrollPane}
 import scalafx.scene.layout.{GridPane, HBox, VBox}
 
-class EntityDetailsView extends ScrollPane with ViewFX:
+class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane with ViewFX:
 
   fitToWidth = true
   style = "-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;"
@@ -19,7 +20,15 @@ class EntityDetailsView extends ScrollPane with ViewFX:
 
   override def root: Parent = this
 
-  def render(state: DetailsEntity): Unit =
+  // Bind to ViewModel changes reactively
+  viewModel.detailsEntityProperty.onChange { (_, _, newState) =>
+    render(newState)
+  }
+
+  // Initial render
+  render(viewModel.detailsEntityProperty.value)
+
+  private def render(state: DetailsEntity): Unit =
     contentContainer.children.clear()
 
     if state.id.isEmpty && state.title == "No selection" then

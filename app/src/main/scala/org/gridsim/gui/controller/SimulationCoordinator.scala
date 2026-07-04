@@ -5,7 +5,6 @@ import cats.effect.unsafe.implicits.global
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.*
-import org.gridsim.gui.controller.SimulationPanel
 import scalafx.application.Platform
 import scalafx.scene.Parent
 
@@ -24,40 +23,31 @@ class SimulationCoordinator(running: RunningSimulation):
   )
 
   val summaryViewModel = SimulationSummaryViewModel(running.model)
-  val entityDetailsPanel = EntityDetailsPanel(running.model, selectedEntity)
+  val entityDetailsViewModel = EntityDetailsViewModel(running.model, selectedEntity)
 
   selectedEntity.onChange{
     (_, _, _) => renderCurrent()
   }
-
-  private val panels: Seq[SimulationPanel] =
-    Seq(
-      entityDetailsPanel
-    )
 
   running.snapshotEvents
     .evalMap(snapshot => IO {
       Platform.runLater {
         val controllerState = running.controller.simulationControllerState
         summaryViewModel.update(snapshot.entityFlows, snapshot.environment, controllerState)
-        panels.foreach(_.renderSnapshot(snapshot, controllerState))
+        entityDetailsViewModel.update(snapshot.entityStates, snapshot.entityFlows, snapshot.environment)
       }
     })
     .compile
     .drain
     .unsafeRunAndForget()
 
-  def allPanels: Seq[SimulationPanel] =
-    panels
-
   def renderCurrent(): Unit =
     Platform.runLater {
       val state = running.controller.currentState
       val controllerState = running.controller.simulationControllerState
       summaryViewModel.update(state.entityFlows, state.environment, controllerState)
-      panels.foreach(_.renderCurrent(state = state, controller = controllerState))
+      entityDetailsViewModel.update(state.entityStates, state.entityFlows, state.environment)
     }
-
 
   def togglePlayPause(): Unit = {
     running.controller.simulationControllerState match
@@ -72,5 +62,3 @@ class SimulationCoordinator(running: RunningSimulation):
   def stop(): Unit =
     running.controller.stop()
     renderCurrent()
-
-

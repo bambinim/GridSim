@@ -18,11 +18,12 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
       style = "-fx-text-fill: #9ca3af; -fx-font-size: 16px;"
 
   private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
+  private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
 
   center = new BorderPane:
     top = summaryView
     center = graphPlaceholder
-    right = coordinator.entityDetailsPanel.root
+    right = entityDetailsView
 
   coordinator.renderCurrent()
   coordinator.togglePlayPause()
