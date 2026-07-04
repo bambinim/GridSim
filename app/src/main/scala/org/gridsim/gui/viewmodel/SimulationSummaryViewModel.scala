@@ -1,4 +1,4 @@
-package org.gridsim.gui.controller
+package org.gridsim.gui.viewmodel
 
 import scalafx.beans.property.{ObjectProperty, StringProperty}
 import org.gridsim.core.simulation.{SimulationControllerState, SimulationModel}

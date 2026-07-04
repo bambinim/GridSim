@@ -1,4 +1,4 @@
-package org.gridsim.gui.controller
+package org.gridsim.gui.viewmodel
 
 import org.gridsim.gui.model.{ScenarioPresetId, ScenarioRunConfig}
 import org.gridsim.gui.ports.{ScenarioPresetLoader, ScenarioPresetRepository}

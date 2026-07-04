@@ -1,6 +1,6 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.controller.ScenarioSelectionViewModel
+import org.gridsim.gui.viewmodel.ScenarioSelectionViewModel
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
 import scalafx.scene.control.{Button, Label, ListView, TextField}
@@ -86,7 +86,6 @@ class ScenarioSelectionView[A](
     new HBox:
       alignment = Pos.CenterRight
       children = Seq(startButton),
-    messageLabel
   )
 
   scenariosList.selectionModel().selectedIndex.onChange { (_, _, selectedIndex) =>

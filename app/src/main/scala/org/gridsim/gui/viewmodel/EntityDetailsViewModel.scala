@@ -1,4 +1,4 @@
-package org.gridsim.gui.controller
+package org.gridsim.gui.viewmodel
 
 import scalafx.beans.property.{ObjectProperty, ReadOnlyObjectProperty}
 import org.gridsim.core.common.{Energy, Flow}
@@ -14,7 +14,7 @@ class EntityDetailsViewModel(
   private var lastEntityStates: Map[String, GridEntityState] = Map.empty
   private var lastEntityFlows: Map[String, Flow[Energy]] = Map.empty
   private var lastEnvironment: Option[Environment] = None
-  
+
   private val _detailsEntityProperty = ObjectProperty[DetailsEntity](emptyDetails)
   val detailsEntityProperty: ReadOnlyObjectProperty[DetailsEntity] = _detailsEntityProperty
 

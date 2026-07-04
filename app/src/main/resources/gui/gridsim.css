@@ -114,3 +114,45 @@
   -fx-padding: 12px 0px 4px 0px;
 }
 
+/* Extracted View Styles */
+.graph-placeholder {
+  -fx-background-color: #111827;
+  -fx-border-color: #374151;
+  -fx-border-width: 1px;
+}
+
+.graph-placeholder-text {
+  -fx-text-fill: #9ca3af;
+  -fx-font-size: 16px;
+}
+
+.entity-details-scroll-pane {
+  -fx-background-color: transparent;
+  -fx-background: transparent;
+  -fx-border-color: transparent;
+}
+
+.details-placeholder {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #e5e7eb;
+  -fx-border-radius: 8px;
+  -fx-background-radius: 8px;
+  -fx-border-style: dashed;
+  -fx-padding: 20px;
+}
+
+.details-placeholder-title {
+  -fx-font-size: 15px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #9ca3af;
+}
+
+.details-placeholder-subtitle {
+  -fx-font-size: 12px;
+  -fx-text-fill: #9ca3af;
+}
+
+.details-separator {
+  -fx-padding: 2px 0px 2px 0px;
+}
+

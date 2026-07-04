@@ -1,6 +1,6 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.controller.SimulationSummaryViewModel
+import org.gridsim.gui.viewmodel.SimulationSummaryViewModel
 import scalafx.scene.Parent
 import scalafx.scene.control.Label
 import scalafx.scene.layout.VBox

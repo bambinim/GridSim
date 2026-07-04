@@ -1,6 +1,6 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.controller.SimulationCoordinator
+import org.gridsim.gui.viewmodel.SimulationCoordinator
 import org.gridsim.gui.model.SummaryViewState
 import scalafx.scene.Parent
 import scalafx.scene.layout.{BorderPane, VBox}
@@ -13,9 +13,9 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
 
   //TO-DO remove this when implement graph view
   private val graphPlaceholder = new BorderPane:
-    style = "-fx-background-color: #111827; -fx-border-color: #374151; -fx-border-width: 1;"
+    styleClass += "graph-placeholder"
     center = new scalafx.scene.control.Label("Area di Rendering del Grafo (GridGraphView)"):
-      style = "-fx-text-fill: #9ca3af; -fx-font-size: 16px;"
+      styleClass += "graph-placeholder-text"
 
   private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)

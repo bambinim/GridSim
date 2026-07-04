@@ -1,8 +1,11 @@
-package org.gridsim.gui.controller
+package org.gridsim.gui.viewmodel
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import scalafx.beans.property.ObjectProperty
+import org.gridsim.core.common.{Energy, Flow}
+import org.gridsim.core.model.{Environment, GridEntityState}
+import org.gridsim.core.simulation.SimulationControllerState
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.*
 import scalafx.application.Platform
@@ -32,9 +35,7 @@ class SimulationCoordinator(running: RunningSimulation):
   running.snapshotEvents
     .evalMap(snapshot => IO {
       Platform.runLater {
-        val controllerState = running.controller.simulationControllerState
-        summaryViewModel.update(snapshot.entityFlows, snapshot.environment, controllerState)
-        entityDetailsViewModel.update(snapshot.entityStates, snapshot.entityFlows, snapshot.environment)
+        updateWith(snapshot.environment, snapshot.entityStates, snapshot.entityFlows)
       }
     })
     .compile
@@ -44,10 +45,18 @@ class SimulationCoordinator(running: RunningSimulation):
   def renderCurrent(): Unit =
     Platform.runLater {
       val state = running.controller.currentState
-      val controllerState = running.controller.simulationControllerState
-      summaryViewModel.update(state.entityFlows, state.environment, controllerState)
-      entityDetailsViewModel.update(state.entityStates, state.entityFlows, state.environment)
+      updateWith(state.environment, state.entityStates, state.entityFlows)
     }
+
+  private def updateWith(
+    environment: Environment,
+    entityStates: Map[String, GridEntityState],
+    entityFlows: Map[String, Flow[Energy]]
+  ): Unit =
+    val controllerState = running.controller.simulationControllerState
+    summaryViewModel.update(entityFlows, environment, controllerState)
+    entityDetailsViewModel.update(entityStates, entityFlows, environment)
+    
 
   def togglePlayPause(): Unit = {
     running.controller.simulationControllerState match

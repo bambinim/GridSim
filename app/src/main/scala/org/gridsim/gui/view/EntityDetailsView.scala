@@ -1,6 +1,6 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.controller.EntityDetailsViewModel
+import org.gridsim.gui.viewmodel.EntityDetailsViewModel
 import org.gridsim.gui.model.DetailsEntity
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
@@ -10,7 +10,7 @@ import scalafx.scene.layout.{GridPane, HBox, VBox}
 class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane with ViewFX:
 
   fitToWidth = true
-  style = "-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;"
+  styleClass += "entity-details-scroll-pane"
 
   private val contentContainer = new VBox(12) {
     styleClass += "entity-details-view"
@@ -19,13 +19,11 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
   content = contentContainer
 
   override def root: Parent = this
-
-  // Bind to ViewModel changes reactively
+  
   viewModel.detailsEntityProperty.onChange { (_, _, newState) =>
     render(newState)
   }
-
-  // Initial render
+  
   render(viewModel.detailsEntityProperty.value)
 
   private def render(state: DetailsEntity): Unit =
@@ -35,13 +33,14 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
       val placeholder = new VBox:
         alignment = Pos.Center
         minHeight = 150
-        style = "-fx-background-color: #ffffff; -fx-border-color: #e5e7eb; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-border-style: dashed; -fx-padding: 20px;"
+        styleClass += "details-placeholder"
         children = Seq(
           new Label("No Selection") {
-            style = "-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #9ca3af;"
+            styleClass += "details-placeholder-title"
           },
           new Label("Select a node or cable in the simulation view to see details.") {
-            style = "-fx-font-size: 12px; -fx-text-fill: #9ca3af; -fx-wrap-text: true; -fx-text-alignment: center;"
+            styleClass += "details-placeholder-subtitle"
+            wrapText = true
           }
         )
       contentContainer.children.add(placeholder)
@@ -53,19 +52,19 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
     new VBox(10) {
       styleClass += (if isNested then "entity-card-nested" else "entity-card-main")
 
-      val header = new HBox(8) {
+      val header: HBox = new HBox(8) {
         alignment = Pos.CenterLeft
-        val titleLabel = new Label(entity.title) {
+        val titleLabel: Label = new Label(entity.title) {
           styleClass += (if isNested then "entity-title-nested" else "entity-title-main")
         }
         children = Seq(titleLabel)
       }
 
-      val separator = new Separator {
-        style = "-fx-padding: 2px 0 2px 0;"
+      val separator: Separator = new Separator {
+        styleClass += "details-separator"
       }
 
-      val grid = new GridPane {
+      val grid: GridPane = new GridPane {
         hgap = 16
         vgap = 6
         padding = Insets(4, 0, 4, 0)
