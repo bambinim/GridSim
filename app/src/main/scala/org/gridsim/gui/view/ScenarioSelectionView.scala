@@ -1,17 +1,14 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.controller.ScenarioSelectionController
-import scalafx.collections.ObservableBuffer
+import org.gridsim.gui.controller.ScenarioSelectionViewModel
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
 import scalafx.scene.control.{Button, Label, ListView, TextField}
 import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
 import scalafx.scene.layout.{HBox, Priority, VBox}
 
-import scala.concurrent.duration.DurationInt
-
 class ScenarioSelectionView[A](
-  controller: ScenarioSelectionController[A],
+  viewModel: ScenarioSelectionViewModel[A],
   onScenarioLoaded: A => Unit = (_: A) => ()
 ) extends VBox(16) with ViewFX:
   override def root: Parent = this
@@ -19,11 +16,6 @@ class ScenarioSelectionView[A](
   padding = Insets(24)
   alignment = Pos.TopLeft
   styleClass += "scenario-selection"
-
-  private val scenarios = controller.availableScenarios.toSeq.sortBy(_._2)
-
-  private var state =
-    controller.initialScenario
 
   private val titleLabel =
     new Label("GridSim"):
@@ -33,32 +25,33 @@ class ScenarioSelectionView[A](
     new Label("Select a predefined scenario and start the simulation."):
       styleClass += "subtitle"
 
-  private val scenariosList = new ListView[String](
-    ObservableBuffer.from(scenarios.map(_._2))
-  ):
+  private val scenariosList = new ListView[String](viewModel.scenariosNames):
     prefHeight = 140
     minHeight = 120
     styleClass += "scenario-list"
 
   private val tickField = new TextField:
-    text = state.tickDuration.toMinutes.toString
+    text <==> viewModel.tickDurationText
     prefWidth = 80
     maxWidth = 80
 
   private val startButton = new Button("Start"):
-    disable = scenarios.isEmpty
+    disable <== viewModel.isStartDisabled
     defaultButton = true
     styleClass += "primary-button"
-    onAction = _ => startScenario()
+    onAction = _ => viewModel.startScenario().foreach(onScenarioLoaded)
 
-  private val messageLabel = new Label("Select a scenario to continue."):
+  private val messageLabel = new Label():
+    text <== viewModel.messageText
     wrapText = true
     styleClass += "muted-text"
 
-  private val selectedScenarioLabel = new Label("No scenario selected"):
+  private val selectedScenarioLabel = new Label():
+    text <== viewModel.selectedScenarioName
     styleClass += "scenario-name"
 
-  private val selectedScenarioHint = new Label("The scenario topology is fixed by the project DSL."):
+  private val selectedScenarioHint = new Label():
+    text <== viewModel.selectedScenarioHint
     wrapText = true
     styleClass += "muted-text"
 
@@ -97,59 +90,17 @@ class ScenarioSelectionView[A](
   )
 
   scenariosList.selectionModel().selectedIndex.onChange { (_, _, selectedIndex) =>
-    if selectedIndex.intValue >= 0 then
-      val (id, name) = scenarios(selectedIndex.intValue)
-      selectedScenarioLabel.text = name
-      selectedScenarioHint.text =
-        s"Preset id: ${id.value}. Parameters are fixed; only tick duration can be changed here."
-      messageLabel.text = "Ready to start."
+    viewModel.selectScenario(selectedIndex.intValue)
   }
 
-  if scenarios.nonEmpty then
+  viewModel.messageStyleClass.onChange { (_, _, newStyle) =>
+    messageLabel.styleClass.removeAll("muted-text", "success-message", "error-message")
+    messageLabel.styleClass += newStyle
+  }
+
+  if viewModel.scenarios.nonEmpty then
     scenariosList.selectionModel().select(0)
-
-  private def startScenario(): Unit =
-    val result =
-      for
-        _ <- selectCurrentScenario()
-        _ <- updateTickDuration()
-        loaded <- controller.startSelectedScenario(state)
-      yield loaded
-
-    result match
-      case Right(loaded) =>
-        setMessageStyle("success-message")
-        messageLabel.text = "Scenario loaded."
-        onScenarioLoaded(loaded)
-      case Left(error) =>
-        setMessageStyle("error-message")
-        messageLabel.text = error
-
-  private def selectCurrentScenario(): Either[String, Unit] =
-    val selectedIndex = scenariosList.selectionModel().getSelectedIndex
-
-    if selectedIndex < 0 then
-      Left("No scenario selected")
-    else
-      val selectedId = scenarios(selectedIndex)._1
-
-      controller.selectScenario(state, selectedId).map{ nextState =>
-        state = nextState
-      }
-
-  private def updateTickDuration(): Either[String, Unit] =
-    tickField.text.value.trim.toIntOption match
-      case Some(value) =>
-        controller.updateTickDuration(state, value.minutes).map { nextState =>
-          state = nextState
-        }
-      case _ =>
-        Left("Not a valid tick duration inserted")
 
   private def sectionLabel(text: String): Label =
     new Label(text):
       styleClass += "section-label"
-
-  private def setMessageStyle(style: String): Unit =
-    messageLabel.styleClass.removeAll("muted-text", "success-message", "error-message")
-    messageLabel.styleClass += style

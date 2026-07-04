@@ -2,7 +2,7 @@ package org.gridsim.gui.app
 
 import org.gridsim.gui.app.AppEvent.ScenarioLoaded
 import org.gridsim.gui.app.Route.{ScenarioSelection, Simulation}
-import org.gridsim.gui.controller.{ScenarioSelectionController, SimulationCoordinator}
+import org.gridsim.gui.controller.{ScenarioSelectionViewModel, SimulationCoordinator}
 import org.gridsim.gui.model.RunningSimulation
 import org.gridsim.gui.ports.{ScenarioPresetLoader, ScenarioPresetRepository}
 import org.gridsim.gui.view.{ScenarioSelectionView, SimulationView}
@@ -16,7 +16,7 @@ class SceneBuilder(
     route match
       case ScenarioSelection =>
         ScenarioSelectionView(
-          controller = ScenarioSelectionController(
+          viewModel = ScenarioSelectionViewModel(
             scenarioRepo = scenarioRepo,
             loader = scenarioLoader
           ),

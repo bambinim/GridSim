@@ -1,6 +1,5 @@
 package org.gridsim.gui.app
 
-import org.gridsim.gui.controller.ScenarioSelectionController
 import org.gridsim.gui.ports.{DslScenarioPresetLoader, DslScenarioPresetRepository}
 import org.gridsim.gui.view.ScenarioSelectionView
 import scalafx.application.JFXApp3
