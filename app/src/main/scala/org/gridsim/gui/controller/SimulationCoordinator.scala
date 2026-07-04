@@ -5,7 +5,7 @@ import cats.effect.unsafe.implicits.global
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.*
-import org.gridsim.gui.controller.{SimulationPanel, SimulationSummaryPanel}
+import org.gridsim.gui.controller.SimulationPanel
 import scalafx.application.Platform
 import scalafx.scene.Parent
 
@@ -23,7 +23,7 @@ class SimulationCoordinator(running: RunningSimulation):
       .getOrElse(Selection.NoSelection)
   )
 
-  val summaryPanel = SimulationSummaryPanel(running.model)
+  val summaryViewModel = SimulationSummaryViewModel(running.model)
   val entityDetailsPanel = EntityDetailsPanel(running.model, selectedEntity)
 
   selectedEntity.onChange{
@@ -32,7 +32,6 @@ class SimulationCoordinator(running: RunningSimulation):
 
   private val panels: Seq[SimulationPanel] =
     Seq(
-      summaryPanel,
       entityDetailsPanel
     )
 
@@ -40,6 +39,7 @@ class SimulationCoordinator(running: RunningSimulation):
     .evalMap(snapshot => IO {
       Platform.runLater {
         val controllerState = running.controller.simulationControllerState
+        summaryViewModel.update(snapshot.entityFlows, snapshot.environment, controllerState)
         panels.foreach(_.renderSnapshot(snapshot, controllerState))
       }
     })
@@ -54,6 +54,7 @@ class SimulationCoordinator(running: RunningSimulation):
     Platform.runLater {
       val state = running.controller.currentState
       val controllerState = running.controller.simulationControllerState
+      summaryViewModel.update(state.entityFlows, state.environment, controllerState)
       panels.foreach(_.renderCurrent(state = state, controller = controllerState))
     }
 

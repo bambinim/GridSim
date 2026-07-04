@@ -17,8 +17,10 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
     center = new scalafx.scene.control.Label("Area di Rendering del Grafo (GridGraphView)"):
       style = "-fx-text-fill: #9ca3af; -fx-font-size: 16px;"
 
+  private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
+
   center = new BorderPane:
-    top = coordinator.summaryPanel.root
+    top = summaryView
     center = graphPlaceholder
     right = coordinator.entityDetailsPanel.root
 
