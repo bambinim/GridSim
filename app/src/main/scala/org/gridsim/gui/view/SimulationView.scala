@@ -19,11 +19,13 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
 
   private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
+  private val controlView = new SimulationControlView(coordinator.controlViewModel)
 
   center = new BorderPane:
     top = summaryView
     center = graphPlaceholder
     right = entityDetailsView
 
+  bottom = controlView
+
   coordinator.renderCurrent()
-  coordinator.togglePlayPause()

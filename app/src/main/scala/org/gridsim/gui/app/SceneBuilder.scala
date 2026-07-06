@@ -1,6 +1,6 @@
 package org.gridsim.gui.app
 
-import org.gridsim.gui.app.AppEvent.ScenarioLoaded
+import org.gridsim.gui.app.AppEvent.{ScenarioLoaded, SimulationExited}
 import org.gridsim.gui.app.Route.{ScenarioSelection, Simulation}
 import org.gridsim.gui.viewmodel.{ScenarioSelectionViewModel, SimulationCoordinator}
 import org.gridsim.gui.model.RunningSimulation
@@ -26,6 +26,9 @@ class SceneBuilder(
         )
       case Simulation(running) =>
         SimulationView(
-          coordinator = SimulationCoordinator(running)
+          coordinator = SimulationCoordinator(
+            running = running,
+            onExit = () => dispatch(SimulationExited)
+          )
         )
 

@@ -16,7 +16,10 @@ import scalafx.scene.Parent
  *
  * @param running the active simulation model and core controller.
  */
-class SimulationCoordinator(running: RunningSimulation):
+class SimulationCoordinator(
+  running: RunningSimulation,
+  onExit: () => Unit = () => ()
+):
 
   val selectedEntity: ObjectProperty[Selection] = ObjectProperty(
     running.model.grid.nodes
@@ -27,6 +30,7 @@ class SimulationCoordinator(running: RunningSimulation):
 
   val summaryViewModel = SimulationSummaryViewModel(running.model)
   val entityDetailsViewModel = EntityDetailsViewModel(running.model, selectedEntity)
+  val controlViewModel = SimulationControlViewModel(running, onExit)
 
   selectedEntity.onChange{
     (_, _, _) => renderCurrent()
@@ -56,18 +60,5 @@ class SimulationCoordinator(running: RunningSimulation):
     val controllerState = running.controller.simulationControllerState
     summaryViewModel.update(entityFlows, environment, controllerState)
     entityDetailsViewModel.update(entityStates, entityFlows, environment)
-    
+    controlViewModel.update(controllerState)
 
-  def togglePlayPause(): Unit = {
-    running.controller.simulationControllerState match
-      case RUNNING => running.controller.pause()
-      case PAUSED  => running.controller.resume()
-    renderCurrent()
-  }
-
-  def stepOnce(): Unit =
-    running.controller.stepOnce()
-
-  def stop(): Unit =
-    running.controller.stop()
-    renderCurrent()

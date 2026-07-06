@@ -156,3 +156,88 @@
   -fx-padding: 2px 0px 2px 0px;
 }
 
+/* Simulation Control Panel Styles */
+.control-panel {
+  -fx-background-color: #ffffff;
+  -fx-border-color: #e5e7eb;
+  -fx-border-width: 1px 0px 0px 0px; /* Top border only */
+  -fx-padding: 12px 24px 12px 24px;
+  -fx-alignment: center;
+  -fx-spacing: 16px;
+}
+
+.control-button {
+  -fx-background-radius: 6px;
+  -fx-font-size: 13px;
+  -fx-font-weight: bold;
+  -fx-padding: 8px 16px 8px 16px;
+  -fx-cursor: hand;
+}
+
+.play-pause-btn {
+  -fx-background-color: #2563eb;
+  -fx-text-fill: white;
+}
+.play-pause-btn:hover {
+  -fx-background-color: #1d4ed8;
+}
+.play-pause-btn:disabled {
+  -fx-background-color: #93c5fd;
+  -fx-text-fill: #e0f2fe;
+}
+
+.step-btn {
+  -fx-background-color: #10b981;
+  -fx-text-fill: white;
+}
+.step-btn:hover {
+  -fx-background-color: #059669;
+}
+.step-btn:disabled {
+  -fx-background-color: #a7f3d0;
+  -fx-text-fill: #ecfdf5;
+}
+
+.stop-btn {
+  -fx-background-color: #ef4444;
+  -fx-text-fill: white;
+}
+.stop-btn:hover {
+  -fx-background-color: #dc2626;
+}
+.stop-btn:disabled {
+  -fx-background-color: #fca5a5;
+  -fx-text-fill: #fef2f2;
+}
+
+.exit-btn {
+  -fx-background-color: #4b5563;
+  -fx-text-fill: white;
+}
+.exit-btn:hover {
+  -fx-background-color: #374151;
+}
+.exit-btn:disabled {
+  -fx-background-color: #d1d5db;
+  -fx-text-fill: #f3f4f6;
+}
+
+.status-badge {
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+  -fx-padding: 4px 8px 4px 8px;
+  -fx-background-radius: 12px;
+  -fx-text-fill: white;
+}
+.status-running {
+  -fx-background-color: #2563eb;
+}
+.status-paused {
+  -fx-background-color: #eab308;
+  -fx-text-fill: #1e1b4b;
+}
+.status-stopped {
+  -fx-background-color: #dc2626;
+}
+
+
