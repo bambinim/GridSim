@@ -18,8 +18,6 @@ class SimulationControlViewModel(
 ):
   private val stoppedProperty = BooleanProperty(false)
 
-  // Bindable properties for the View
-
   /** Text showing the action for the Play/Pause button ("Play" or "Pause"). */
   val playPauseText: StringProperty = StringProperty("Play")
 

@@ -33,8 +33,6 @@ class ScenarioSelectionViewModel[A](
    */
   val scenariosNames: ObservableBuffer[String] =
     ObservableBuffer.from(scenarios.map(_._2))
-
-  // Observable properties for binding
   
   /** Property holding the name of the currently selected scenario. */
   val selectedScenarioName = StringProperty("No scenario selected")
