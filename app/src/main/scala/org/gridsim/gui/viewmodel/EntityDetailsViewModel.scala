@@ -7,6 +7,16 @@ import org.gridsim.core.simulation.SimulationModel
 import org.gridsim.gui.model.{DetailsEntity, Selection}
 import org.gridsim.gui.ports.{DetailDispatcher, ExtractedEntityDetails, ExtractedSelectionDetails}
 
+/**
+ * ViewModel for displaying and updating the details of the currently selected entity.
+ *
+ * This ViewModel listens to changes in the current selection, updates details
+ * based on incoming simulation snapshots, and maps core domain models/states
+ * into UI-facing details representations (`DetailsEntity`).
+ *
+ * @param model the active simulation model containing the grid topology
+ * @param selectionProp the property tracking the current selection in the UI
+ */
 class EntityDetailsViewModel(
   model: SimulationModel,
   selectionProp: ObjectProperty[Selection]
@@ -16,6 +26,10 @@ class EntityDetailsViewModel(
   private var lastEnvironment: Option[Environment] = None
 
   private val _detailsEntityProperty = ObjectProperty[DetailsEntity](emptyDetails)
+
+  /**
+   * The read-only property exposing the details of the selected entity to the view.
+   */
   val detailsEntityProperty: ReadOnlyObjectProperty[DetailsEntity] = _detailsEntityProperty
 
   private def emptyDetails = DetailsEntity(
@@ -31,6 +45,14 @@ class EntityDetailsViewModel(
     }
   }
 
+  /**
+   * Updates the cached entity states, flows, and environment, and triggers
+   * a recalculation of the selected entity's details.
+   *
+   * @param entityStates a map of entity IDs to their current state in the simulation
+   * @param entityFlows a map of entity IDs to their current energy flows
+   * @param environment the current environmental state (e.g., solar radiation, temperature)
+   */
   def update(
     entityStates: Map[String, GridEntityState],
     entityFlows: Map[String, Flow[Energy]],

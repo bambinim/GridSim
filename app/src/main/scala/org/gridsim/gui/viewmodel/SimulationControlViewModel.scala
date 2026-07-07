@@ -8,6 +8,9 @@ import org.gridsim.gui.model.RunningSimulation
 /**
  * ViewModel responsible for managing simulation lifecycle commands and UI state properties.
  * Exposes observable properties to bind with control buttons.
+ *
+ * @param running the active simulation model and controller wrapper
+ * @param onExitCallback a callback to execute when exiting the simulation
  */
 class SimulationControlViewModel(
   running: RunningSimulation,
@@ -16,14 +19,30 @@ class SimulationControlViewModel(
   private val stoppedProperty = BooleanProperty(false)
 
   // Bindable properties for the View
+
+  /** Text showing the action for the Play/Pause button ("Play" or "Pause"). */
   val playPauseText: StringProperty = StringProperty("Play")
+
+  /** Text representing the current state of the simulation controller (e.g., "RUNNING", "PAUSED", "STOPPED"). */
   val statusText: StringProperty = StringProperty("PAUSED")
 
+  /** Indicates whether the Play/Pause button should be disabled. */
   val playPauseDisabled: BooleanProperty = BooleanProperty(false)
+
+  /** Indicates whether the Step Once button should be disabled. */
   val stepDisabled: BooleanProperty = BooleanProperty(false)
+
+  /** Indicates whether the Stop button should be disabled. */
   val stopDisabled: BooleanProperty = BooleanProperty(false)
+
+  /** Indicates whether the Exit button should be disabled. */
   val exitDisabled: BooleanProperty = BooleanProperty(false)
 
+  /**
+   * Updates the states of the bindable properties based on the simulation controller's state.
+   *
+   * @param controllerState the current status of the simulation execution
+   */
   def update(controllerState: SimulationControllerState): Unit =
     val isStopped = stoppedProperty.value
     playPauseDisabled.value = isStopped
@@ -39,6 +58,9 @@ class SimulationControlViewModel(
       playPauseText.value = if (controllerState == RUNNING) then "Pause" else "Play"
       statusText.value = controllerState.toString
 
+  /**
+   * Toggles the simulation status between running and paused.
+   */
   def togglePlayPause(): Unit =
     if (!stoppedProperty.value) then
       running.controller.simulationControllerState match
@@ -46,10 +68,16 @@ class SimulationControlViewModel(
         case PAUSED  => running.controller.resume()
     update(running.controller.simulationControllerState)
 
+  /**
+   * Advances the simulation by a single tick if currently paused.
+   */
   def stepOnce(): Unit =
     if (!stoppedProperty.value && running.controller.simulationControllerState == PAUSED) then
       running.controller.stepOnce()
 
+  /**
+   * Stops the simulation and triggers the exit callback.
+   */
   def exit(): Unit =
     if (!stoppedProperty.value) then
       running.controller.stop()
