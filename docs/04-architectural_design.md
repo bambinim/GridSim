@@ -327,7 +327,6 @@ classDiagram
         %% Azioni e Callbacks
         ScenarioSelectionView --> AppRouter : dispatch AppEvent (ScenarioLoaded)       
         SimulationControlViewModel --> RunningSimulation : comanda Controller          
-  (Play/Pause/Step)
 
 ```
 
