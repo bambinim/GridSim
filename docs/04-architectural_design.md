@@ -141,7 +141,7 @@ La sequenza seguente descrive il flusso principale, dal caricamento di uno scena
 ```mermaid
 sequenceDiagram
     participant U as Utente
-    participant V as GUI MVVM
+    participant V as GUI
     participant C as Configurazione / DSL
     participant R as Controller runtime
     participant E as Motore di simulazione
@@ -183,62 +183,6 @@ La separazione tra evoluzione locale e power flow rappresenta una scelta importa
 
 Il sistema prevede infatti più strategie di power flow. Una strategia semplice è orientata a reti radiali e aggrega i flussi lungo un albero radicato nella rete esterna. Una seconda strategia applica un modello DC basato sulle leggi di Kirchhoff, permettendo di distribuire i flussi anche su topologie magliate. La scelta dell’algoritmo è quindi un punto di estensione architetturale, non una decisione incorporata nella GUI o nel ciclo di vita della simulazione.
 
----
-
-## 7. Architettura della GUI
-
-La GUI ScalaFX è organizzata secondo MVVM, scelto perché separa in modo naturale il rendering grafico dallo stato di presentazione e sfrutta il meccanismo di binding delle proprietà osservabili.
-
-```mermaid
-flowchart TB
-    User[Utente]
-
-    subgraph Views[View ScalaFX]
-        ScenarioView[Selezione scenario]
-        Dashboard[Dashboard della simulazione]
-        Controls[Controlli di esecuzione]
-        Summary[Riepilogo e dettagli]
-    end
-
-    subgraph ViewModels[ViewModel]
-        ScenarioVM[Stato della selezione<br/>e validazione input]
-        ControlVM[Stato e comandi<br/>del ciclo di vita]
-        DataVM[Stato di presentazione<br/>di riepilogo e dettagli]
-    end
-
-    Coordinator[Coordinator degli aggiornamenti]
-    Runtime[Controller e stream di snapshot]
-
-    User --> ScenarioView
-    User --> Controls
-    ScenarioView <--> ScenarioVM
-    Controls <--> ControlVM
-    Dashboard <--> DataVM
-    Summary <--> DataVM
-
-    ScenarioVM -->|richiesta di caricamento| Runtime
-    ControlVM -->|play, pause, step, stop| Runtime
-    Runtime -->|snapshot aggiornati| Coordinator
-    Coordinator -->|aggiorna proprietà| ControlVM
-    Coordinator -->|aggiorna proprietà| DataVM
-
-```
-
-Le responsabilità sono ripartite come segue:
-
-- le **View** dichiarano layout, controlli e binding; non conoscono formule energetiche, scheduling o stream;
-- i **ViewModel** mantengono lo stato necessario alla presentazione, validano gli input dell’utente e offrono comandi adatti alla View;
-- il **Model** è costituito dai dati del dominio e dalla sessione di simulazione;
-- il **Coordinator** riceve gli snapshot dal runtime e aggiorna i ViewModel sul thread della GUI.
-
-Il flusso è prevalentemente unidirezionale. L’utente genera un’intenzione attraverso la View; il ViewModel la inoltra al runtime; il runtime pubblica il nuovo snapshot; il coordinator aggiorna le proprietà osservabili; i binding ScalaFX riflettono automaticamente il nuovo stato nella View.
-
-Questa struttura evita due forme di accoppiamento indesiderato. In primo luogo, le View non invocano direttamente il motore di simulazione. In secondo luogo, i dettagli asincroni non vengono duplicati in ogni pannello grafico. La conseguenza è una GUI più testabile, più semplice da estendere e meno esposta a errori di concorrenza.
-
-Nello stato corrente dell’applicazione, la dashboard espone riepilogo, dettagli delle entità e controlli della simulazione. L’architettura mette già a disposizione flussi e carichi necessari per un renderer dinamico del grafo; l’implementazione completa di tale vista costituisce un’estensione della presentazione senza richiedere modifiche al core.
-
-
----
 
 [Sommario](index.md) |
 [Capitolo precedente](03-requirements.md) |
