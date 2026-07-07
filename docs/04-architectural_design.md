@@ -190,143 +190,37 @@ Il sistema prevede infatti più strategie di power flow. Una strategia semplice 
 La GUI ScalaFX è organizzata secondo MVVM, scelto perché separa in modo naturale il rendering grafico dallo stato di presentazione e sfrutta il meccanismo di binding delle proprietà osservabili.
 
 ```mermaid
-classDiagram                                                                       
-        %% Stili e classificazione dei moduli                                          
-        class GuiApp {                                                                 
-          <<Entry Point>>                                                              
-          +start()                                                                     
-        }                                                                              
-                                                                                       
-        class AppRouter {                                                              
-          <<Router>>                                                                   
-          -state: AppState                                                             
-          -rootPane: BorderPane                                                        
-          +dispatch(event: AppEvent)                                                   
-        }                                                                              
-                                                                                       
-        class SceneBuilder {                                                           
-          <<Factory>>                                                                  
-          +render(route: Route, dispatch: AppEvent => Unit) Parent                     
-        }                                                                              
-                                                                                       
-        class ScenarioSelectionView {                                                  
-          <<View>>                                                                     
-          -scenariosList: ListView                                                     
-          -tickField: TextField                                                        
-          -startButton: Button                                                         
-        }                                                                              
-                                                                                       
-        class ScenarioSelectionViewModel {                                             
-          <<ViewModel>>                                                                
-          +scenariosNames: ObservableBuffer                                            
-          +tickDurationText: StringProperty                                            
-          +isStartDisabled: BooleanProperty                                            
-          +startScenario() Option[RunningSimulation]                                   
-        }                                                                              
-                                                                                       
-        class SimulationView {                                                         
-          <<View>>                                                                     
-          -summaryView: SimulationSummaryView                                          
-          -entityDetailsView: EntityDetailsView                                        
-          -controlView: SimulationControlView                                          
-          -graphPlaceholder: BorderPane                                                
-        }                                                                              
-                                                                                       
-        class SimulationCoordinator {                                                  
-          <<Coordinator / Presenter>>                                                  
-          +selectedEntity: ObjectProperty[Selection]                                   
-          +summaryViewModel: SimulationSummaryViewModel                                
-          +entityDetailsViewModel: EntityDetailsViewModel                              
-          +controlViewModel: SimulationControlViewModel                                
-          +renderCurrent()                                                             
-          -updateWith(env, states, flows)                                              
-        }                                                                              
-                                                                                       
-        class SimulationSummaryView {                                                  
-          <<View>>                                                                     
-          -netFlowLabel: Label                                                         
-          -simHours: Label                                                             
-        }                                                                              
-                                                                                       
-        class SimulationSummaryViewModel {                                             
-          <<ViewModel>>                                                                
-          +netFlowText: StringProperty                                                 
-          +timeText: StringProperty                                                    
-          +update(flows, env, ctrlState)                                               
-        }                                                                              
-                                                                                       
-        class EntityDetailsView {                                                      
-          <<View>>                                                                     
-          -contentContainer: VBox                                                      
-          -render(state: DetailsEntity)                                                
-        }                                                                              
-                                                                                       
-        class EntityDetailsViewModel {                                                 
-          <<ViewModel>>                                                                
-          +detailsEntityProperty: ReadOnlyObjectProperty                               
-          +update(states, flows, env)                                                  
-        }                                                                              
-                                                                                       
-        class SimulationControlView {                                                  
-          <<View>>                                                                     
-          -statusLabel: Label                                                          
-          -playPauseButton: Button                                                     
-          -stepButton: Button                                                          
-        }                                                                              
-                                                                                       
-        class SimulationControlViewModel {                                             
-          <<ViewModel>>                                                                
-          +playPauseText: StringProperty                                               
-          +statusText: StringProperty                                                  
-          +togglePlayPause()                                                           
-          +stepOnce()                                                                  
-        }                                                                              
-                                                                                       
-        class DetailDispatcher {                                                       
-          <<Extractor Adapter>>                                                        
-          +resolve(selection, states, flows, env) ExtractedSelectionDetails            
-          +resolveEntity(entity, state, env) ExtractedEntityDetails                    
-        }                                                                              
-                                                                                       
-        class RunningSimulation {                                                      
-          <<Core Bridge>>                                                              
-          +model: SimulationModel                                                      
-          +controller: SimulationController                                            
-          +snapshotEvents: Stream[IO, SimulationState]                                 
-        }                                                                              
-                                                                                       
-        %% Relazioni strutturali                                                       
-        GuiApp --> AppRouter : inizializza                                             
-        AppRouter --> SceneBuilder : delega rendering                                  
-        SceneBuilder ..> ScenarioSelectionView : istanzia                              
-        SceneBuilder ..> SimulationView : istanzia                                     
-                                                                                       
-        %% MVVM Scenario Selection                                                     
-        ScenarioSelectionView --> ScenarioSelectionViewModel : si lega a (Binding)     
-        ScenarioSelectionViewModel --> ScenarioSelectionView : notifica modifiche      
-                                                                                       
-        %% MVVM Active Simulation                                                      
-        SimulationView --> SimulationCoordinator : referenzia                          
-        SimulationView --> SimulationSummaryView : contiene                            
-        SimulationView --> EntityDetailsView : contiene                                
-        SimulationView --> SimulationControlView : contiene                            
-                                                                                       
-        SimulationCoordinator --> SimulationSummaryViewModel : aggiorna                
-        SimulationCoordinator --> EntityDetailsViewModel : aggiorna                    
-        SimulationCoordinator --> SimulationControlViewModel : aggiorna                
-                                                                                       
-        SimulationSummaryView --> SimulationSummaryViewModel : data binding            
-        EntityDetailsView --> EntityDetailsViewModel : data binding                    
-        SimulationControlView --> SimulationControlViewModel : data binding            
-  
-        %% Collegamenti con il Core e Threading
-        SimulationCoordinator --> RunningSimulation : consuma Stream (Background)      
-        SimulationCoordinator ..> DetailDispatcher : usa per estrarre dettagli         
-        EntityDetailsViewModel ..> DetailDispatcher : usa per mappare dati
-  
-        %% Azioni e Callbacks
-        ScenarioSelectionView --> AppRouter : dispatch AppEvent (ScenarioLoaded)       
-        SimulationControlViewModel --> RunningSimulation : comanda Controller          
+flowchart TB
+    User[Utente]
+
+    subgraph Views[View ScalaFX]
+        ScenarioView[Selezione scenario]
+        Dashboard[Dashboard della simulazione]
+        Controls[Controlli di esecuzione]
+        Summary[Riepilogo e dettagli]
+    end
+
+    subgraph ViewModels[ViewModel]
+        ScenarioVM[Stato della selezione<br/>e validazione input]
+        ControlVM[Stato e comandi<br/>del ciclo di vita]
+        DataVM[Stato di presentazione<br/>di riepilogo e dettagli]
+    end
+
+    Coordinator[Coordinator degli aggiornamenti]
+    Runtime[Controller e stream di snapshot]
+
+    User --> ScenarioView
+    User --> Controls
+    ScenarioView <--> ScenarioVM
+    Controls <--> ControlVM
+    Dashboard <--> DataVM
+    Summary <--> DataVM
+
+    ScenarioVM -->|richiesta di caricamento| Runtime
+    ControlVM -->|play, pause, step, stop| Runtime
+    Runtime -->|snapshot aggiornati| Coordinator
+    Coordinator -->|aggiorna proprietà| ControlVM
+    Coordinator -->|aggiorna proprietà| DataVM
 
 ```
 
