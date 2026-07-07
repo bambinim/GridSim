@@ -10,11 +10,25 @@ import org.gridsim.core.model.{Environment, GridEntity, GridEntityState, SolarPa
 import org.gridsim.gui.model.{DetailField, Selection}
 import org.gridsim.gui.model.Selection.{NoSelection, SelectedCable, SelectedNode}
 
+/**
+ * Extracted details for a specific grid entity.
+ *
+ * @param fields key-value detail pairs suitable for rendering
+ * @param components nested/sub-components installed on this entity paired with their current state
+ */
 final case class ExtractedEntityDetails(
   fields: Seq[DetailField],
   components: Seq[(GridEntity, GridEntityState)] = Seq.empty
 )
 
+/**
+ * Extracted details for the currently active UI selection.
+ *
+ * @param id unique identifier of the selection (e.g. node ID or cable endpoints)
+ * @param title display title for the selection card
+ * @param fields key-value detail pairs for the selection
+ * @param components nested components within this selection
+ */
 final case class ExtractedSelectionDetails(
   id: String,
   title: String,
@@ -22,9 +36,26 @@ final case class ExtractedSelectionDetails(
   components: Seq[(GridEntity, GridEntityState)] = Seq.empty
 )
 
+/**
+ * Type class port for extracting display details from a specific domain entity and state.
+ *
+ * @tparam E the specific subclass of GridEntity
+ * @tparam S the corresponding state subclass of GridEntityState
+ */
 trait DetailExtractor[E <: GridEntity, S <: GridEntityState]:
+  /**
+   * Extracts displayable fields and component information from the given entity.
+   *
+   * @param entity the grid entity instance
+   * @param state the current state of the entity
+   * @param env the current environmental factors (weather, sunlight, etc.)
+   * @return ExtractedEntityDetails containing display properties
+   */
   def extract(entity: E, state: S, env: Environment): ExtractedEntityDetails
 
+/**
+ * Contains standard implementations/instances of the DetailExtractor type class.
+ */
 object DetailExtractor:
   given DetailExtractor[Battery, BatteryState] with
     def extract(entity: Battery, state: BatteryState, env: Environment): ExtractedEntityDetails =
@@ -67,9 +98,22 @@ object DetailExtractor:
         components = componentPairs
       )
 
+/**
+ * Utility dispatcher responsible for resolving details from a selected entity or cable,
+ * pattern matching and summoning the appropriate [[DetailExtractor]].
+ */
 object DetailDispatcher:
   import DetailExtractor.given
 
+  /**
+   * Resolves the details of the active UI selection.
+   *
+   * @param selection the current selection model
+   * @param entityStates the active states of all grid entities
+   * @param entityFlows the active energy flows of all grid entities
+   * @param environment the current simulation environment
+   * @return resolved display details for the selection
+   */
   def resolve(
     selection: Selection,
     entityStates: Map[String, GridEntityState],
@@ -117,6 +161,14 @@ object DetailDispatcher:
           components = Seq.empty
         )
 
+  /**
+   * Resolves the details of a specific grid entity using its runtime state.
+   *
+   * @param entity the entity to query
+   * @param state the current state of that entity
+   * @param env the current simulation environment
+   * @return resolved display details for the entity
+   */
   def resolveEntity(entity: GridEntity, state: GridEntityState, env: Environment): ExtractedEntityDetails =
     (entity, state) match
       case (b: Battery, s: BatteryState) =>

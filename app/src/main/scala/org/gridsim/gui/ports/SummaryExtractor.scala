@@ -6,6 +6,16 @@ import org.gridsim.core.common.Energy.toFlow
 import org.gridsim.core.common.kwh
 import org.gridsim.core.model.Environment
 
+/**
+ * Data container for aggregate simulation metrics extracted from a simulation state snapshot.
+ *
+ * @param simulatedMinutes total simulation runtime in minutes
+ * @param hourOfDay current hour of the day (0-23)
+ * @param netFlowKwh the total net energy flow (surplus or deficit) in kWh
+ * @param netFlowKind the direction of the net energy flow (Surplus, Deficit, or Balanced)
+ * @param entityCount the number of nodes in the grid topology
+ * @param cableCount the number of cables in the grid topology
+ */
 final case class ExtractedSummary(
   simulatedMinutes: Long,
   hourOfDay: Int,
@@ -15,7 +25,19 @@ final case class ExtractedSummary(
   cableCount: Int
 )
 
+/**
+ * Service port/adapter class that extracts and aggregates high-level metrics
+ * from the simulation model and current environment state.
+ */
 class SummaryExtractor:
+  /**
+   * Aggregates and formats summary metrics for the given simulation snapshot.
+   *
+   * @param model the active simulation model containing the grid structure
+   * @param entityFlows the active energy flows of all grid entities
+   * @param env the current environmental factors
+   * @return aggregated metric values wrapped in [[ExtractedSummary]]
+   */
   def extract(
     model: SimulationModel, 
     entityFlows: Map[String, Flow[Energy]], 

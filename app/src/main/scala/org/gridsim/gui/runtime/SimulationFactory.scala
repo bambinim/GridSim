@@ -12,7 +12,22 @@ import org.gridsim.gui.model.RunningSimulation
 
 import scala.concurrent.duration.DurationInt
 
+/**
+ * Factory for instantiating and configuring running simulation loops.
+ *
+ * Handles creation of underlying snapshot queues, GUI observers, event dispatchers,
+ * simulation engine solver bindings, and wrapping them in [[RunningSimulation]].
+ */
 object SimulationFactory:
+  /**
+   * Constructs and wires a standard simulation control loop from a model and state.
+   *
+   * Creates an FS2-stream-based pipeline to dispatch updates to observers.
+   *
+   * @param model the grid topology and configuration of the simulation
+   * @param state the initial conditions of the grid entities and environment
+   * @return the wired [[RunningSimulation]] ready for play/pause/step controls
+   */
   def createSimpleSimulation(model: SimulationModel, state: SimulationState): RunningSimulation =
     val snapshotQueue =
       Queue.unbounded[IO, SimulationData.SimulationSnapshot].unsafeRunSync()

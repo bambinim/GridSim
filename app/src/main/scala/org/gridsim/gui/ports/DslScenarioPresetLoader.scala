@@ -7,7 +7,16 @@ import org.gridsim.dsl.simulation.SimulationBuilder
 import org.gridsim.gui.model.{RunningSimulation, ScenarioRunConfig}
 import org.gridsim.gui.runtime.SimulationFactory
 
+/**
+ * Implementation of [[ScenarioPresetLoader]] that builds a running simulation using the DSL scenario catalog.
+ */
 class DslScenarioPresetLoader extends ScenarioPresetLoader[RunningSimulation]:
+  /**
+   * Loads a simulation preset by ID and constructs a [[RunningSimulation]] instance.
+   *
+   * @param config configuration details including the preset ID and tick duration
+   * @return Either a string detailing validation/DSL errors or the loaded RunningSimulation
+   */
   def load(config: ScenarioRunConfig): Either[String, RunningSimulation] =
     GridScenarioCatalog
       .byId(config.presetId.value)
