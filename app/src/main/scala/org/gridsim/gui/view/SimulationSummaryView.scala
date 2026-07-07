@@ -5,7 +5,18 @@ import scalafx.scene.Parent
 import scalafx.scene.control.Label
 import scalafx.scene.layout.VBox
 
+/**
+ * View panel for displaying overall simulation metrics.
+ *
+ * This panel shows net energy flow (exporting/importing/balanced status),
+ * active entity count, cable count, and current hour of the simulation.
+ *
+ * @param viewModel the viewmodel driving this simulation summary view
+ */
 class SimulationSummaryView(viewModel: SimulationSummaryViewModel) extends VBox with ViewFX:
+  /**
+   * The root parent component of this view.
+   */
   override def root: Parent = this
 
   private val netFlowLabel =

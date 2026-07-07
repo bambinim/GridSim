@@ -7,6 +7,14 @@ import scalafx.scene.Parent
 import scalafx.scene.control.{Label, Separator, ScrollPane}
 import scalafx.scene.layout.{GridPane, HBox, VBox}
 
+/**
+ * View panel for displaying detailed information about a selected grid entity.
+ *
+ * This panel displays various properties of the entity (like ID, name, current power,
+ * components) dynamically updating as the simulation state changes.
+ *
+ * @param viewModel the viewmodel driving this entity details view
+ */
 class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane with ViewFX:
 
   fitToWidth = true
@@ -18,6 +26,9 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
 
   content = contentContainer
 
+  /**
+   * The root parent component of this view.
+   */
   override def root: Parent = this
   
   viewModel.detailsEntityProperty.onChange { (_, _, newState) =>

@@ -7,10 +7,23 @@ import scalafx.scene.control.{Button, Label, ListView, TextField}
 import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
 import scalafx.scene.layout.{HBox, Priority, VBox}
 
+/**
+ * View panel for selecting and loading preset scenarios.
+ *
+ * This panel displays a list of available scenarios, shows detailed descriptions
+ * for the selected scenario, allows configuring parameters like tick duration, and initiates the simulation.
+ *
+ * @tparam A the type of the loaded simulation returned when a scenario is successfully started
+ * @param viewModel the viewmodel driving this scenario selection view
+ * @param onScenarioLoaded callback executed once a scenario has been successfully loaded and started
+ */
 class ScenarioSelectionView[A](
   viewModel: ScenarioSelectionViewModel[A],
   onScenarioLoaded: A => Unit = (_: A) => ()
 ) extends VBox(16) with ViewFX:
+  /**
+   * The root parent component of this view.
+   */
   override def root: Parent = this
 
   padding = Insets(24)

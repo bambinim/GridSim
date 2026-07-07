@@ -6,9 +6,17 @@ import scalafx.scene.Parent
 import scalafx.scene.layout.{BorderPane, VBox}
 
 /**
- * Main view for the active simulation summary.
+ * Main view layout for the active simulation screen.
+ *
+ * This composite view organizes the simulation summary, the grid visualization graph placeholder,
+ * the selected entity details panel, and the simulation controls bar.
+ *
+ * @param coordinator the coordinator that manages state orchestration across the view components
  */
 class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane with ViewFX:
+  /**
+   * The root parent component of this view.
+   */
   override def root: Parent = this
 
   //TO-DO remove this when implement graph view
