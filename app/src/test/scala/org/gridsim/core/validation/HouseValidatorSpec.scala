@@ -26,7 +26,7 @@ class HouseValidatorSpec extends AnyFlatSpec with Matchers {
     result.isInvalid shouldBe true
 
     result.fold(
-      errors => errors.toList should contain (InvalidId("House Id", "ID")),
+      errors => errors.toList should contain (DomainError.EntityError("ID", InvalidId("House Id", "ID"))),
       _ => fail("It should have failed")
     )
   }
@@ -55,9 +55,9 @@ class HouseValidatorSpec extends AnyFlatSpec with Matchers {
         val errorsList = errors.toList
         errorsList.size shouldBe 3
 
-        errorsList should contain (InvalidId("House Id", "X"))
-        errorsList should contain (ValueMustBePositive("Capacity", -10))
-        errorsList should contain (OutOfRange("Current Charge", 0, 0, -10))
+        errorsList should contain (DomainError.EntityError("X", InvalidId("House Id", "X")))
+        errorsList should contain (DomainError.EntityError("X", DomainError.EntityError("Battery", ValueMustBePositive("Capacity", -10.0))))
+        errorsList should contain (DomainError.EntityError("X", DomainError.EntityError("Battery", OutOfRange("Current Charge", 0.0, 0.0, -10.0))))
       },
       _ => fail("It should have failed")
     )
@@ -87,7 +87,7 @@ class HouseValidatorSpec extends AnyFlatSpec with Matchers {
         val errorsList = errors.toList
         errorsList.size shouldBe 1
 
-        errorsList should contain(ValueMustBePositive("Max Power Charge", -5))
+        errorsList should contain(DomainError.EntityError("House 1", DomainError.EntityError("Battery", ValueMustBePositive("Max Power Charge", -5.0))))
       },
       _ => fail("It should have failed")
     )

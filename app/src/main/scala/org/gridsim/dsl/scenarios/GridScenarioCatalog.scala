@@ -31,7 +31,7 @@ case class GridScenarioPreset(
 )
 
 object GridScenarioCatalog:
-  
+
   val all: List[GridScenarioPreset] = List(
     GridScenarioPreset(
       id = "base-neighborhood",
@@ -44,7 +44,7 @@ object GridScenarioCatalog:
       build = advancedNeighborhood
     ),
   )
-  
+
   def byId(id: String): Option[GridScenarioPreset] =
     all.find(_.id == id)
 

@@ -34,6 +34,8 @@ class DslScenarioPresetLoader extends ScenarioPresetLoader[RunningSimulation]:
       }
 
   private def formatErrors(errors: NonEmptyChain[DSLError]): String =
-    errors.toNonEmptyList.toList.mkString(", ")
+    import cats.syntax.show.*
+    import org.gridsim.dsl.given
+    errors.toNonEmptyList.toList.map(_.show).mkString(", ")
     
     

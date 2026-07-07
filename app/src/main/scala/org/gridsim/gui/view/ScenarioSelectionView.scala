@@ -96,6 +96,7 @@ class ScenarioSelectionView[A](
         new Label("Tick duration (minutes)"),
         tickField
       ),
+    messageLabel,
     new HBox:
       alignment = Pos.CenterRight
       children = Seq(startButton),

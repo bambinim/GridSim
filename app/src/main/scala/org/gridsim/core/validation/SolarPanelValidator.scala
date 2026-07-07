@@ -1,7 +1,7 @@
 package org.gridsim.core.validation
 
 import cats.data.ValidatedNec
-import cats.implicits.{catsSyntaxTuple2Semigroupal, catsSyntaxTuple3Semigroupal}
+import cats.syntax.all.*
 import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.model.{SolarPanel, SolarPanelState}
 import org.gridsim.core.validation.Validator.{mustBeInRange, mustBePositive, mustBeInRangeStartExclusive, mustBeInRangeEndExclusive}
@@ -15,6 +15,7 @@ object SolarPanelValidator:
         validatePanel(panel),
         validateState(panel, state)
       ).mapN((_, _) => pair)
+       .leftMap(_.map(err => DomainError.EntityError(panel.id, err)))
 
     private def validatePanel(panel: SolarPanel): ValidatedNec[DomainError, SolarPanel] =
       (

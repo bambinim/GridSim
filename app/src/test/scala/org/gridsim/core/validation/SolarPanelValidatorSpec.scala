@@ -31,7 +31,10 @@ class SolarPanelValidatorSpec extends AnyFlatSpec with Matchers:
   it should "reject peak power of zero" in:
     val result = validate(maxProduction = 0.0.kw)
     result.isInvalid shouldBe true
-    result.swap.toOption.get.exists(_.isInstanceOf[DomainError.ValueMustBePositive]) shouldBe true
+    result.swap.toOption.get.exists {
+      case DomainError.EntityError(_, _: DomainError.ValueMustBePositive) => true
+      case _ => false
+    } shouldBe true
 
   it should "reject negative peak power" in:
     validate(maxProduction = -1.0.kw).isInvalid shouldBe true
@@ -62,7 +65,10 @@ class SolarPanelValidatorSpec extends AnyFlatSpec with Matchers:
   it should "reject output power above peak power" in:
     val result = validate(state = Some(SolarPanelState("panel-01", 0.21)))
     result.isInvalid shouldBe true
-    result.swap.toOption.get.exists(_.isInstanceOf[DomainError.OutOfRange]) shouldBe true
+    result.swap.toOption.get.exists {
+      case DomainError.EntityError(_, _: DomainError.OutOfRange) => true
+      case _ => false
+    } shouldBe true
 
   it should "reject negative output power" in:
     validate(state = Some(SolarPanelState("panel-01", -6.0))).isInvalid shouldBe true
