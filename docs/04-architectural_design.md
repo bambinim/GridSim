@@ -1,212 +1,352 @@
 # Design Architetturale
 
-Questo capitolo descrive formalmente il design architetturale del simulatore di micro-grid **GridSim**. L'analisi si concentra sulla giustificazione delle scelte strutturali e tecnologiche a livello macroscopico, evidenziando come i diversi pattern garantiscano la manutenibilità, l'estensibilità, il determinismo e la testabilità del sistema. I dettagli implementativi dei singoli moduli e delle classi saranno discussi nella sezione dedicata al design di dettaglio.
+## 1. Obiettivi e criteri di progettazione
+
+GridSim è un simulatore a tempo discreto per micro-grid energetiche. Il sistema modella una rete come un grafo di entità energetiche e collegamenti fisici, configura scenari tramite una DSL embedded in Scala ed espone una GUI desktop per avviare, controllare e osservare l’esecuzione.
+
+L’architettura è stata definita per soddisfare quattro qualità principali:
+
+- **correttezza e testabilità del calcolo simulativo**, ottenute separando le regole energetiche dagli effetti collaterali;
+- **manutenibilità**, tramite responsabilità coese e contratti espliciti tra i sottosistemi;
+- **estendibilità**, in particolare verso nuovi tipi di entità, strategie di evoluzione e algoritmi di power flow;
+- **reattività della GUI**, evitando che la pianificazione dei tick o la distribuzione degli aggiornamenti blocchino il thread di presentazione.
+
+Il progetto è distribuito come una singola applicazione Gradle, ma la struttura dei package identifica confini architetturali distinti: dominio e simulazione, DSL, runtime, osservabilità e interfaccia grafica. Il capitolo descrive tali confini ad alto livello; i tipi concreti, le formule energetiche e i dettagli algoritmici sono trattati nel design di dettaglio.
 
 ---
 
-## 1. Pattern Architetturali di Riferimento
+## 2. Stile architetturale adottato
 
-L'architettura complessiva di GridSim non si limita a un singolo modello, ma sintetizza sinergicamente tre pattern complementari: **Functional Core, Imperative Shell (FCIS)**, **Ports and Adapters (Hexagonal Architecture)** e **Model-View-ViewModel (MVVM)**.
+L’architettura di GridSim non coincide con un unico pattern. È più accurato descriverla come una combinazione di quattro scelte complementari:
 
-```
-       +--------------------------------------------------------------+
-       |                       IMPERATIVE SHELL                       |
-       |                                                              |
-       |  +--------------------------------------------------------+  |
-       |  |                   PORTS & ADAPTERS                     |  |
-       |  |                                                        |  |
-       |  |  +--------------------------------------------------+  |  |
-       |  |  |                 FUNCTIONAL CORE                  |  |  |
-       |  |  |                                                  |  |  |
-       |  |  |  - Pure Domain Logic (Models & Behaviours)       |  |  |
-       |  |  |  - Immutable Simulation State                    |  |  |
-       |  |  |  - Pure State Transitions (State Monad)          |  |  |
-       |  |  +--------------------------------------------------+  |  |
-       |  |                           |                            |  |
-       |  |      [Ports / Interfaces] | [Adapters / ViewModels]    |  |
-       |  +---------------------------|----------------------------+  |
-       |                              |                               |
-       |   - GUI (Views / ScalaFX)    |  - DSL Config Loader          |
-       |   - Concurrency / FS2 Streams|  - JavaFX UI Thread Loop      |
-       +--------------------------------------------------------------+
-```
+1. **architettura domain-centred con Functional Core, Imperative Shell** per il motore di simulazione;
+2. **Publish-Subscribe Event-Driven** per distribuire gli aggiornamenti della simulazione;
+3. **MVVM** per la GUI ScalaFX.
 
-### 1.1 Functional Core, Imperative Shell (FCIS)
-Il motore fisico e matematico della simulazione è progettato seguendo il paradigma della programmazione funzionale pura, isolando la logica di business in un **Functional Core** privo di effetti collaterali. L'interazione con l'esterno, la gestione dell'asincronia e l'aggiornamento dell'interfaccia utente sono confinati nell'**Imperative Shell**.
+Questa combinazione è particolarmente adatta a un simulatore: il calcolo energetico deve restare deterministico e verificabile, mentre timer, concorrenza, DSL e GUI devono poter evolvere senza alterare le regole del dominio.
 
-- **Core Immutabile**: Lo stato della simulazione ad ogni istante temporale è incapsulato nella classe [SimulationState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/SimulationState.scala), modellata come struttura dati immutabile.
-- **Transizioni Pure**: L'avanzamento temporale è definito dall'interfaccia [SimulationEngine](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/SimulationEngine.scala) tramite una funzione matematica pura:
-  $$\text{step} : \text{SimulationState} \to \text{SimulationState}$$
-  Questa funzione riceve uno stato, applica le equazioni fisiche e i bilanci energetici locali e globali, e restituisce un nuovo stato immutabile, senza alcuna mutazione in-place o interazione con canali di I/O.
-- **Giustificazione del Pattern**:
-  1. **Determinismo Assoluto**: A parità di stato iniziale e input ambientali, l'esecuzione del core produce sempre la medesima sequenza di stati. Ciò elimina i bug legati alla concorrenza non deterministica o a stati transitori inconsistenti.
-  2. **Elevata Testabilità**: La logica fisica e algoritmica può essere testata tramite test unitari tradizionali, senza richiedere mocking di componenti grafici, database o scheduler temporizzati.
-  3. **Analisi Storica (Time Travel)**: L'immutabilità dello stato consente di memorizzare la cronologia dei tick como una semplice lista di riferimenti a [SimulationState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/SimulationState.scala). Non essendoci copie profonde (deep copy) da effettuare ad ogni tick, la memorizzazione dello storico ha un impatto computazionale e di memoria trascurabile.
+### 2.1 Functional Core, Imperative Shell
 
-### 1.2 Ports and Adapters (Architettura Esagonale)
-Per evitare che il dominio puro della simulazione sia accoppiato a framework specifici (como JavaFX/ScalaFX per l'interfaccia utente, o librerie esterne di serializzazione), GridSim adotta l'architettura **Ports and Adapters**.
+Il nucleo del sistema è una transizione di stato discreta:
 
-- **Confine del Core**: Il core definisce interfacce astratte (Ports) per descrivere le proprie necessità di calcolo ed estrazione dati. Ad esempio, il calcolo dei flussi elettrici sui cavi è esposto tramite la porta [PowerFlowSolver](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/solver/PowerFlowSolver.scala).
-- **Adattatori Esterni**: Moduli esterni implementano queste interfacce (Adapters). Il modulo `solver` offre adattatori concreti quali [SimplePowerFlowSolver](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/solver/SimplePowerFlowSolver.scala) (risoluzione di reti radiali) o [KirchhoffPowerFlowSolver](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/solver/KirchhoffPowerFlowSolver.scala) (risoluzione di reti magliate generiche).
-- **Giustificazione del Pattern**: Consente di sostituire l'algoritmo di risoluzione elettrica o l'infrastruttura di visualizzazione (passando, ad esempio, da una GUI desktop JavaFX a una console CLI o a un servizio web) senza dover modificare o ricompilare le regole di business fondamentali relative a generatori, batterie o utenze.
+$$S_{t+1} = step(S_t)$$
 
-### 1.3 Model-View-ViewModel (MVVM)
-Nel livello di presentazione graficamente interattiva, GridSim adotta il pattern **MVVM** per disaccoppiare la struttura visiva dell'applicazione dalla sua logica di controllo.
+Lo stato della simulazione è immutabile: un tick non modifica lo snapshot ricevuto, ma costruisce il successivo. La parte funzionale del sistema comprende il modello della rete, l’ambiente, gli stati dinamici delle entità, le regole di evoluzione e il calcolo dei flussi. Essa è quindi indipendente da GUI, thread, timer e I/O.
 
-- **Model**: Rappresentato dai dati emessi dal ciclo di simulazione (lo stato corrente [SimulationState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/SimulationState.scala)).
-- **ViewModel**: I componenti della cartella [viewmodel](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/viewmodel) (es. [SimulationControlViewModel](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/viewmodel/SimulationControlViewModel.scala)) espongono lo stato del modello sotto forma di proprietà osservabili reattive (`Property` di ScalaFX) e definiscono i comandi che la View può invocare in risposta alle interazioni dell'utente.
-- **View**: I componenti della cartella [view](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/view) (es. [SimulationControlView](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/view/SimulationControlView.scala)) definiscono il layout grafico, collegando in maniera dichiarativa (binding bidirezionale o unidirezionale) i widget grafici alle proprietà esposte dal rispettivo ViewModel.
-- **Giustificazione del Pattern**: Impedisce la presenza di logica di business all'interno delle classi grafiche. Ciò consente di testare il comportamento dell'interfaccia utente (abilitazione/disabilitazione di bottoni, formattazione di testi, logiche di transizione di stato della GUI) istanziando e testando unicamente i ViewModel, bypassando la necessità di avviare il motore grafico JavaFX nei test di integrazione.
+La shell imperativa gestisce invece gli aspetti necessariamente effectful: avvio, pausa e arresto della simulazione; pianificazione periodica dei tick; conservazione dello snapshot corrente; pubblicazione degli aggiornamenti e trasferimento di tali aggiornamenti nel thread JavaFX.
+
+Questa separazione è ideale per GridSim perché consente di verificare il comportamento della simulazione come una normale funzione: dato uno scenario iniziale, il risultato di ogni tick è riproducibile e testabile senza avviare la GUI o risorse concorrenti.
+
+### 2.2 Event-driven publish-subscribe
+
+Al termine di ogni tick, il runtime pubblica uno snapshot aggiornato tramite un dispatcher di osservabilità. Gli osservatori possono richiedere dati granulari — ambiente, stati delle entità, flussi o carichi dei cavi — oppure uno snapshot sincronizzato completo.
+
+Il meccanismo implementa un pattern **Observer / Publish-Subscribe**: il produttore dello stato non conosce i consumatori specifici. La GUI è quindi solo uno dei possibili destinatari; lo stesso canale può supportare in futuro analytics, persistenza della storia, esportazione o monitoraggio esterno.
+
+Questo non costituisce Event Sourcing: gli eventi sono notifiche dello stato corrente e non un log persistito usato per ricostruire la simulazione.
+
+### 2.3 MVVM
+
+La GUI non adotta MVC classico, ma il pattern **Model-View-ViewModel (MVVM)**. Le View ScalaFX dichiarano layout e binding; i ViewModel espongono proprietà osservabili e comandi legati alla presentazione; il Model è rappresentato dagli oggetti di dominio e dalla sessione di simulazione attiva.
+
+Un coordinator collega lo stream degli aggiornamenti proveniente dal runtime ai diversi ViewModel della dashboard. Esso centralizza il passaggio dal contesto asincrono al thread JavaFX e impedisce che ciascuna View debba conoscere dettagli di concorrenza o osservabilità.
 
 ---
 
-## 2. Separazione delle Responsabilità e Struttura Modulare
+## 3. Vista architetturale di contesto
 
-La struttura del codice è rigorosamente suddivisa in moduli con relazioni di dipendenza unidirezionali e centripete: i moduli più esterni dipendono da quelli interni, mentre il nucleo centrale non ha alcuna conoscenza dei dettagli esterni.
+Il diagramma seguente mostra i principali sottosistemi e il flusso delle responsabilità.
 
 ```mermaid
-graph TD
-    subgraph Presentation & Input [Presentation & Input Layer]
-        GUI[Graphic User Interface GUI - ScalaFX/JavaFX]
-        DSL[Domain Specific Language DSL]
+flowchart LR
+    User[Utente]
+
+    subgraph Presentation[Presentazione]
+        GUI[GUI ScalaFX<br/>View, ViewModel e Coordinator]
+        Navigation[Composizione e navigazione<br/>delle schermate]
     end
 
-    subgraph Control & Observability [Control & Observability Layer]
-        SC[SimulationController]
-        SCORD[SimulationCoordinator]
-        DISP[DataDispatcher / Fs2DataDispatcher]
-        SCHED[Scheduler]
+    subgraph Configuration[Configurazione degli scenari]
+        ScenarioPorts[Porte per catalogo e caricamento<br/>degli scenari]
+        DSL[DSL embedded e catalogo<br/>di scenari]
     end
 
-    subgraph Core Domain [Core Domain Layer]
-        SE[SimulationEngine / DefaultSimulationEngine]
-        STATE[SimulationState]
-        SOLVER[PowerFlowSolver / Simple or Kirchhoff]
-        BEHAVIOUR[EntityEvolutionDispatcher & Evolutions]
-        MODEL[Grid Entities & Environment Models]
+    subgraph Runtime[Runtime della simulazione]
+        Controller[Controllo del ciclo di vita<br/>start, pause, step e stop]
+        Scheduler[Scheduler temporale]
+        Dispatcher[Dispatcher di osservabilità<br/>publish-subscribe]
     end
 
-    DSL -->|Inizializza| STATE
-    DSL -->|Definisce| SE
-    
-    GUI -->|Azioni utente: Avvio/Pausa| SCORD
-    SCORD -->|Controlla| SC
-    
-    SC -->|Esegue Ticks periodici| SCHED
-    SC -->|Chiama step| SE
-    
-    SE -->|Composte con State Monad| BEHAVIOUR
-    SE -->|Risolve carichi cavi| SOLVER
-    SE -->|Aggiorna| STATE
-    
-    SC -->|Dispatta nuovo stato| DISP
-    DISP -->|Stream asincroni FS2| SCORD
-    SCORD -->|Aggiorna su FX Thread| GUI
+    subgraph Domain[Core di dominio e simulazione]
+        Model[Modello e stato immutabili<br/>della simulazione]
+        Engine[Motore di simulazione<br/>transizione di un tick]
+        Evolution[Regole di evoluzione<br/>delle entità]
+        Solver[Strategia di power flow]
+    end
+
+    User -->|seleziona scenario e invia comandi| GUI
+    GUI --> Navigation
+    Navigation --> ScenarioPorts
+    ScenarioPorts --> DSL
+    DSL -->|modello statico e stato iniziale| Navigation
+
+    GUI -->|comandi di ciclo di vita| Controller
+    Controller --> Scheduler
+    Controller -->|snapshot corrente| Engine
+    Engine --> Model
+    Engine --> Evolution
+    Engine --> Solver
+    Engine -->|nuovo snapshot| Controller
+
+    Controller -->|aggiornamenti| Dispatcher
+    Dispatcher -->|snapshot sincronizzato| GUI
 ```
 
-### 2.1 Core Domain Layer
-È il nucleo centrale dell'applicazione ed è completamente disaccoppiato da concetti di threading, interfacce grafiche o parser di file.
-- **`model`**: Definisce la rappresentazione statica della topologia e delle entità (`House`, `SolarPanel`, `Storage`, `Cable`, `Environment`).
-- **`behaviour`**: Contiene la logica dinamica per l'evoluzione locale di ogni nodo della rete. Ad esempio, calcola la conversione fotoelettrica del pannello in base all'irraggiamento termico, e gestisce la logica di carica/scarica delle batterie in risposta al bilancio istantaneo dell'abitazione.
-- **`solver`**: Contiene le astrazioni e le implementazioni per la risoluzione dei flussi elettrici di rete.
-- **`simulation`**: Modella l'orchestratore del passo di calcolo puro ([SimulationEngine](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/SimulationEngine.scala)).
-
-### 2.2 Control & Observability Layer
-Gestisce l'infrastruttura di esecuzione temporale e la notifica asincrona delle metriche.
-- **`SimulationController`**: Mantiene un riferimento thread-safe (`AtomicReference`) all'ultimo `SimulationState` calcolato e controlla lo stato della simulazione (avvio, pausa, step singolo) pilotando lo [Scheduler](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/scheduling/Scheduler.scala) in background.
-- **`DataDispatcher`**: Raccoglie gli snapshot emessi dal controller al termine di ogni tick e li distribuisce in modo asincrono. Utilizzando gli stream FS2, il dispatcher suddivide lo stato globale in messaggi specifici e li pubblica su canali dedicati.
-
-### 2.3 Presentation & Input Layer
-Gestisce la visualizzazione delle informazioni e l'interazione con l'utente finalizzate alla configurazione e al controllo del simulatore.
-- **`DSL`**: Modulo indipendente che consente la definizione programmatica della simulazione, restituendo lo stato iniziale del sistema.
-- **`GUI`**: Contiene le viste ed i relativi ViewModel.
-- **`SimulationCoordinator`**: Funge da ponte reattivo asincrono. Si iscrive ai canali FS2 del `DataDispatcher` in esecuzione sul thread pool della simulazione, riceve i nuovi stati immutabili e, tramite chiamate non bloccanti sul thread grafico (`Platform.runLater` di JavaFX), aggiorna i ViewModel.
-
-### 2.4 Meccanismo di Disaccoppiamento Core-Presentation
-La totale separazione tra il motore matematico e la visualizzazione grafica è garantita dal superamento dei tre principali problemi di accoppiamento tradizionali:
-
-1. **Accoppiamento dello Stato (Stato Immutabile vs Proprietà Grafiche)**: 
-   Il core calcola e memorizza lo stato tramite strutture immutabili. La GUI visualizza questi dati convertendoli in proprietà osservabili ScalaFX all'interno del ViewModel. Non essendoci uno stato condiviso mutabile, non vi è alcuna possibilità che un difetto grafico corrompa i dati della simulazione fisica o viceversa.
-2. **Accoppiamento di Controllo (Threading Boundary)**:
-   Il ciclo di simulazione è un'operazione potenzialmente intensiva dal punto di vista computazionale (in particolare per la risoluzione matriciale dei flussi di rete). Se eseguito sul thread della GUI, causerebbe il congelamento dell'interfaccia grafica. GridSim delega l'avanzamento a un thread pool in background, mentre il thread di rendering grafico gestisce unicamente gli eventi utente.
-3. **Accoppiamento del Flusso Informativo (FS2 Streams & Coordinator)**:
-   Il transito dei dati tra i due contesti di threading avviene tramite code asincrone strutturate in stream FS2. Il [SimulationCoordinator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/viewmodel/SimulationCoordinator.scala) funge da barriera architettonica: consuma lo stream in background e schedula l'aggiornamento dei ViewModel all'interno del ciclo di esecuzione della GUI in modo controllato, eliminando condizioni di corsa e garantendo la fluidità della presentazione (UI responsiveness).
+Il diagramma evidenzia una distinzione fondamentale. La GUI, la DSL, lo scheduler e il dispatcher appartengono ai bordi dell’applicazione; il motore e il dominio energetico occupano il centro. Il flusso dei comandi procede dall’utente verso il core, mentre il flusso dei dati aggiornati procede dal core verso la GUI attraverso il canale di osservabilità.
 
 ---
 
-## 3. Flusso dei Dati e Ciclo del Tick
+## 4. Componenti principali e scambio dei dati
 
-Il ciclo di calcolo di ciascun tick della simulazione è coordinato dal controller ed eseguito dal motore tramite una sequenza rigida e ben definita, rappresentata nel diagramma seguente:
+| Componente | Responsabilità architetturale | Dati in ingresso | Dati prodotti / collaborazioni |
+|---|---|---|---|
+| **Presentazione e navigazione** | Avvia l’applicazione, mantiene la schermata corrente e compone le dipendenze della GUI. | Eventi di navigazione e sessioni di simulazione create. | Selezione dello scenario o dashboard della simulazione. |
+| **Configurazione degli scenari** | Espone gli scenari disponibili, valida la richiesta dell’utente e costruisce una simulazione iniziale. | Identificativo del preset e durata simulata del tick. | `SimulationModel` e `SimulationState` iniziali, oppure errori di configurazione. |
+| **DSL** | Offre una sintassi specifica del dominio per descrivere entità, componenti, topologia e tempo simulato. | Dichiarazioni degli scenari. | Configurazione validata della micro-grid. |
+| **Runtime e controller** | Gestisce il ciclo di vita effectful della sessione: avvio, pausa, ripresa, avanzamento singolo e arresto. | Comandi della GUI e stato corrente. | Invocazione periodica del motore e pubblicazione dello stato aggiornato. |
+| **Motore di simulazione** | Esegue una transizione completa da uno snapshot discreto al successivo. | Stato corrente, modello statico e strategie configurate. | Nuovo stato immutabile della simulazione. |
+| **Evoluzione delle entità** | Risolve il comportamento locale di case, produttori e sistemi di accumulo. | Stato dinamico, entità statica, ambiente e durata del tick. | Stato locale aggiornato e flusso energetico netto dell’entità. |
+| **Power-flow solver** | Determina il carico trasferito sui cavi a partire dai flussi netti dei nodi e dalla topologia. | Flussi delle entità e grafo della micro-grid. | Mappa dei carichi sui cavi. |
+| **Osservabilità** | Disaccoppia l’esecuzione della simulazione dai suoi consumatori. | Nuovo snapshot della simulazione. | Eventi tipizzati o snapshot sincronizzati per GUI e futuri observer. |
+| **GUI** | Traduce i dati di dominio in stato di presentazione e rende disponibili i comandi dell’utente. | Snapshot e stato del controller. | Proprietà osservabili, comandi e aggiornamento delle View. |
+
+### 4.1 Contratti informativi fondamentali
+
+La separazione tra dati statici e dinamici è il principale contratto interno del sistema:
+
+- **`SimulationModel`** descrive gli elementi invarianti durante una sessione: grafo della micro-grid, entità, cavi e durata simulata di un tick.
+- **`SimulationState`** descrive uno snapshot dinamico: ambiente e tempo simulato, stati delle entità, flussi netti e carichi dei cavi.
+- **`SimulationSnapshot`** è la vista coerente dei dati emessa verso gli observer alla fine di un tick.
+
+Il grafo della micro-grid è formato da nodi energetici e cavi. I cavi rappresentano connessioni non orientate con una capacità massima, mentre la rete esterna funge da nodo di bilanciamento. Questo modello consente di rappresentare sia reti radiali sia, mediante un solver appropriato, topologie magliate.
+
+La distinzione tra modello e stato evita che la configurazione della rete venga modificata durante l’esecuzione. Inoltre rende naturale conservare o confrontare snapshot diversi, poiché ciascun tick produce un nuovo valore senza distruggere quello precedente.
+
+---
+
+## 5. Ciclo di vita della simulazione
+
+La sequenza seguente descrive il flusso principale, dal caricamento di uno scenario all’aggiornamento della dashboard.
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant SC as SimulationController
-    participant SE as DefaultSimulationEngine
-    participant ENV as Environment
-    participant EED as EntityEvolutionDispatcher
-    participant PS as PowerFlowSolver
-    participant DISP as Fs2DataDispatcher
+    participant U as Utente
+    participant V as GUI MVVM
+    participant C as Configurazione / DSL
+    participant R as Controller runtime
+    participant E as Motore di simulazione
+    participant O as Osservabilità
 
-    Note over SC: Lo Scheduler in background attiva il tick
-    SC->+SE: step(currentState)
-    
-    Note over SE: Pipeline eseguita nella Monade State
-    SE->+ENV: advance(delta)
-    Note over ENV: Incrementa tempo, aggiorna irraggiamento e temperatura
-    ENV-->-SE: environmentUpdated
-    
-    SE->+EED: evolve(entityStates, environmentUpdated)
-    Note over EED: 1. Risolve consumi utenze<br/>2. Calcola produzione fotovoltaica<br/>3. Gestisce accumulatori locali<br/>4. Determina flussi residui
-    EED-->-SE: (newEntityStates, entityFlows)
-    
-    SE->+PS: solve(entityFlows)
-    Note over PS: Calcola il carico su ciascun cavo (BFS o Kirchhoff)
-    PS-->-SE: cableLoads
-    
-    SE-->-SC: newSimulationState
-    
-    SC->+DISP: dispatch(newSimulationState)
-    Note over DISP: Taglia lo stato (slice) ed emette nei Topic FS2
-    DISP-->-SC: Unit
-    
-    Note over SC: Memorizza il nuovo stato nell'AtomicReference
+    U->>V: seleziona preset e durata del tick
+    V->>C: richiesta di caricamento scenario
+    C-->>V: modello statico e stato iniziale
+    V->>R: avvio, pausa, step o stop
+
+    loop per ogni tick attivo
+        R->>E: esegui transizione sullo stato corrente
+        E->>E: avanza ambiente ed evolve entità
+        E->>E: calcola i flussi e i carichi dei cavi
+        E-->>R: nuovo stato immutabile
+        R->>O: pubblica aggiornamento
+        O-->>V: snapshot sincronizzato
+        V->>V: aggiorna proprietà osservabili e vista
+    end
 ```
 
-### Fasi operative del flusso dati:
-1. **Triggering**: Lo [Scheduler](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/scheduling/Scheduler.scala) genera l'evento di avanzamento temporale, invocando il metodo di transizione sul controller.
-2. **Aggiornamento Ambientale**: L'ambiente calcola il proprio avanzamento temporale (ore/minuti del giorno) ricavando i nuovi valori di irraggiamento solare e temperatura.
-3. **Evoluzione dei Nodi**: Sulla base delle condizioni ambientali e dello stato precedente, ogni entità simula la propria evoluzione interna: le abitazioni determinano il consumo elettrico istantaneo e la produzione dei propri pannelli; l'eventuale differenza energetica viene convogliata verso la batteria locale (rispettando limiti di capacità e potenza) per essere immagazzinata o prelevata.
-4. **Calcolo Elettrico di Rete**: I flussi energetici netti irrisolti di ogni nodo vengono raccolti e passati al risolutore. Il [PowerFlowSolver](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/solver/PowerFlowSolver.scala) calcola la ripartizione dei carichi sui singoli cavi della rete e determina quanta energia deve essere scambiata con la rete esterna per garantire l'equilibrio del sistema.
-5. **Generazione e Notifica dello Stato**: Il nuovo [SimulationState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/SimulationState.scala) viene istanziato e salvato nel controller, che provvede ad inviarlo asincronamente al dispatcher per l'instradamento verso la visualizzazione grafica.
+Nel caricamento dello scenario, la DSL crea un modello statico e lo stato iniziale coerente con esso. La GUI non costruisce direttamente le entità di dominio: si limita a richiedere il caricamento attraverso le porte dedicate e a gestire eventuali errori di validazione.
+
+Durante l’esecuzione, il controller mantiene lo stato della sessione e decide quando richiedere un nuovo tick. Il motore rimane invece focalizzato sulla transizione deterministica: aggiorna l’ambiente, evolve le entità e calcola il power flow. Terminato il calcolo, il runtime pubblica i dati aggiornati senza introdurre una dipendenza diretta tra motore e GUI.
 
 ---
 
-## 4. Diagrammi Concettuali Fondamentali per il Sistema
+## 6. Core di dominio e strategie di calcolo
 
-Per completare la modellazione dell'architettura di alto livello e supportare l'attività di sviluppo, manutenzione e verifica formale del sistema, sono ritenuti fondamentali i seguenti diagrammi concettuali e UML:
+Il core rappresenta una micro-grid come un grafo di entità energetiche. Le abitazioni possono incapsulare componenti locali, quali produzione fotovoltaica e accumulo; i produttori e gli accumulatori possono inoltre partecipare al bilancio della rete secondo il modello configurato.
 
-### 4.1 Diagramma dei Componenti UML (Modularità Fisica)
-Questo diagramma è indispensabile per descrivere la struttura dei moduli fisici del software (i file JAR o i sotto-progetti Gradle) e le loro dipendenze a tempo di compilazione.
-- **Scopo**: Visualizzare graficamente l'isolamento del Core Domain e documentare come le dipendenze puntino esclusivamente verso l'interno. Consente di verificare visivamente che il modulo core non includa librerie esterne non necessarie (es. ScalaFX).
-- **Elementi chiave**: I componenti `gridsim-core`, `gridsim-gui`, `gridsim-dsl` e le librerie esterne (`cats-core`, `scalafx`).
+L’evoluzione delle entità è separata dalla topologia della rete. Ogni entità determina innanzitutto il proprio flusso energetico residuo in funzione dello stato, dell’ambiente e della durata del tick. Il motore raccoglie tali flussi e li passa al solver, che è responsabile della distribuzione sulle connessioni fisiche.
 
-### 4.2 Diagramma delle Classi di Alto Livello UML (Struttura Logica)
-Fornisce una vista statica delle relazioni logiche principali tra le interfacce, i contratti e le classi chiave dell'architettura, tralasciando i dettagli dei campi e dei metodi interni.
-- **Scopo**: Descrivere come i contratti architetturali (le Ports come [PowerFlowSolver](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/solver/PowerFlowSolver.scala), `SimulationEngine` e `DataDispatcher`) disaccoppiano le implementazioni reali dal flusso di controllo.
-- **Elementi chiave**: Le relazioni di ereditarietà per i risolutori (Kirchhoff e Simple), il collegamento tra `SimulationCoordinator` e i vari `ViewModel`, e l'associazione tra `SimulationController` e `SimulationEngine`.
+La separazione tra evoluzione locale e power flow rappresenta una scelta importante per la manutenibilità:
 
-### 4.3 Diagramma degli Stati UML (Controllo del Ciclo di Vita)
-Rappresenta la macchina a stati del controllore della simulazione, modellando come gli stimoli esterni (comandi dell'utente) provochino transizioni tra i diversi stati operativi del sistema.
-- **Scopo**: Garantire l'assenza di transizioni di stato invalide ed esplicitare il comportamento del controller quando si trova in condizioni transitorie (ad es. durante la terminazione dei thread in background).
-- **Stati modellati**: `UNINITIALIZED`, `RUNNING`, `PAUSED`, `STOPPED`. Le transizioni includono comandi come `start()`, `pause()`, `resume()`, `stepOnce()` e `stop()`.
+- le regole di consumo, produzione e accumulo evolvono senza modificare l’algoritmo di rete;
+- gli algoritmi di rete possono essere sostituiti senza riscrivere le entità;
+- gli scenari DSL possono cambiare topologia senza alterare la logica della GUI.
 
-### 4.4 Diagramma di Flusso dei Dati (Data Flow Diagram - DFD)
-Mappa il percorso delle informazioni all'interno del sistema, evidenziando le sorgenti di dati, le trasformazioni funzionali, i depositi temporanei (storico dello stato) e le destinazioni finali (GUI).
-- **Scopo**: Visualizzare il flusso di informazioni dal caricamento iniziale della micro-grid (tramite DSL) fino all'aggiornamento dinamico degli indicatori a schermo, focalizzandosi sulle trasformazioni fisiche dei dati energetici ad ogni tick di simulazione.
+Il sistema prevede infatti più strategie di power flow. Una strategia semplice è orientata a reti radiali e aggrega i flussi lungo un albero radicato nella rete esterna. Una seconda strategia applica un modello DC basato sulle leggi di Kirchhoff, permettendo di distribuire i flussi anche su topologie magliate. La scelta dell’algoritmo è quindi un punto di estensione architetturale, non una decisione incorporata nella GUI o nel ciclo di vita della simulazione.
+
+---
+
+## 7. Architettura della GUI
+
+La GUI ScalaFX è organizzata secondo MVVM, scelto perché separa in modo naturale il rendering grafico dallo stato di presentazione e sfrutta il meccanismo di binding delle proprietà osservabili.
+
+```mermaid
+classDiagram                                                                       
+        %% Stili e classificazione dei moduli                                          
+        class GuiApp {                                                                 
+          <<Entry Point>>                                                              
+          +start()                                                                     
+        }                                                                              
+                                                                                       
+        class AppRouter {                                                              
+          <<Router>>                                                                   
+          -state: AppState                                                             
+          -rootPane: BorderPane                                                        
+          +dispatch(event: AppEvent)                                                   
+        }                                                                              
+                                                                                       
+        class SceneBuilder {                                                           
+          <<Factory>>                                                                  
+          +render(route: Route, dispatch: AppEvent => Unit) Parent                     
+        }                                                                              
+                                                                                       
+        class ScenarioSelectionView {                                                  
+          <<View>>                                                                     
+          -scenariosList: ListView                                                     
+          -tickField: TextField                                                        
+          -startButton: Button                                                         
+        }                                                                              
+                                                                                       
+        class ScenarioSelectionViewModel {                                             
+          <<ViewModel>>                                                                
+          +scenariosNames: ObservableBuffer                                            
+          +tickDurationText: StringProperty                                            
+          +isStartDisabled: BooleanProperty                                            
+          +startScenario() Option[RunningSimulation]                                   
+        }                                                                              
+                                                                                       
+        class SimulationView {                                                         
+          <<View>>                                                                     
+          -summaryView: SimulationSummaryView                                          
+          -entityDetailsView: EntityDetailsView                                        
+          -controlView: SimulationControlView                                          
+          -graphPlaceholder: BorderPane                                                
+        }                                                                              
+                                                                                       
+        class SimulationCoordinator {                                                  
+          <<Coordinator / Presenter>>                                                  
+          +selectedEntity: ObjectProperty[Selection]                                   
+          +summaryViewModel: SimulationSummaryViewModel                                
+          +entityDetailsViewModel: EntityDetailsViewModel                              
+          +controlViewModel: SimulationControlViewModel                                
+          +renderCurrent()                                                             
+          -updateWith(env, states, flows)                                              
+        }                                                                              
+                                                                                       
+        class SimulationSummaryView {                                                  
+          <<View>>                                                                     
+          -netFlowLabel: Label                                                         
+          -simHours: Label                                                             
+        }                                                                              
+                                                                                       
+        class SimulationSummaryViewModel {                                             
+          <<ViewModel>>                                                                
+          +netFlowText: StringProperty                                                 
+          +timeText: StringProperty                                                    
+          +update(flows, env, ctrlState)                                               
+        }                                                                              
+                                                                                       
+        class EntityDetailsView {                                                      
+          <<View>>                                                                     
+          -contentContainer: VBox                                                      
+          -render(state: DetailsEntity)                                                
+        }                                                                              
+                                                                                       
+        class EntityDetailsViewModel {                                                 
+          <<ViewModel>>                                                                
+          +detailsEntityProperty: ReadOnlyObjectProperty                               
+          +update(states, flows, env)                                                  
+        }                                                                              
+                                                                                       
+        class SimulationControlView {                                                  
+          <<View>>                                                                     
+          -statusLabel: Label                                                          
+          -playPauseButton: Button                                                     
+          -stepButton: Button                                                          
+        }                                                                              
+                                                                                       
+        class SimulationControlViewModel {                                             
+          <<ViewModel>>                                                                
+          +playPauseText: StringProperty                                               
+          +statusText: StringProperty                                                  
+          +togglePlayPause()                                                           
+          +stepOnce()                                                                  
+        }                                                                              
+                                                                                       
+        class DetailDispatcher {                                                       
+          <<Extractor Adapter>>                                                        
+          +resolve(selection, states, flows, env) ExtractedSelectionDetails            
+          +resolveEntity(entity, state, env) ExtractedEntityDetails                    
+        }                                                                              
+                                                                                       
+        class RunningSimulation {                                                      
+          <<Core Bridge>>                                                              
+          +model: SimulationModel                                                      
+          +controller: SimulationController                                            
+          +snapshotEvents: Stream[IO, SimulationState]                                 
+        }                                                                              
+                                                                                       
+        %% Relazioni strutturali                                                       
+        GuiApp --> AppRouter : inizializza                                             
+        AppRouter --> SceneBuilder : delega rendering                                  
+        SceneBuilder ..> ScenarioSelectionView : istanzia                              
+        SceneBuilder ..> SimulationView : istanzia                                     
+                                                                                       
+        %% MVVM Scenario Selection                                                     
+        ScenarioSelectionView --> ScenarioSelectionViewModel : si lega a (Binding)     
+        ScenarioSelectionViewModel --> ScenarioSelectionView : notifica modifiche      
+                                                                                       
+        %% MVVM Active Simulation                                                      
+        SimulationView --> SimulationCoordinator : referenzia                          
+        SimulationView --> SimulationSummaryView : contiene                            
+        SimulationView --> EntityDetailsView : contiene                                
+        SimulationView --> SimulationControlView : contiene                            
+                                                                                       
+        SimulationCoordinator --> SimulationSummaryViewModel : aggiorna                
+        SimulationCoordinator --> EntityDetailsViewModel : aggiorna                    
+        SimulationCoordinator --> SimulationControlViewModel : aggiorna                
+                                                                                       
+        SimulationSummaryView --> SimulationSummaryViewModel : data binding            
+        EntityDetailsView --> EntityDetailsViewModel : data binding                    
+        SimulationControlView --> SimulationControlViewModel : data binding            
+  
+        %% Collegamenti con il Core e Threading
+        SimulationCoordinator --> RunningSimulation : consuma Stream (Background)      
+        SimulationCoordinator ..> DetailDispatcher : usa per estrarre dettagli         
+        EntityDetailsViewModel ..> DetailDispatcher : usa per mappare dati
+  
+        %% Azioni e Callbacks
+        ScenarioSelectionView --> AppRouter : dispatch AppEvent (ScenarioLoaded)       
+        SimulationControlViewModel --> RunningSimulation : comanda Controller          
+  (Play/Pause/Step)
+
+```
+
+Le responsabilità sono ripartite come segue:
+
+- le **View** dichiarano layout, controlli e binding; non conoscono formule energetiche, scheduling o stream;
+- i **ViewModel** mantengono lo stato necessario alla presentazione, validano gli input dell’utente e offrono comandi adatti alla View;
+- il **Model** è costituito dai dati del dominio e dalla sessione di simulazione;
+- il **Coordinator** riceve gli snapshot dal runtime e aggiorna i ViewModel sul thread della GUI.
+
+Il flusso è prevalentemente unidirezionale. L’utente genera un’intenzione attraverso la View; il ViewModel la inoltra al runtime; il runtime pubblica il nuovo snapshot; il coordinator aggiorna le proprietà osservabili; i binding ScalaFX riflettono automaticamente il nuovo stato nella View.
+
+Questa struttura evita due forme di accoppiamento indesiderato. In primo luogo, le View non invocano direttamente il motore di simulazione. In secondo luogo, i dettagli asincroni non vengono duplicati in ogni pannello grafico. La conseguenza è una GUI più testabile, più semplice da estendere e meno esposta a errori di concorrenza.
+
+Nello stato corrente dell’applicazione, la dashboard espone riepilogo, dettagli delle entità e controlli della simulazione. L’architettura mette già a disposizione flussi e carichi necessari per un renderer dinamico del grafo; l’implementazione completa di tale vista costituisce un’estensione della presentazione senza richiedere modifiche al core.
+
 
 ---
 
 [Sommario](index.md) |
-[Capitolo precedente](02-development_process/02-development_process.md) |
+[Capitolo precedente](03-requirements.md) |
 [Capitolo successivo](05-detailed_design/05-detailed_design.md)
