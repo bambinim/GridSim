@@ -34,7 +34,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
       q <- Queue.unbounded[IO, SimulationData.EnvironmentData]
       obs = Observer[IO, SimulationData.EnvironmentData](env => q.offer(env))
       dispatcher <- Fs2DataDispatcher[IO](List(obs))
-      _ <- IO.sleep(100.millis) // Wait for subscriber fibers to initialize
+      _ <- IO.sleep(500.millis) // Wait for subscriber fibers to initialize
 
       // Dispatch the entire state
       _ <- dispatcher.dispatch(sampleState)
@@ -54,7 +54,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
       obs = Observer[IO, SimulationData.CableLoadsData](data => q.offer(data))
 
       dispatcher <- Fs2DataDispatcher[IO](List(obs))
-      _ <- IO.sleep(100.millis) // Wait for subscriber fibers to initialize
+      _ <- IO.sleep(500.millis) // Wait for subscriber fibers to initialize
 
       // Dispatch state. CableLoads is empty in sampleState, but the event is still dispatched.
       // However, we only subscribed to CableLoadsData.
@@ -87,7 +87,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
       dispatcher <- Fs2DataDispatcher.apply[IO](
         List(obsEnv, obsEnt, obsFlow, obsCab, obsSnp)
       )
-      _ <- IO.sleep(100.millis)
+      _ <- IO.sleep(500.millis)
 
       _ <- dispatcher.dispatch(sampleState)
 
@@ -134,7 +134,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
       q <- Queue.unbounded[IO, SimulationData.EnvironmentData]
       obs = Observer[IO, SimulationData.EnvironmentData](env => q.offer(env))
       dispatcher <- Fs2DataDispatcher.apply[IO](List(obs))
-      _ <- IO.sleep(100.millis) // Wait for subscriber fibers
+      _ <- IO.sleep(500.millis) // Wait for subscriber fibers
 
       controller = DefaultSimulationController(
         engine = engine,
