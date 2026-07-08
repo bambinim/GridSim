@@ -2,6 +2,7 @@ package org.gridsim.core.validation
 
 import org.gridsim.core.common.*
 import org.gridsim.core.model.house.{House, HouseState}
+import org.gridsim.core.model.error.DomainError
 import org.gridsim.core.model.error.DomainError.{InvalidId, OutOfRange, ValueMustBePositive}
 import cats.syntax.all.*
 import org.gridsim.core.behaviour.house.DefaultConsumptionStrategy
