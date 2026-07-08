@@ -113,7 +113,7 @@ final case class DefaultSimulationController(
   override def stepOnce(): SimulationState =
     val newState = stateRef.updateAndGet(current => engine.step(current))
     dispatcher.foreach { d =>
-      d.dispatch(newState).unsafeRunAndForget()
+      d.dispatch(newState).unsafeRunSync()
     }
     newState
 
