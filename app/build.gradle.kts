@@ -18,6 +18,13 @@ repositories {
     mavenCentral()
 }
 
+val javafxPlatform = when {
+    org.gradle.internal.os.OperatingSystem.current().isWindows -> "win"
+    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> "mac"
+    org.gradle.internal.os.OperatingSystem.current().isLinux -> "linux"
+    else -> throw GradleException("Unsupported operating system for JavaFX")
+}
+
 dependencies {
     // Use Scala 3 library
     implementation(libs.scala.library)
@@ -26,6 +33,13 @@ dependencies {
     implementation(libs.cats.core)
     implementation(libs.cats.effect)
     implementation(libs.fs2.core)
+
+    // ScalaFX for GUI components
+    implementation(libs.scalafx)
+    implementation(variantOf(libs.javafx.base) { classifier(javafxPlatform) })
+    implementation(variantOf(libs.javafx.graphics) { classifier(javafxPlatform) })
+    implementation(variantOf(libs.javafx.controls) { classifier(javafxPlatform) })
+    implementation(variantOf(libs.javafx.media) { classifier(javafxPlatform) })
 
     // This dependency is used by the application.
     implementation(libs.guava)
@@ -48,7 +62,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.gridsim.App"
+    mainClass = "org.gridsim.gui.app.GuiApp"
 }
 
 tasks.register("ciAssemble") {

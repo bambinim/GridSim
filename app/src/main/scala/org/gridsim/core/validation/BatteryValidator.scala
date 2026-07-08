@@ -21,6 +21,7 @@ object BatteryValidator:
         validateBatteryEntity(entity),
         validateBatteryState(entity, state)
       ).mapN((_, _, _) => pair)
+       .leftMap(_.map(err => DomainError.EntityError(entity.id, err)))
 
     private def validateCoherence(entity: Battery, state: BatteryState): ValidatedNec[DomainError, Unit] =
       if entity.id == state.entityId then ().validNec

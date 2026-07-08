@@ -1,5 +1,7 @@
 package org.gridsim.core.common
 
+import cats.Show
+import cats.syntax.all.toShow
 import org.gridsim.core.common.Energy.toFlow
 
 /** Represents a flow of energy (kWh). */
@@ -9,6 +11,11 @@ enum Flow[+A]:
   case Balanced
 
 object Flow:
+
+  given [A: Show]: Show[Flow[A]] = Show.show:
+    case Flow.Surplus(amount) => s"Surplus(${amount.show})"
+    case Flow.Deficit(amount) => s"Deficit(${amount.show})"
+    case Flow.Balanced => "Balanced"
 
   def surplus(amount: Energy): Flow[Energy] = Flow.Surplus(amount.abs)
 

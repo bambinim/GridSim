@@ -3,11 +3,13 @@ package org.gridsim.core.simulation
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.core.simulation.scheduling.{ScheduledTask, Scheduler}
 
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration.FiniteDuration
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.gridsim.core.observability.{DataDispatcher, SimulationData}
+
 
 /** Lifecycle state of a [[SimulationRunner]].
   */
@@ -102,7 +104,7 @@ final case class DefaultSimulationController(
     */
   override def resume(): Unit =
     start()
-
+  
   /** Advances the current state by one engine tick.
     *
     * @return

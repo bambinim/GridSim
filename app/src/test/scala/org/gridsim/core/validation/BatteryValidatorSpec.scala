@@ -32,7 +32,7 @@ class BatteryValidatorSpec extends AnyFlatSpec with Matchers {
     val result = Battery.make(invalidBattery, validState)
 
     result.fold(
-      errors => errors.toList should contain(ValueMustBePositive("Capacity", -10.0)),
+      errors => errors.toList should contain(DomainError.EntityError("bat-1", ValueMustBePositive("Capacity", -10.0))),
       _ => fail("It should have failed")
     )
   }
@@ -46,8 +46,8 @@ class BatteryValidatorSpec extends AnyFlatSpec with Matchers {
         val errorsList = errors.toList
         errorsList.size shouldBe 2
 
-        errorsList should contain(ValueMustBePositive("Max Power Charge", 0.0))
-        errorsList should contain(ValueMustBePositive("Max Power Discharge", -5.0))
+        errorsList should contain(DomainError.EntityError("bat-1", ValueMustBePositive("Max Power Charge", 0.0)))
+        errorsList should contain(DomainError.EntityError("bat-1", ValueMustBePositive("Max Power Discharge", -5.0)))
       },
       _ => fail("It should have failed")
     )
@@ -58,7 +58,7 @@ class BatteryValidatorSpec extends AnyFlatSpec with Matchers {
     val result = Battery.make(invalidBattery, validState)
 
     result.fold(
-      errors => errors.toList should contain(OutOfRange("Min SoC", 1.1, 0.0, 1.0)),
+      errors => errors.toList should contain(DomainError.EntityError("bat-1", OutOfRange("Min SoC", 1.1, 0.0, 1.0))),
       _ => fail("It should have failed")
     )
   }
@@ -68,7 +68,7 @@ class BatteryValidatorSpec extends AnyFlatSpec with Matchers {
     val result = Battery.make(validBattery, invalidState)
 
     result.fold(
-      errors => errors.toList should contain(OutOfRange("Current Charge", 150.0, 0.0, 100.0)),
+      errors => errors.toList should contain(DomainError.EntityError("bat-1", OutOfRange("Current Charge", 150.0, 0.0, 100.0))),
       _ => fail("It should have failed")
     )
   }
@@ -78,7 +78,7 @@ class BatteryValidatorSpec extends AnyFlatSpec with Matchers {
     val result = Battery.make(validBattery, invalidState)
 
     result.fold(
-      errors => errors.toList should contain(OutOfRange("Current Charge", -1.0, 0.0, 100.0)),
+      errors => errors.toList should contain(DomainError.EntityError("bat-1", OutOfRange("Current Charge", -1.0, 0.0, 100.0))),
       _ => fail("It should have failed")
     )
   }

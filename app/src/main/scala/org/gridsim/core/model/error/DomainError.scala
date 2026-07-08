@@ -1,6 +1,7 @@
 package org.gridsim.core.model.error
 
 import cats.Show
+import cats.implicits.toShow
 
 /**
  * Represents the Algebraic Data Type of all possible domain-level failures.
@@ -73,6 +74,13 @@ enum DomainError:
    * @param e2 The other endpoint of the unknown cable.
    */
   case CableLoadWithoutCable(e1: String, e2: String)
+  /**
+   * Wraps another domain error to associate it with a specific entity identifier.
+   *
+   * @param entityId the identifier of the entity that failed validation.
+   * @param error the underlying domain error.
+   */
+  case EntityError(entityId: String, error: DomainError)
 
 object DomainError:
   /**
@@ -82,6 +90,9 @@ object DomainError:
    * eliminating the need for explicit imports in other files.
    */
   given Show[DomainError] = Show.show {
+    case EntityError(entityId, err) =>
+      val innerMsg = err.show.replace("[ERROR] ", "").replace("[Error] ", "")
+      s"[ERROR] Entity '$entityId': $innerMsg"
     case DomainError.InvalidId(f, s) =>
       s"[ERROR] Identifier '$f' for $s is invalid"
     case DuplicateId(f, id) =>

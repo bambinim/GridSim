@@ -30,3 +30,4 @@ object HouseValidator:
       entity.id.mustBeValid("House Id"),
       componentsValidation
       ).mapN((_, _) => pair)
+       .leftMap(_.map(err => DomainError.EntityError(entity.id, err)))
