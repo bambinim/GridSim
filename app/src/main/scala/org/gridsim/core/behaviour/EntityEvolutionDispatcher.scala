@@ -1,11 +1,6 @@
 package org.gridsim.core.behaviour
 
-import org.gridsim.core.behaviour.house.*
-import org.gridsim.core.behaviour.house.HouseEvolution.evolve as evolveHouse
-import org.gridsim.core.behaviour.producer.SolarPanelEvolution.evolve as evolveSolarPanel
-import org.gridsim.core.behaviour.shaping.DemandShaper
 import org.gridsim.core.common.{Energy, Flow}
-import org.gridsim.core.model.house.{House, HouseState}
 import org.gridsim.core.model.*
 
 import scala.concurrent.duration.FiniteDuration
@@ -24,20 +19,77 @@ trait EntityEvolutionDispatcher:
     delta: FiniteDuration
   ): (GridEntityState, Flow[Energy])
 
-object EntityEvolutionDispatcher:
-  given default(using
-    resolver: ConsumptionResolver,
-    shaper: DemandShaper
-  ): EntityEvolutionDispatcher =
-    DefaultEntityEvolutionDispatcher(
-      HouseEvolutionDependencies(resolver, shaper)
-    )
+/**
+ * Handles the evolution of one supported entity-state family.
+ *
+ * Implementations belong next to the concrete entity behaviour they adapt. This
+ * keeps the central dispatcher closed to changes when a new entity family is
+ * added: new code registers another handler instead of modifying dispatch
+ * logic.
+ */
+trait EntityEvolutionHandler:
+
+  /**
+   * Runtime state type accepted by this handler.
+   */
+  def stateClass: Class[_ <: GridEntityState]
+
+  /**
+   * Runtime entity model type accepted by this handler.
+   */
+  def entityClass: Class[_ <: GridEntity]
+
+  /**
+   * Returns whether this handler can evolve the supplied state-model pair.
+   */
+  def supports(state: GridEntityState, entity: GridEntity): Boolean =
+    stateClass.isAssignableFrom(state.getClass) &&
+      entityClass.isAssignableFrom(entity.getClass)
+
+  /**
+   * Evolves the supplied state-model pair by one simulation tick.
+   */
+  def evolve(
+    state: GridEntityState,
+    entity: GridEntity,
+    environment: Environment,
+    delta: FiniteDuration
+  ): (GridEntityState, Flow[Energy])
 
 /**
- * Central dispatcher for the entity families currently supported by GridSim.
+ * Ordered collection of entity evolution handlers available to a dispatcher.
+ *
+ * Handler order is deterministic. If multiple handlers support the same pair,
+ * the first one in this collection wins.
+ */
+final case class EntityEvolutionHandlers(values: List[EntityEvolutionHandler])
+
+object EntityEvolutionDispatcher:
+
+  /**
+   * Builds a dispatcher from an explicit ordered handler collection.
+   */
+  def fromHandlers(handlers: EntityEvolutionHandler*): EntityEvolutionDispatcher =
+    DefaultEntityEvolutionDispatcher(handlers.toList)
+
+  /**
+   * Provides a dispatcher whenever the application composition has supplied the
+   * available evolution handlers.
+   */
+  given fromRegisteredHandlers(using
+    handlers: EntityEvolutionHandlers
+  ): EntityEvolutionDispatcher =
+    DefaultEntityEvolutionDispatcher(handlers.values)
+
+/**
+ * Registry-backed dispatcher that delegates each pair to the first compatible
+ * evolution handler.
+ *
+ * The dispatcher depends only on the [[EntityEvolutionHandler]] abstraction; it
+ * has no knowledge of concrete entity families.
  */
 final case class DefaultEntityEvolutionDispatcher(
-  houseDependencies: HouseEvolutionDependencies
+  handlers: List[EntityEvolutionHandler]
 ) extends EntityEvolutionDispatcher:
 
   override def evolve(
@@ -46,20 +98,11 @@ final case class DefaultEntityEvolutionDispatcher(
     environment: Environment,
     delta: FiniteDuration
   ): (GridEntityState, Flow[Energy]) =
-    (state, entity) match
-      case (houseState: HouseState, house: House) =>
-        given EvolutionContext[HouseEvolutionDependencies] =
-          EvolutionContext(delta, houseDependencies)
-
-        houseState.evolveHouse(house, environment)
-
-      case (panelState: SolarPanelState, panel: SolarPanel) =>
-        given EvolutionContext[Unit] =
-          EvolutionContext(delta, ())
-
-        panelState.evolveSolarPanel(panel, environment)
-
-      case _ =>
+    handlers
+      .find(_.supports(state, entity))
+      .map(_.evolve(state, entity, environment, delta))
+      .getOrElse {
         throw IllegalArgumentException(
           s"Unsupported entity-state pair: model '${entity.id}', state '${state.entityId}'"
         )
+      }
