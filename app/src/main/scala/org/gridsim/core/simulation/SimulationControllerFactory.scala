@@ -4,7 +4,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.gridsim.core.behaviour.DefaultEntityEvolutionHandlers.given
 import org.gridsim.core.observability.{DataDispatcher, Fs2DataDispatcher, Observer}
-import org.gridsim.core.solver.SimplePowerFlowSolver
+import org.gridsim.core.solver.{KirchhoffPowerFlowSolver, SimplePowerFlowSolver}
 import org.gridsim.core.simulation.scheduling.DefaultScheduler
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
@@ -26,7 +26,7 @@ object SimulationControllerFactory:
       tickInterval: FiniteDuration = 2.seconds
   ): SimulationController =
     val dispatcher = Fs2DataDispatcher[IO](observers).unsafeRunSync()
-    val engine = DefaultSimulationEngine(model, SimplePowerFlowSolver(model.grid))
+    val engine = DefaultSimulationEngine(model, KirchhoffPowerFlowSolver(model.grid))
     DefaultSimulationController(
       engine,
       state,

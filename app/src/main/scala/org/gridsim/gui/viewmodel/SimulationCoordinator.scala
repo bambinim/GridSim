@@ -5,6 +5,7 @@ import cats.effect.unsafe.implicits.global
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.{Environment, GridEntityState}
+import org.gridsim.core.observability.SimulationData.SimulationSnapshot
 import org.gridsim.core.simulation.SimulationControllerState
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.*
@@ -47,7 +48,7 @@ class SimulationCoordinator(
   running.snapshotSignal.discrete
     .evalMap(snapshot => IO {
       Platform.runLater {
-        updateWith(snapshot.environment, snapshot.entityStates, snapshot.entityFlows)
+        updateWith(snapshot)
       }
     })
     .compile
@@ -60,16 +61,19 @@ class SimulationCoordinator(
   def renderCurrent(): Unit =
     Platform.runLater {
       val state = running.controller.currentState
-      entityDetailsViewModel.update(state.entityStates, state.entityFlows, state.environment)
+      updateWith(SimulationSnapshot(
+        state.environment,
+        state.entityStates,
+        state.entityFlows,
+        state.cableLoads
+      ))
     }
 
   private def updateWith(
-    environment: Environment,
-    entityStates: Map[String, GridEntityState],
-    entityFlows: Map[String, Flow[Energy]]
+    snapshot: SimulationSnapshot
   ): Unit =
     val controllerState = running.controller.simulationControllerState
-    summaryViewModel.update(entityFlows, environment, controllerState)
-    entityDetailsViewModel.update(entityStates, entityFlows, environment)
+    summaryViewModel.update(snapshot.entityFlows, snapshot.environment, controllerState)
+    entityDetailsViewModel.update(snapshot.entityStates, snapshot.entityFlows, snapshot.cableLoads, snapshot.environment)
     controlViewModel.update(controllerState)
 

@@ -3,7 +3,9 @@ package org.gridsim.gui.ports
 import DetailExtractor.given
 import cats.implicits.toShow
 import org.gridsim.core.common.{Energy, Flow}
+import org.gridsim.core.common.Energy.toPower
 import org.gridsim.core.model.house.{House, HouseState}
+import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.storage.StorageState.percentage
 import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.model.{Environment, GridEntity, GridEntityState, SolarPanel, SolarPanelState}
@@ -118,6 +120,7 @@ object DetailDispatcher:
     selection: Selection,
     entityStates: Map[String, GridEntityState],
     entityFlows: Map[String, Flow[Energy]],
+    cableLoads: Map[Cable, Energy],
     environment: Environment
   ): ExtractedSelectionDetails =
     selection match
@@ -144,11 +147,15 @@ object DetailDispatcher:
 
       case SelectedCable(cable) =>
         val id = s"${cable.connections.n1} <-> ${cable.connections.n2}"
+        val loadField = cableLoads.get(cable) match
+          case Some(load) => DetailField("Cable Loads", load.show)
+          case _ => DetailField("Cable Loads", Energy.Zero.show)
         ExtractedSelectionDetails(
           id = id,
           title = s"Cable: $id",
           fields = Seq(
-            DetailField("Capacity", cable.maxCapacity.show)
+            DetailField("Capacity", cable.maxCapacity.show),
+            loadField
           ),
           components = Seq.empty
         )

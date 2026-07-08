@@ -2,6 +2,7 @@ package org.gridsim.gui.viewmodel
 
 import scalafx.beans.property.{ObjectProperty, ReadOnlyObjectProperty}
 import org.gridsim.core.common.{Energy, Flow}
+import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
 import org.gridsim.core.simulation.SimulationModel
 import org.gridsim.gui.model.{DetailsEntity, Selection}
@@ -23,6 +24,7 @@ class EntityDetailsViewModel(
 ):
   private var lastEntityStates: Map[String, GridEntityState] = Map.empty
   private var lastEntityFlows: Map[String, Flow[Energy]] = Map.empty
+  private var lastCableLoads: Map[Cable, Energy] = Map.empty
   private var lastEnvironment: Option[Environment] = None
 
   private val _detailsEntityProperty = ObjectProperty[DetailsEntity](emptyDetails)
@@ -40,9 +42,7 @@ class EntityDetailsViewModel(
   )
 
   selectionProp.onChange { (_, _, newSelection) =>
-    lastEnvironment.foreach { env =>
-      recalculate(newSelection, lastEntityStates, lastEntityFlows, env)
-    }
+    recalculate(newSelection, lastEntityStates, lastEntityFlows, lastCableLoads, lastEnvironment.get)
   }
 
   /**
@@ -56,20 +56,23 @@ class EntityDetailsViewModel(
   def update(
     entityStates: Map[String, GridEntityState],
     entityFlows: Map[String, Flow[Energy]],
+    cableLoads: Map[Cable, Energy],
     environment: Environment
   ): Unit =
     lastEntityStates = entityStates
     lastEntityFlows = entityFlows
+    lastCableLoads = cableLoads
     lastEnvironment = Some(environment)
-    recalculate(selectionProp.value, entityStates, entityFlows, environment)
+    recalculate(selectionProp.value, entityStates, entityFlows, cableLoads, environment)
 
   private def recalculate(
     selection: Selection,
     entityStates: Map[String, GridEntityState],
     entityFlows: Map[String, Flow[Energy]],
+    cableLoads: Map[Cable, Energy],
     environment: Environment
   ): Unit =
-    val extracted = DetailDispatcher.resolve(selection, entityStates, entityFlows, environment)
+    val extracted = DetailDispatcher.resolve(selection, entityStates, entityFlows, cableLoads, environment)
     _detailsEntityProperty.value = mapExtractedToView(extracted, environment)
 
   private def mapExtractedToView(
