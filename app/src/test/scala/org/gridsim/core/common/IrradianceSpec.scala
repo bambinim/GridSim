@@ -43,4 +43,4 @@ class IrradianceSpec extends AnyFlatSpec with Matchers:
 
   "Show[Irradiance]" should "format irradiance with unit W/m²" in:
     import cats.syntax.show.*
-    Irradiance(100.0).show shouldBe "100,00 W/m²"
+    Irradiance(100.0).show shouldBe "100.00 W/m²"
