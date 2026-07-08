@@ -2,6 +2,7 @@ package org.gridsim.gui.model
 
 import cats.effect.IO
 import fs2.Stream as Fs2Stream
+import fs2.concurrent.SignallingRef
 import org.gridsim.core.observability.SimulationData
 import org.gridsim.core.simulation.{SimulationController, SimulationModel}
 
@@ -12,10 +13,10 @@ import org.gridsim.core.simulation.{SimulationController, SimulationModel}
  *
  * @param model the static topology and parameters configuration of the grid
  * @param controller the engine state controller (handling start, pause, resume, step)
- * @param snapshotEvents downstream FS2 stream emitting simulation snapshot updates
+ * @param snapshotSignal signaling stream emitting simulation snapshot updates
  */
 case class RunningSimulation(
   model: SimulationModel,
   controller: SimulationController,
-  snapshotEvents: Fs2Stream[IO, SimulationData.SimulationSnapshot]
+  snapshotSignal: SignallingRef[IO, SimulationData.SimulationSnapshot]
 )

@@ -44,7 +44,7 @@ class SimulationCoordinator(
     (_, _, _) => renderCurrent()
   }
 
-  running.snapshotEvents
+  running.snapshotSignal.discrete
     .evalMap(snapshot => IO {
       Platform.runLater {
         updateWith(snapshot.environment, snapshot.entityStates, snapshot.entityFlows)

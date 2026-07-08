@@ -5,7 +5,7 @@ import org.gridsim.dsl.{DSLBuilderError, DSLError}
 import org.gridsim.dsl.scenarios.{GridScenarioCatalog, GridScenarioPreset}
 import org.gridsim.dsl.simulation.SimulationBuilder
 import org.gridsim.gui.model.{RunningSimulation, ScenarioRunConfig}
-import org.gridsim.gui.runtime.SimulationFactory
+import org.gridsim.gui.runtime.RunningSimulationFactory
 
 /**
  * Implementation of [[ScenarioPresetLoader]] that builds a running simulation using the DSL scenario catalog.
@@ -29,7 +29,7 @@ class DslScenarioPresetLoader extends ScenarioPresetLoader[RunningSimulation]:
           .left
           .map(formatErrors)
           .map { case (model, state) =>
-            SimulationFactory.createSimpleSimulation(model, state)
+            RunningSimulationFactory.createSimpleSimulation(model, state)
           }
       }
 
