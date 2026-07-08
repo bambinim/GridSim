@@ -65,6 +65,10 @@ application {
     mainClass = "org.gridsim.gui.app.GuiApp"
 }
 
+tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.register("ciAssemble") {
     group = "build"
     description = "CI assemble"

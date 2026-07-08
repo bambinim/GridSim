@@ -40,6 +40,17 @@ class SimulationCoordinator(
   /** ViewModel controlling simulation commands like play, pause, step, and stop. */
   val controlViewModel = SimulationControlViewModel(running, onExit)
 
+  /** ViewModel managing the statistics. */
+  val statisticsViewModel = StatisticsViewModel()
+
+  running.statisticsSignal.discrete
+    .evalMap(stats => IO {
+      Platform.runLater {
+        statisticsViewModel.update(stats)
+      }
+    })
+    .compile.drain.unsafeRunAndForget()
+
   selectedEntity.onChange{
     (_, _, _) => renderCurrent()
   }

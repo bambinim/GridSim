@@ -3,6 +3,7 @@ package org.gridsim.gui.view
 import org.gridsim.gui.viewmodel.SimulationCoordinator
 import org.gridsim.gui.model.SummaryViewState
 import scalafx.scene.Parent
+import scalafx.scene.control.{Tab, TabPane}
 import scalafx.scene.layout.{BorderPane, VBox}
 
 /**
@@ -27,12 +28,30 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
 
   private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
+  private val statisticsView = new StatisticsView(coordinator.statisticsViewModel)
   private val controlView = new SimulationControlView(coordinator.controlViewModel)
+
+  private val rightColumn = new VBox:
+    children = Seq(entityDetailsView, statisticsView)
+
+  // TABS alternative to right column
+//  private val detailsTabs = new TabPane:
+//    tabs = Seq(
+//      new Tab:
+//        text = "Entity Details"
+//        content = entityDetailsView
+//        closable = false
+//      ,
+//      new Tab:
+//        text = "Statistics"
+//        content = statisticsView
+//        closable = false
+//    )
 
   center = new BorderPane:
     top = summaryView
     center = graphPlaceholder
-    right = entityDetailsView
+    right = rightColumn
 
   bottom = controlView
 
