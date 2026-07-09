@@ -20,8 +20,14 @@ repositories {
 
 val javafxPlatform = when {
     org.gradle.internal.os.OperatingSystem.current().isWindows -> "win"
-    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> "mac"
-    org.gradle.internal.os.OperatingSystem.current().isLinux -> "linux"
+    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> {
+        val arch = System.getProperty("os.arch").lowercase()
+        if (arch == "aarch64" || arch == "arm64") "mac-aarch64" else "mac"
+    }
+    org.gradle.internal.os.OperatingSystem.current().isLinux -> {
+        val arch = System.getProperty("os.arch").lowercase()
+        if (arch == "aarch64" || arch == "arm64") "linux-aarch64" else "linux"
+    }
     else -> throw GradleException("Unsupported operating system for JavaFX")
 }
 
