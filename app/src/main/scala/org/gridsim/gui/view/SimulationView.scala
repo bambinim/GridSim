@@ -7,31 +7,48 @@ import scalafx.scene.Parent
 import scalafx.scene.control.{SplitPane, Tab, TabPane}
 import scalafx.scene.layout.{BorderPane, Priority, VBox}
 
-/**
- * Main view layout for the active simulation screen.
- *
- * This composite view organizes the simulation summary, the grid visualization graph placeholder,
- * the selected entity details panel, and the simulation controls bar.
- *
- * @param coordinator the coordinator that manages state orchestration across the view components
- */
-class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane with ViewFX:
+/** Main view layout for the active simulation screen.
+  *
+  * This composite view organizes the simulation summary, the grid visualization
+  * graph placeholder, the selected entity details panel, and the simulation
+  * controls bar.
+  *
+  * @param coordinator
+  *   the coordinator that manages state orchestration across the view
+  *   components
+  */
+class SimulationView(val coordinator: SimulationCoordinator)
+    extends BorderPane
+    with ViewFX:
   override def root: Parent = this
 
-  //TO-DO remove this when implement graph view
+  // TO-DO remove this when implement graph view
   private val graphPlaceholder = new BorderPane:
     styleClass += "graph-placeholder"
-    center = new scalafx.scene.control.Label("Area di Rendering del Grafo (GridGraphView)"):
+    center = new scalafx.scene.control.Label(
+      "Area di Rendering del Grafo (GridGraphView)"
+    ):
       styleClass += "graph-placeholder-text"
 
-  private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
-  private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
-  private val statisticsView = new StatisticsView(coordinator.statisticsViewModel)
-  private val netFlowChartView = new NetFlowChartView(coordinator.netFlowChartViewModel)
-  private val controlView = new SimulationControlView(coordinator.controlViewModel)
+  private val summaryView = new SimulationSummaryView(
+    coordinator.summaryViewModel
+  )
+  private val entityDetailsView = new EntityDetailsView(
+    coordinator.entityDetailsViewModel
+  )
+  private val statisticsView = new StatisticsView(
+    coordinator.statisticsViewModel
+  )
+  private val netFlowChartView = new NetFlowChartView(
+    coordinator.netFlowChartViewModel
+  )
+  private val controlView = new SimulationControlView(
+    coordinator.controlViewModel
+  )
+  private val gridGraphView = new GridGraphView(coordinator.graphViewModel)
 
   private val graphArea = new BorderPane:
-    center = graphPlaceholder
+    center = gridGraphView
     right = entityDetailsView
 
   private val statisticsArea = new BorderPane:
