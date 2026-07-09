@@ -34,18 +34,26 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
     center = graphPlaceholder
     right = entityDetailsView
 
-  private val chartArea = new BorderPane:
+  private val statisticsArea = new BorderPane:
     center = netFlowChartView
     right = statisticsView
 
-  private val graphAndStatsArea = new SplitPane:
-    orientation = Orientation.Vertical
-    items ++= Seq(graphArea, chartArea)
-    dividerPositions = 0.5
+  private val detailsTabs = new TabPane:
+    tabs = Seq(
+      new Tab:
+        text = "Graph"
+        content = graphArea
+        closable = false
+      ,
+      new Tab:
+        text = "Statistics"
+        content = statisticsArea
+        closable = false
+    )
 
-  VBox.setVgrow(graphAndStatsArea, Priority.Always)
+  VBox.setVgrow(detailsTabs, Priority.Always)
 
   center = new VBox:
-    children = Seq(summaryView, graphAndStatsArea, controlView)
+    children = Seq(summaryView, detailsTabs, controlView)
 
   coordinator.renderCurrent()
