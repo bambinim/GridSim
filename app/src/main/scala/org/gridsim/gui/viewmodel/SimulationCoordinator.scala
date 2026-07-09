@@ -41,6 +41,25 @@ class SimulationCoordinator(
   /** ViewModel controlling simulation commands like play, pause, step, and stop. */
   val controlViewModel = SimulationControlViewModel(running, onExit)
 
+  /** ViewModel managing the statistics. */
+  val statisticsViewModel = StatisticsViewModel()
+  val netFlowChartViewModel = NetFlowChartViewModel()
+
+  running.statisticsSignal.discrete
+    .evalMap(stats => IO {
+      Platform.runLater {
+        statisticsViewModel.update(stats)
+      }
+    })
+    .compile.drain.unsafeRunAndForget()
+  running.historySignal.discrete
+    .evalMap(history => IO {
+      Platform.runLater {
+        netFlowChartViewModel.update(history)
+      }
+    })
+    .compile.drain.unsafeRunAndForget()
+
   selectedEntity.onChange{
     (_, _, _) => renderCurrent()
   }

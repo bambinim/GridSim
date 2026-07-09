@@ -26,15 +26,12 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
 
   content = contentContainer
 
-  /**
-   * The root parent component of this view.
-   */
   override def root: Parent = this
-  
+
   viewModel.detailsEntityProperty.onChange { (_, _, newState) =>
     render(newState)
   }
-  
+
   render(viewModel.detailsEntityProperty.value)
 
   private def render(state: DetailsEntity): Unit =

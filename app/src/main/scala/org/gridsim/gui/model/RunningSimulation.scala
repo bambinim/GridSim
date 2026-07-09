@@ -1,10 +1,10 @@
 package org.gridsim.gui.model
 
 import cats.effect.IO
-import fs2.Stream as Fs2Stream
 import fs2.concurrent.SignallingRef
 import org.gridsim.core.observability.SimulationData
 import org.gridsim.core.simulation.{SimulationController, SimulationModel}
+import org.gridsim.core.statistics.{NetFlowHistory, SimulationStatistics}
 
 /**
  * Representation of an active simulation loop setup.
@@ -18,5 +18,7 @@ import org.gridsim.core.simulation.{SimulationController, SimulationModel}
 case class RunningSimulation(
   model: SimulationModel,
   controller: SimulationController,
-  snapshotSignal: SignallingRef[IO, SimulationData.SimulationSnapshot]
+  snapshotSignal: SignallingRef[IO, SimulationData.SimulationSnapshot],
+  statisticsSignal: SignallingRef[IO, SimulationStatistics],
+  historySignal: SignallingRef[IO, NetFlowHistory]
 )

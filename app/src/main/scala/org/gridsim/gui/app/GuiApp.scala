@@ -12,9 +12,7 @@ import scalafx.scene.Scene
  * global CSS stylesheets.
  */
 object GuiApp extends JFXApp3:
-  /**
-   * Initializes the UI routing engine and configures the main window/stage dimensions.
-   */
+  /** Initializes the UI routing engine and configures the main window/stage dimensions. */
   override def start(): Unit =
     val renderer = new SceneBuilder(
       scenarioRepo = new DslScenarioPresetRepository,

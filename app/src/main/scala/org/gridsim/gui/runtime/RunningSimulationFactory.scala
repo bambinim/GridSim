@@ -1,14 +1,14 @@
 package org.gridsim.gui.runtime
 
 import cats.effect.IO
-import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
-import fs2.Stream as Fs2Stream
 import org.gridsim.core.observability.{Observer, SimulationData}
 import org.gridsim.core.simulation.{SimulationControllerFactory, SimulationModel, SimulationState}
 import org.gridsim.gui.model.RunningSimulation
 import fs2.concurrent.SignallingRef
+
 import scala.concurrent.duration.DurationInt
+import org.gridsim.core.statistics.{NetFlowSampler, NetFlowHistory, SimulationStatistics, StatisticsCollector}
 
 /**
  * Factory for instantiating and configuring running simulation loops.
@@ -39,16 +39,22 @@ object RunningSimulationFactory:
     val snapshotSignal = SignallingRef[IO, SimulationData.SimulationSnapshot](initialSnapshot).unsafeRunSync()
     val guiObserver = Observer[IO, SimulationData.SimulationSnapshot](snapshotSignal.set)
 
+    val statisticsSignal = SignallingRef[IO, SimulationStatistics](SimulationStatistics.empty).unsafeRunSync()
+    val statisticsObserver = Observer[IO, SimulationData.SimulationSnapshot] { snapshot =>
+      import cats.syntax.monoid.catsSyntaxSemigroup
+      statisticsSignal.update(_ |+| StatisticsCollector.collect(snapshot))
+    }
+
+    val historySignal = SignallingRef[IO, NetFlowHistory](NetFlowHistory.empty(capacity = 200)).unsafeRunSync()
+    val historyObserver = Observer[IO, SimulationData.SimulationSnapshot] { snapshot =>
+      historySignal.update(_.record(NetFlowSampler.sample(snapshot)))
+    }
+
     val controller = SimulationControllerFactory.create(
       model,
       state,
-      observers = List(guiObserver) /*:: statisticsObservers*/,
+      observers = List(guiObserver, statisticsObserver, historyObserver),
       tickInterval = 2.seconds
     )
 
-    RunningSimulation(
-      model,
-      controller,
-      snapshotSignal
-      /*statisticsSignal*/
-    )
+    RunningSimulation(model, controller, snapshotSignal, statisticsSignal, historySignal)

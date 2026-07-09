@@ -2,8 +2,10 @@ package org.gridsim.gui.view
 
 import org.gridsim.gui.viewmodel.SimulationCoordinator
 import org.gridsim.gui.model.SummaryViewState
+import scalafx.geometry.{Insets, Orientation}
 import scalafx.scene.Parent
-import scalafx.scene.layout.{BorderPane, VBox}
+import scalafx.scene.control.{SplitPane, Tab, TabPane}
+import scalafx.scene.layout.{BorderPane, Priority, VBox}
 
 /**
  * Main view layout for the active simulation screen.
@@ -14,9 +16,6 @@ import scalafx.scene.layout.{BorderPane, VBox}
  * @param coordinator the coordinator that manages state orchestration across the view components
  */
 class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane with ViewFX:
-  /**
-   * The root parent component of this view.
-   */
   override def root: Parent = this
 
   //TO-DO remove this when implement graph view
@@ -27,13 +26,34 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
 
   private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
+  private val statisticsView = new StatisticsView(coordinator.statisticsViewModel)
+  private val netFlowChartView = new NetFlowChartView(coordinator.netFlowChartViewModel)
   private val controlView = new SimulationControlView(coordinator.controlViewModel)
 
-  center = new BorderPane:
-    top = summaryView
+  private val graphArea = new BorderPane:
     center = graphPlaceholder
     right = entityDetailsView
 
-  bottom = controlView
+  private val statisticsArea = new BorderPane:
+    center = netFlowChartView
+    right = statisticsView
+
+  private val detailsTabs = new TabPane:
+    tabs = Seq(
+      new Tab:
+        text = "Graph"
+        content = graphArea
+        closable = false
+      ,
+      new Tab:
+        text = "Statistics"
+        content = statisticsArea
+        closable = false
+    )
+
+  VBox.setVgrow(detailsTabs, Priority.Always)
+
+  center = new VBox:
+    children = Seq(summaryView, detailsTabs, controlView)
 
   coordinator.renderCurrent()
