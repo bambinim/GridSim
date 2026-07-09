@@ -4,41 +4,59 @@ import org.gridsim.core.model.network.GridGraph
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.gui.model.Selection
 import org.gridsim.core.common.Flow
-import org.gridsim.core.common.Power
+import org.gridsim.core.common.{Power, Energy}
 import com.brunomnsilva.smartgraph.graph.Graph
 import org.gridsim.core.model.GridEntity
 import com.brunomnsilva.smartgraph.graph.Vertex
 import com.brunomnsilva.smartgraph.graph.Edge
 import java.{util => ju}
 import com.brunomnsilva.smartgraph.graph.GraphEdgeList
-import org.gridsim.core.model.network.CableConnections
+import org.gridsim.core.model.network.{CableConnections, Cable}
+import scala.concurrent.duration.FiniteDuration
 
 class GridGraphViewModel(
+    tickDelta: FiniteDuration,
     graph: GridGraph,
     selection: ObjectProperty[Selection]
 ):
-  private var cableFlows: Map[String, Flow[Power]] = Map.empty
-  private var entityFlows: Map[String, Flow[Power]] = Map.empty
+  private var cableLoads: Map[Cable, Energy] = Map.empty
+  private var entityFlows: Map[String, Flow[Energy]] = Map.empty
   private[gui] val uiGraph: Graph[String, String] = graph
 
   def nodeClicked(entityId: String): Unit =
-    for {
-      ent <- graph.nodes.find(_.id == entityId)
-    } yield selection.setValue(Selection.SelectedNode(ent))
+    graph.nodes.find(_.id == entityId).foreach { ent =>
+      selection.value = Selection.SelectedNode(ent)
+    }
 
   def edgeClicked(from: String, to: String): Unit =
     () // TODO: implement cable selection
 
+  def entityFlow(id: String): Option[Flow[Energy]] = entityFlows.get(id)
+
+  def isExternalGrid(id: String): Boolean =
+    import org.gridsim.core.model.network.ExternalGrid
+    graph.nodes.find(_.id == id).exists(_.isInstanceOf[ExternalGrid])
+
+  var onUpdate: () => Unit = () => ()
+
   def update(
-      entityFlows: Map[String, Flow[Power]],
-      cableFlows: Map[String, Flow[Power]]
+      entityFlows: Map[String, Flow[Energy]],
+      cableLoads: Map[Cable, Energy]
   ): Unit =
     this.entityFlows = entityFlows
-    this.cableFlows = cableFlows
+    this.cableLoads = cableLoads
+    onUpdate()
+
+  def overloadedConnections(): Iterable[CableConnections] =
+    cableLoads.filter(_.isOverloaded(tickDelta)).map(_._1.connections)
 
 extension (g: GridGraph)
   def deduplicatedConnections: Iterable[CableConnections] =
     g.cables.map(_.connections).toSet
+
+extension (ce: (Cable, Energy))
+  def isOverloaded(timeDelta: FiniteDuration): Boolean =
+    ce._1.maxCapacity.toDouble <= ce._2.instantPower(timeDelta).toDouble.abs
 
 given Conversion[GridGraph, Graph[String, String]] with
   override def apply(gridGraph: GridGraph): Graph[String, String] =

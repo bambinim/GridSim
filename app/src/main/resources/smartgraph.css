@@ -3,12 +3,12 @@
  */
 .vertex {
     -fx-fill: #3498db;
-    -fx-stroke: #2980b9;
+    -fx-stroke: black;
     -fx-stroke-width: 2;
 }
 
 .edge {
-    -fx-stroke: #2ecc71;
+    -fx-stroke: black;
     -fx-stroke-width: 2;
     -fx-cursor: hand;
 }

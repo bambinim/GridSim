@@ -5,6 +5,7 @@ import cats.effect.unsafe.implicits.global
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.{Environment, GridEntityState}
+import org.gridsim.core.model.network.Cable
 import org.gridsim.core.simulation.SimulationControllerState
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.*
@@ -47,7 +48,8 @@ class SimulationCoordinator(
   val controlViewModel = SimulationControlViewModel(running, onExit)
 
   /** ViewModel managing the graph visualization. */
-  val graphViewModel = GridGraphViewModel(running.model.grid, selectedEntity)
+  val graphViewModel =
+    GridGraphViewModel(running.model.delta, running.model.grid, selectedEntity)
 
   /** ViewModel managing the statistics. */
   val statisticsViewModel = StatisticsViewModel()
@@ -87,7 +89,8 @@ class SimulationCoordinator(
           updateWith(
             snapshot.environment,
             snapshot.entityStates,
-            snapshot.entityFlows
+            snapshot.entityFlows,
+            snapshot.cableLoads
           )
         }
       }
@@ -112,9 +115,11 @@ class SimulationCoordinator(
   private def updateWith(
       environment: Environment,
       entityStates: Map[String, GridEntityState],
-      entityFlows: Map[String, Flow[Energy]]
+      entityFlows: Map[String, Flow[Energy]],
+      cableLoads: Map[Cable, Energy]
   ): Unit =
     val controllerState = running.controller.simulationControllerState
     summaryViewModel.update(entityFlows, environment, controllerState)
     entityDetailsViewModel.update(entityStates, entityFlows, environment)
     controlViewModel.update(controllerState)
+    graphViewModel.update(entityFlows, cableLoads)

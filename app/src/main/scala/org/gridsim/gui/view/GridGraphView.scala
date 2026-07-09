@@ -39,6 +39,39 @@ class GridGraphView(viewModel: GridGraphViewModel)
     // Disable physics layout so positions are fixed
     graphView.setAutomaticLayout(false)
 
+    viewModel.onUpdate = () =>
+      Platform.runLater {
+        import org.gridsim.core.common.Flow
+        viewModel.uiGraph.vertices().forEach { v =>
+          val stylableNode = graphView.getStylableVertex(v)
+          viewModel.entityFlow(v.element()) match
+            case Some(Flow.Deficit(_)) =>
+              stylableNode.setStyleInline(
+                "-fx-stroke: #e74c3c; -fx-stroke-width: 3;"
+              ) // red
+            case _ =>
+              stylableNode.setStyleInline(
+                "-fx-stroke: #2ecc71; -fx-stroke-width: 3;"
+              ) // green
+        }
+
+        val overloadedIds =
+          viewModel.overloadedConnections().map(_.hashCode().toHexString).toSet
+        viewModel.uiGraph.edges().forEach { e =>
+          val stylableEdge = graphView.getStylableEdge(e)
+          if overloadedIds.contains(e.element()) then
+            stylableEdge.setStyleInline(
+              "-fx-stroke: #e74c3c; -fx-stroke-width: 2;"
+            ) // red
+          else
+            stylableEdge.setStyleInline(
+              "-fx-stroke: black; -fx-stroke-width: 2;"
+            ) // black
+        }
+
+        graphView.update()
+      }
+
     // Add single-click actions for nodes and edges
     viewModel.uiGraph.vertices().forEach { v =>
       val node = graphView.getStylableVertex(v).asInstanceOf[javafx.scene.Node]
