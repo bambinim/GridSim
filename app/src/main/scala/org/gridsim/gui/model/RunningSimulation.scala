@@ -4,7 +4,7 @@ import cats.effect.IO
 import fs2.concurrent.SignallingRef
 import org.gridsim.core.observability.SimulationData
 import org.gridsim.core.simulation.{SimulationController, SimulationModel}
-import org.gridsim.core.statistics.SimulationStatistics
+import org.gridsim.core.statistics.{NetFlowHistory, SimulationStatistics}
 
 /**
  * Representation of an active simulation loop setup.
@@ -19,5 +19,6 @@ case class RunningSimulation(
   model: SimulationModel,
   controller: SimulationController,
   snapshotSignal: SignallingRef[IO, SimulationData.SimulationSnapshot],
-  statisticsSignal: SignallingRef[IO, SimulationStatistics]
+  statisticsSignal: SignallingRef[IO, SimulationStatistics],
+  historySignal: SignallingRef[IO, NetFlowHistory]
 )

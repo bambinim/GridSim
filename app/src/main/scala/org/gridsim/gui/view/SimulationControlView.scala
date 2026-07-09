@@ -13,9 +13,6 @@ import scalafx.scene.layout.HBox
  * @param viewModel the viewmodel driving this simulation control view
  */
 class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(16) with ViewFX:
-  /**
-   * The root parent component of this view.
-   */
   override def root: Parent = this
 
   alignment = Pos.Center

@@ -21,9 +21,6 @@ class ScenarioSelectionView[A](
   viewModel: ScenarioSelectionViewModel[A],
   onScenarioLoaded: A => Unit = (_: A) => ()
 ) extends VBox(16) with ViewFX:
-  /**
-   * The root parent component of this view.
-   */
   override def root: Parent = this
 
   padding = Insets(24)

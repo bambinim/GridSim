@@ -14,10 +14,9 @@ import scalafx.scene.layout.VBox
  * @param viewModel the viewmodel driving this simulation summary view
  */
 class SimulationSummaryView(viewModel: SimulationSummaryViewModel) extends VBox with ViewFX:
-  /**
-   * The root parent component of this view.
-   */
   override def root: Parent = this
+
+  styleClass += "summary"
 
   private val netFlowLabel =
     new Label():

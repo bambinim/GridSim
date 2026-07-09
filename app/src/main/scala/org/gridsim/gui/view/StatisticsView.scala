@@ -14,10 +14,9 @@ import scalafx.scene.layout.VBox
  * @param viewModel the viewmodel driving this simulation summary view
  */
 class StatisticsView(viewModel: StatisticsViewModel) extends VBox with ViewFX:
-  /**
-   * The root parent component of this view.
-   */
   override def root: Parent = this
+
+  styleClass += "statistics"
 
   private val avgNetFlowLabel =
     new Label():

@@ -27,6 +27,6 @@ object SimulationStatistics:
       )
 
   extension (s: SimulationStatistics)
-    def averageNetFlow: Double =
-      if s.ticks == 0 then 0.0
-      else (s.totalExported.toDouble - s.totalImported.toDouble) / s.ticks
+    def averageNetFlow: Double = s.ticks match
+      case ticks if ticks > 0 => (s.totalExported.toDouble - s.totalImported.toDouble) / ticks
+      case _ => 0.0
