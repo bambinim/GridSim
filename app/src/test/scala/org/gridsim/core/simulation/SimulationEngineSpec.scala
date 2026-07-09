@@ -1,7 +1,7 @@
 package org.gridsim.core.simulation
 
-import org.gridsim.core.behaviour.{DefaultEntityEvolutionHandlers, EntityEvolutionHandlers}
 import org.gridsim.core.behaviour.house.{ConsumptionResolver, StochasticConsumptionResolver}
+import org.gridsim.core.behaviour.EntityEvolutionDispatcher.given
 import org.gridsim.core.behaviour.shaping.{DemandShaper, IdentityShaper}
 import org.gridsim.core.common.{Energy, Flow, GeographicPoint, kw, kwh}
 import org.gridsim.core.model.{Environment, SolarPanel, SolarPanelState}
@@ -30,8 +30,6 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
 
   given ConsumptionResolver = new StochasticConsumptionResolver()
   given DemandShaper = IdentityShaper()
-  
-  given EntityEvolutionHandlers = DefaultEntityEvolutionHandlers.apply
   
   private val engine = DefaultSimulationEngine(model, SimplePowerFlowSolver(graph))
 
