@@ -7,11 +7,8 @@ import org.gridsim.core.common.{Irradiance, toDouble, wm2}
  * [[GeographicPoint]] and a day-of-year / hour-of-day.
  *
  * Kept separate from [[Environment]].
- * So every formula can be unit-tested directly against known reference
- * values (e.g. day length at the equator is ~12h year-round; day length
- * at high latitude swings from ~0h to 24h across the year).
  *
- * All angles are in degrees unless a parameter name ends in `Rad`.
+ * All angles are in degrees.
  */
 private[model] object SolarModel:
 

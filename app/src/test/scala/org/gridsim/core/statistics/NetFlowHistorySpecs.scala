@@ -4,13 +4,16 @@ import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
-import scala.concurrent.duration.DurationInt
+
+import java.time.LocalDateTime
 
 @RunWith(classOf[JUnitRunner])
 class NetFlowHistorySpecs extends AnyFlatSpec with Matchers:
 
-  private def sampleAt(tickSeconds: Int, value: Double): NetFlowSample =
-    NetFlowSample(tickSeconds.seconds, value)
+  private val start = LocalDateTime.of(2026, 1, 1, 12, 0)
+
+  private def sampleAt(second: Int, value: Double): NetFlowSample =
+    NetFlowSample(start.plusSeconds(second), value)
 
   "NetFlowHistory" should "retain samples in order up to capacity" in :
     val h = (1 to 3).foldLeft(NetFlowHistory.empty(5))((h, i) => h.record(sampleAt(i, i.toDouble)))
@@ -22,4 +25,5 @@ class NetFlowHistorySpecs extends AnyFlatSpec with Matchers:
 
   it should "preserve the real simulation tick, not buffer position" in :
     val h = (1 to 7).foldLeft(NetFlowHistory.empty(5))((h, i) => h.record(sampleAt(i, i.toDouble)))
-    h.samples.map(_.tick) shouldBe Vector(3.seconds, 4.seconds, 5.seconds, 6.seconds, 7.seconds)
+    h.samples.map(_.dateTime) shouldBe Vector(start.plusSeconds(3),
+      start.plusSeconds(4), start.plusSeconds(5), start.plusSeconds(6), start.plusSeconds(7))
