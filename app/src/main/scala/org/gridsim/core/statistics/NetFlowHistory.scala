@@ -1,15 +1,23 @@
 package org.gridsim.core.statistics
 
-import scala.concurrent.duration.FiniteDuration
+import java.time.LocalDateTime
+import org.gridsim.core.observability.SimulationData.SimulationSnapshot
 
 /**
  * A single point in a [[NetFlowHistory]]: the net flow recorded at a given
  * simulation time.
  *
- * @param tick the simulation time the sample was taken at
+ * @param dateTime the simulation date the sample was taken at
  * @param netFlowKwh net flow (kWh, signed: positive = export, negative = import)
  */
-final case class NetFlowSample(tick: FiniteDuration, netFlowKwh: Double)
+final case class NetFlowSample(dateTime: LocalDateTime, netFlowKwh: Double)
+
+object NetFlowSampler:
+  def sample(snapshot: SimulationSnapshot): NetFlowSample =
+    NetFlowSample(
+      dateTime = snapshot.environment.currentDateTime,
+      netFlowKwh = snapshot.entityFlows.values.map(_.value).sum
+    )
 
 /**
  * A bounded, chronologically-ordered window of recent net-flow samples.

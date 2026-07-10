@@ -1,6 +1,6 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.common.{GeographicPoint, Irradiance, wm2}
+import org.gridsim.core.common.{GeographicPoint, Irradiance}
 import org.gridsim.core.common.Temperatures.{AnyTemperature, Temperature}
 
 import java.time.LocalDateTime
@@ -90,7 +90,6 @@ private final case class EnvironmentImpl(startDateTime: LocalDateTime, time: Fin
 
     WeatherConditions(irradiance, temperature)
 
-  /** Advance simulation by one tick using external delta converted to minutes. */
   override def advance(delta: FiniteDuration): Environment =
     copy(time = time + delta)
 
