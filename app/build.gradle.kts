@@ -46,9 +46,12 @@ dependencies {
     implementation(variantOf(libs.javafx.graphics) { classifier(javafxPlatform) })
     implementation(variantOf(libs.javafx.controls) { classifier(javafxPlatform) })
     implementation(variantOf(libs.javafx.media) { classifier(javafxPlatform) })
+    implementation(variantOf(libs.javafx.web) { classifier(javafxPlatform) })
+    implementation(variantOf(libs.javafx.swing) { classifier(javafxPlatform) })
 
     // This dependency is used by the application.
     implementation(libs.guava)
+    implementation(libs.smartgraph)
 
     // Use Scalatest for testing our library
     testImplementation(libs.junit)
@@ -85,4 +88,11 @@ tasks.register("ciBuild") {
     group = "build"
     description = "CI build without added checks"
     dependsOn("assemble", "test")
+}
+
+tasks.register<JavaExec>("runGraphView") {
+    group = "application"
+    description = "Run the standalone Graph View test application"
+    mainClass = "org.gridsim.gui.app.GraphViewApp"
+    classpath = sourceSets["main"].runtimeClasspath
 }
