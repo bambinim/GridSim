@@ -13,6 +13,17 @@
     -fx-cursor: hand;
 }
 
+.external-grid {
+    -fx-fill: orange;
+}
+
+.external-grid-text {
+    -fx-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-family: sans-serif;
+    -fx-font-size: 14px;
+}
+
 .vertex-label {
     visibility: hidden;
 }

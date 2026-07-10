@@ -12,6 +12,9 @@ import org.gridsim.core.common.Power
 import scalafx.application.Platform
 import scalafx.Includes.*
 import org.gridsim.gui.viewmodel.GridGraphViewModel
+import com.brunomnsilva.smartgraph.graphview.SmartGraphVertexNode
+import javafx.beans.binding.Bindings
+import javafx.scene.text.Text
 
 /** Mock UI view for displaying the Grid graph. Uses JavaFXSmartGraph to
   * visualize GridEntity nodes and Cable edges.
@@ -38,6 +41,36 @@ class GridGraphView(viewModel: GridGraphViewModel)
     graphView.init()
     // Disable physics layout so positions are fixed
     graphView.setAutomaticLayout(false)
+
+    viewModel.uiGraph.vertices().forEach { v =>
+      if viewModel.isExternalGrid(v.element()) then
+        val vertexNode = graphView
+          .getStylableVertex(v)
+          .asInstanceOf[SmartGraphVertexNode[String]]
+        vertexNode.addStyleClass("external-grid")
+
+        val text = new Text("EG")
+        text.getStyleClass.add("external-grid-text")
+
+        // Avoid cyclic bounds dependency by not binding to layoutBoundsProperty
+        text
+          .xProperty()
+          .bind(
+            Bindings.createDoubleBinding(
+              () => vertexNode.centerXProperty().get() - 10,
+              vertexNode.centerXProperty()
+            )
+          )
+        text
+          .yProperty()
+          .bind(
+            Bindings.createDoubleBinding(
+              () => vertexNode.centerYProperty().get() + 5,
+              vertexNode.centerYProperty()
+            )
+          )
+        vertexNode.getChildren().add(text)
+    }
 
     viewModel.onUpdate = () =>
       Platform.runLater {
