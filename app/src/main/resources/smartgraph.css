@@ -1,0 +1,33 @@
+/*
+ * CSS file for SmartGraph visualization.
+ */
+.vertex {
+    -fx-fill: #3498db;
+    -fx-stroke: black;
+    -fx-stroke-width: 2;
+}
+
+.edge {
+    -fx-stroke: black;
+    -fx-stroke-width: 2;
+    -fx-cursor: hand;
+}
+
+.external-grid {
+    -fx-fill: orange;
+}
+
+.external-grid-text {
+    -fx-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-family: sans-serif;
+    -fx-font-size: 14px;
+}
+
+.vertex-label {
+    visibility: hidden;
+}
+
+.edge-label {
+    visibility: hidden;
+}

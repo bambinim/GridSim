@@ -23,7 +23,6 @@ case class CableConnections(n1: String, n2: String):
     case _ => false
 
   override def hashCode(): Int =
-    // Order-independent hash: use a commutative operation
     n1.hashCode + n2.hashCode
 
 case class Cable(connections: CableConnections, maxCapacity: Power)
