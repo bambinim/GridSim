@@ -29,7 +29,7 @@ class GridGraphViewModel(
     }
 
   def edgeClicked(from: String, to: String): Unit =
-    () // TODO: implement cable selection
+    selection.value = Selection.SelectedCable(CableConnections(from, to))
 
   def entityFlow(id: String): Option[Flow[Energy]] = entityFlows.get(id)
 

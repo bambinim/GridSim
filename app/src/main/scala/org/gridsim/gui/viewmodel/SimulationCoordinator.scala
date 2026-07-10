@@ -108,6 +108,7 @@ class SimulationCoordinator(
       entityDetailsViewModel.update(
         state.entityStates,
         state.entityFlows,
+        state.cableLoads,
         state.environment
       )
     }
@@ -120,6 +121,11 @@ class SimulationCoordinator(
   ): Unit =
     val controllerState = running.controller.simulationControllerState
     summaryViewModel.update(entityFlows, environment, controllerState)
-    entityDetailsViewModel.update(entityStates, entityFlows, environment)
+    entityDetailsViewModel.update(
+      entityStates,
+      entityFlows,
+      cableLoads,
+      environment
+    )
     controlViewModel.update(controllerState)
     graphViewModel.update(entityFlows, cableLoads)
