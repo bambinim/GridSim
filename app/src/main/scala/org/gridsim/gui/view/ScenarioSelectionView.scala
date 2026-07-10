@@ -1,11 +1,17 @@
 package org.gridsim.gui.view
 
+import org.gridsim.gui.model.TickDurationUnit
 import org.gridsim.gui.viewmodel.ScenarioSelectionViewModel
+import scalafx.collections.ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
-import scalafx.scene.control.{Button, Label, ListView, TextField}
+import scalafx.scene.control.{Button, ComboBox, DatePicker, Label, ListView, Spinner, TextField}
 import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
 import scalafx.scene.layout.{HBox, Priority, VBox}
+import scalafx.util.StringConverter
+
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * View panel for selecting and loading preset scenarios.
@@ -40,10 +46,44 @@ class ScenarioSelectionView[A](
     minHeight = 120
     styleClass += "scenario-list"
 
-  private val tickField = new TextField:
-    text <==> viewModel.tickDurationText
-    prefWidth = 80
-    maxWidth = 80
+  private val tickAmountField = new TextField:
+    text <==> viewModel.tickAmountText
+    prefWidth = 60
+
+  private val tickUnitCombo = new ComboBox[TickDurationUnit](ObservableBuffer(TickDurationUnit.values*)):
+    value <==> viewModel.tickUnit
+    converter = new StringConverter[TickDurationUnit]:
+      override def toString(unit: TickDurationUnit): String =
+        if unit == null then "" else unit.label
+      override def fromString(text: String): TickDurationUnit =
+        TickDurationUnit.values.find(_.label == text).orNull
+    prefWidth = 160
+
+  private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+  private val startDatePicker = new DatePicker:
+    promptText = "yyyy-MM-dd"
+    converter = new StringConverter[LocalDate]:
+      override def toString(date: LocalDate): String =
+        if date == null then "" else dateFormatter.format(date)
+
+      override def fromString(text: String): LocalDate =
+        if text == null || text.isBlank then null
+        else scala.util.Try(LocalDate.parse(text.trim, dateFormatter)).getOrElse(null)
+    value <==> viewModel.startDate
+    prefWidth = 130
+
+  private val hourField = new TextField:
+    text <==> viewModel.startHourText
+    prefWidth = 40
+
+  private val minuteField = new TextField:
+    text <==> viewModel.startMinuteText
+    prefWidth = 40
+
+  private val secondField = new TextField:
+    text <==> viewModel.startSecondText
+    prefWidth = 40
 
   private val startButton = new Button("Start"):
     disable <== viewModel.isStartDisabled
@@ -90,8 +130,21 @@ class ScenarioSelectionView[A](
     new HBox(10):
       alignment = Pos.CenterLeft
       children = Seq(
-        new Label("Tick duration (minutes)"),
-        tickField
+        new Label("Step duration:"),
+        tickAmountField,
+        tickUnitCombo
+      ),
+    new HBox(10):
+      alignment = Pos.CenterLeft
+      children = Seq(
+        new Label("Start time:"),
+        startDatePicker,
+        hourField,
+        new Label("h"),
+        minuteField,
+        new Label("m"),
+        secondField,
+        new Label("s"),
       ),
     messageLabel,
     new HBox:

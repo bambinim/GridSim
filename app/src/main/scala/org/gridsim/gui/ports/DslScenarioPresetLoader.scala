@@ -1,6 +1,7 @@
 package org.gridsim.gui.ports
 
 import cats.data.NonEmptyChain
+import org.gridsim.core.model.Environment
 import org.gridsim.dsl.{DSLBuilderError, DSLError}
 import org.gridsim.dsl.scenarios.{GridScenarioCatalog, GridScenarioPreset}
 import org.gridsim.dsl.simulation.SimulationBuilder
@@ -23,13 +24,14 @@ class DslScenarioPresetLoader extends ScenarioPresetLoader[RunningSimulation]:
       .toRight(s"Unknown scenario: ${config.presetId.value}")
       .flatMap { preset =>
         preset
-          .build(config.tickDurationMinutes)
+          .build(config.tickDelta)
           .build()
           .toEither
           .left
           .map(formatErrors)
           .map { case (model, state) =>
-            RunningSimulationFactory.createSimpleSimulation(model, state)
+            val seededState = state.copy(environment = Environment(config.startDateTime))
+            RunningSimulationFactory.createSimpleSimulation(model, seededState)
           }
       }
 

@@ -14,12 +14,14 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 
+import java.time.LocalDateTime
 import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
 class BatteryEnergyExchangeSpec extends AnyFlatSpec with Matchers {
 
   private val env = new Environment {
+    override def startDateTime: LocalDateTime = LocalDateTime.now
     override def time: FiniteDuration = 11.hours
     override def weather(point: GeographicPoint): WeatherConditions = ???
     override def advance(delta: FiniteDuration): Environment = ???
