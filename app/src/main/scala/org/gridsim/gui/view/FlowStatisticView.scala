@@ -1,6 +1,6 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.viewmodel.StatisticsViewModel
+import org.gridsim.gui.viewmodel.FlowStatisticViewModel
 import scalafx.scene.Parent
 import scalafx.scene.control.Label
 import scalafx.scene.layout.VBox
@@ -13,7 +13,7 @@ import scalafx.scene.layout.VBox
  *
  * @param viewModel the viewmodel driving this simulation summary view
  */
-class StatisticsView(viewModel: StatisticsViewModel) extends VBox with ViewFX:
+class FlowStatisticView(viewModel: FlowStatisticViewModel) extends VBox with ViewFX:
   override def root: Parent = this
 
   styleClass += "statistics"

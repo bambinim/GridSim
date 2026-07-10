@@ -1,12 +1,12 @@
 package org.gridsim.gui.view
 
 import javafx.scene.chart as jfxsc
-import org.gridsim.gui.viewmodel.NetFlowChartViewModel
+import org.gridsim.gui.viewmodel.NetFlowChartStatisticViewModel
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.Parent
 import scalafx.scene.chart.{LineChart, CategoryAxis, NumberAxis}
 
-class NetFlowChartView(viewModel: NetFlowChartViewModel) extends LineChart[String, Number](
+class NetFlowChartStatisticView(viewModel: NetFlowChartStatisticViewModel) extends LineChart[String, Number](
   CategoryAxis("Time"),
   NumberAxis("Net flow (kWh)")
 ) with ViewFX:

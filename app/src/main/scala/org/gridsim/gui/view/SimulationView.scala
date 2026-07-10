@@ -26,8 +26,8 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
 
   private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
-  private val statisticsView = new StatisticsView(coordinator.statisticsViewModel)
-  private val netFlowChartView = new NetFlowChartView(coordinator.netFlowChartViewModel)
+  private val statisticsView = new FlowStatisticView(coordinator.flowStatisticViewModel)
+  private val netFlowChartView = new NetFlowChartStatisticView(coordinator.netFlowChartStatisticViewModel)
   private val controlView = new SimulationControlView(coordinator.controlViewModel)
 
   private val graphArea = new BorderPane:

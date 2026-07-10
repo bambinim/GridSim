@@ -7,6 +7,7 @@ import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.common.Energy.*
 import org.gridsim.core.common.kwh
 import org.gridsim.core.model.Environment
+import org.gridsim.core.observability.SimulationData.EntityFlowsData
 import org.gridsim.core.observability.{Fs2DataDispatcher, Observer, SimulationData}
 import org.gridsim.core.simulation.SimulationState
 import org.junit.runner.RunWith
@@ -29,9 +30,9 @@ class StatisticsObserverIntegrationSpec extends AnyFlatSpec with Matchers:
 
   "A statistics-accumulating observer" should "fold every dispatched tick into a running total" in:
     val testIO = for {
-      statsRef <- Ref.of[IO, SimulationStatistics](SimulationStatistics.empty)
+      statsRef <- Ref.of[IO, FlowStatistic](FlowStatistic.empty)
       obs = Observer[IO, SimulationData.SimulationSnapshot] { snapshot =>
-        statsRef.update(_ |+| StatisticsCollector.collect(snapshot))
+        statsRef.update(_ |+| FlowSampler.sample(EntityFlowsData(snapshot.entityFlows)))
       }
       dispatcher <- Fs2DataDispatcher[IO](List(obs))
       _ <- IO.sleep(500.millis) // let the subscriber fiber start, same as ObservabilitySpec

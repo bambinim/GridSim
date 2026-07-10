@@ -5,11 +5,9 @@ import cats.effect.unsafe.implicits.global
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.{Environment, GridEntityState}
-import org.gridsim.core.simulation.SimulationControllerState
-import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
+import org.gridsim.core.statistics.{StatKey, StatisticsRegistry}
 import org.gridsim.gui.model.*
 import scalafx.application.Platform
-import scalafx.scene.Parent
 
 /**
  * Coordinates GUI-facing simulation updates and commands.
@@ -40,24 +38,18 @@ class SimulationCoordinator(
   /** ViewModel controlling simulation commands like play, pause, step, and stop. */
   val controlViewModel = SimulationControlViewModel(running, onExit)
 
-  /** ViewModel managing the statistics. */
-  val statisticsViewModel = StatisticsViewModel()
-  val netFlowChartViewModel = NetFlowChartViewModel()
+  /** ViewModels managing the statistics. */
+  val flowStatisticViewModel = FlowStatisticViewModel()
+  val netFlowChartStatisticViewModel = NetFlowChartStatisticViewModel()
 
   running.statisticsSignal.discrete
-    .evalMap(stats => IO {
+    .map(StatisticsRegistry.engine.extract)
+    .evalMap(board => IO {
       Platform.runLater {
-        statisticsViewModel.update(stats)
+        flowStatisticViewModel.update(board.get(StatKey.SimStats))
+        netFlowChartStatisticViewModel.update(board.get(StatKey.NetFlowHist))
       }
-    })
-    .compile.drain.unsafeRunAndForget()
-  running.historySignal.discrete
-    .evalMap(history => IO {
-      Platform.runLater {
-        netFlowChartViewModel.update(history)
-      }
-    })
-    .compile.drain.unsafeRunAndForget()
+    }).compile.drain.unsafeRunAndForget()
 
   selectedEntity.onChange{
     (_, _, _) => renderCurrent()
@@ -68,10 +60,7 @@ class SimulationCoordinator(
       Platform.runLater {
         updateWith(snapshot.environment, snapshot.entityStates, snapshot.entityFlows)
       }
-    })
-    .compile
-    .drain
-    .unsafeRunAndForget()
+    }).compile.drain.unsafeRunAndForget()
 
   /**
    * Forces a render update of selected entity details using the current state stored inside the simulation controller.
@@ -91,4 +80,3 @@ class SimulationCoordinator(
     summaryViewModel.update(entityFlows, environment, controllerState)
     entityDetailsViewModel.update(entityStates, entityFlows, environment)
     controlViewModel.update(controllerState)
-
