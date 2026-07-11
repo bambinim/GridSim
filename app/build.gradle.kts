@@ -20,8 +20,14 @@ repositories {
 
 val javafxPlatform = when {
     org.gradle.internal.os.OperatingSystem.current().isWindows -> "win"
-    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> "mac"
-    org.gradle.internal.os.OperatingSystem.current().isLinux -> "linux"
+    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> {
+        val arch = System.getProperty("os.arch").lowercase()
+        if (arch == "aarch64" || arch == "arm64") "mac-aarch64" else "mac"
+    }
+    org.gradle.internal.os.OperatingSystem.current().isLinux -> {
+        val arch = System.getProperty("os.arch").lowercase()
+        if (arch == "aarch64" || arch == "arm64") "linux-aarch64" else "linux"
+    }
     else -> throw GradleException("Unsupported operating system for JavaFX")
 }
 
@@ -40,9 +46,12 @@ dependencies {
     implementation(variantOf(libs.javafx.graphics) { classifier(javafxPlatform) })
     implementation(variantOf(libs.javafx.controls) { classifier(javafxPlatform) })
     implementation(variantOf(libs.javafx.media) { classifier(javafxPlatform) })
+    implementation(variantOf(libs.javafx.web) { classifier(javafxPlatform) })
+    implementation(variantOf(libs.javafx.swing) { classifier(javafxPlatform) })
 
     // This dependency is used by the application.
     implementation(libs.guava)
+    implementation(libs.smartgraph)
 
     // Use Scalatest for testing our library
     testImplementation(libs.junit)
@@ -79,4 +88,11 @@ tasks.register("ciBuild") {
     group = "build"
     description = "CI build without added checks"
     dependsOn("assemble", "test")
+}
+
+tasks.register<JavaExec>("runGraphView") {
+    group = "application"
+    description = "Run the standalone Graph View test application"
+    mainClass = "org.gridsim.gui.app.GraphViewApp"
+    classpath = sourceSets["main"].runtimeClasspath
 }

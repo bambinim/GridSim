@@ -6,33 +6,44 @@ import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
 import org.gridsim.core.simulation.SimulationModel
 import org.gridsim.gui.model.{DetailsEntity, Selection}
-import org.gridsim.gui.ports.{DetailDispatcher, ExtractedEntityDetails, ExtractedSelectionDetails}
+import org.gridsim.gui.ports.{
+  DetailDispatcher,
+  ExtractedEntityDetails,
+  ExtractedSelectionDetails
+}
+import org.gridsim.core.model.network.Cable
+import scala.concurrent.duration.FiniteDuration
 
-/**
- * ViewModel for displaying and updating the details of the currently selected entity.
- *
- * This ViewModel listens to changes in the current selection, updates details
- * based on incoming simulation snapshots, and maps core domain models/states
- * into UI-facing details representations (`DetailsEntity`).
- *
- * @param model the active simulation model containing the grid topology
- * @param selectionProp the property tracking the current selection in the UI
- */
+/** ViewModel for displaying and updating the details of the currently selected
+  * entity.
+  *
+  * This ViewModel listens to changes in the current selection, updates details
+  * based on incoming simulation snapshots, and maps core domain models/states
+  * into UI-facing details representations (`DetailsEntity`).
+  *
+  * @param model
+  *   the active simulation model containing the grid topology
+  * @param selectionProp
+  *   the property tracking the current selection in the UI
+  */
 class EntityDetailsViewModel(
-  model: SimulationModel,
-  selectionProp: ObjectProperty[Selection]
+    model: SimulationModel,
+    selectionProp: ObjectProperty[Selection]
 ):
   private var lastEntityStates: Map[String, GridEntityState] = Map.empty
   private var lastEntityFlows: Map[String, Flow[Energy]] = Map.empty
   private var lastCableLoads: Map[Cable, Energy] = Map.empty
   private var lastEnvironment: Option[Environment] = None
+  private var lastCableLoads: Map[Cable, Energy] = Map.empty
 
-  private val _detailsEntityProperty = ObjectProperty[DetailsEntity](emptyDetails)
+  private val _detailsEntityProperty =
+    ObjectProperty[DetailsEntity](emptyDetails)
 
-  /**
-   * The read-only property exposing the details of the selected entity to the view.
-   */
-  val detailsEntityProperty: ReadOnlyObjectProperty[DetailsEntity] = _detailsEntityProperty
+  /** The read-only property exposing the details of the selected entity to the
+    * view.
+    */
+  val detailsEntityProperty: ReadOnlyObjectProperty[DetailsEntity] =
+    _detailsEntityProperty
 
   private def emptyDetails = DetailsEntity(
     id = "",
@@ -42,45 +53,71 @@ class EntityDetailsViewModel(
   )
 
   selectionProp.onChange { (_, _, newSelection) =>
-    recalculate(newSelection, lastEntityStates, lastEntityFlows, lastCableLoads, lastEnvironment.get)
+    lastEnvironment.foreach { env =>
+      recalculate(
+        newSelection,
+        lastEntityStates,
+        lastEntityFlows,
+        lastCableLoads,
+        env
+      )
+    }
   }
 
-  /**
-   * Updates the cached entity states, flows, and environment, and triggers
-   * a recalculation of the selected entity's details.
-   *
-   * @param entityStates a map of entity IDs to their current state in the simulation
-   * @param entityFlows a map of entity IDs to their current energy flows
-   * @param environment the current environmental state (e.g., solar radiation, temperature)
-   */
+  /** Updates the cached entity states, flows, and environment, and triggers a
+    * recalculation of the selected entity's details.
+    *
+    * @param entityStates
+    *   a map of entity IDs to their current state in the simulation
+    * @param entityFlows
+    *   a map of entity IDs to their current energy flows
+    * @param environment
+    *   the current environmental state (e.g., solar radiation, temperature)
+    */
   def update(
-    entityStates: Map[String, GridEntityState],
-    entityFlows: Map[String, Flow[Energy]],
-    cableLoads: Map[Cable, Energy],
-    environment: Environment
+      entityStates: Map[String, GridEntityState],
+      entityFlows: Map[String, Flow[Energy]],
+      cableLoads: Map[Cable, Energy],
+      environment: Environment
   ): Unit =
     lastEntityStates = entityStates
     lastEntityFlows = entityFlows
     lastCableLoads = cableLoads
     lastEnvironment = Some(environment)
-    recalculate(selectionProp.value, entityStates, entityFlows, cableLoads, environment)
+
+    lastCableLoads = cableLoads
+    recalculate(
+      selectionProp.value,
+      entityStates,
+      entityFlows,
+      cableLoads,
+      environment
+    )
 
   private def recalculate(
-    selection: Selection,
-    entityStates: Map[String, GridEntityState],
-    entityFlows: Map[String, Flow[Energy]],
-    cableLoads: Map[Cable, Energy],
-    environment: Environment
+      selection: Selection,
+      entityStates: Map[String, GridEntityState],
+      entityFlows: Map[String, Flow[Energy]],
+      cableLoads: Map[Cable, Energy],
+      environment: Environment
   ): Unit =
-    val extracted = DetailDispatcher.resolve(selection, entityStates, entityFlows, cableLoads, environment)
+    val extracted = DetailDispatcher.resolve(
+      selection,
+      entityStates,
+      entityFlows,
+      cableLoads,
+      environment,
+      model.delta
+    )
     _detailsEntityProperty.value = mapExtractedToView(extracted, environment)
 
   private def mapExtractedToView(
-    extracted: ExtractedSelectionDetails,
-    environment: Environment
+      extracted: ExtractedSelectionDetails,
+      environment: Environment
   ): DetailsEntity =
     val componentViews = extracted.components.map { (comp, compState) =>
-      val compExtracted = DetailDispatcher.resolveEntity(comp, compState, environment)
+      val compExtracted =
+        DetailDispatcher.resolveEntity(comp, compState, environment)
       mapEntityExtractedToView(comp, compExtracted, environment)
     }
 
@@ -92,12 +129,13 @@ class EntityDetailsViewModel(
     )
 
   private def mapEntityExtractedToView(
-    entity: GridEntity,
-    extracted: ExtractedEntityDetails,
-    environment: Environment
+      entity: GridEntity,
+      extracted: ExtractedEntityDetails,
+      environment: Environment
   ): DetailsEntity =
     val componentViews = extracted.components.map { (comp, compState) =>
-      val compExtracted = DetailDispatcher.resolveEntity(comp, compState, environment)
+      val compExtracted =
+        DetailDispatcher.resolveEntity(comp, compState, environment)
       mapEntityExtractedToView(comp, compExtracted, environment)
     }
 

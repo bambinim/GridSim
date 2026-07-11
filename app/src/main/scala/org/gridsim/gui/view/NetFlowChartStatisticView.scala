@@ -1,13 +1,13 @@
 package org.gridsim.gui.view
 
 import javafx.scene.chart as jfxsc
-import org.gridsim.gui.viewmodel.NetFlowChartViewModel
+import org.gridsim.gui.viewmodel.NetFlowChartStatisticViewModel
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.Parent
-import scalafx.scene.chart.{LineChart, NumberAxis}
+import scalafx.scene.chart.{LineChart, CategoryAxis, NumberAxis}
 
-class NetFlowChartView(viewModel: NetFlowChartViewModel) extends LineChart[Number, Number](
-  NumberAxis("Time (s)"),
+class NetFlowChartStatisticView(viewModel: NetFlowChartStatisticViewModel) extends LineChart[String, Number](
+  CategoryAxis("Time"),
   NumberAxis("Net flow (kWh)")
 ) with ViewFX:
   override def root: Parent = this
@@ -18,7 +18,7 @@ class NetFlowChartView(viewModel: NetFlowChartViewModel) extends LineChart[Numbe
   createSymbols = false
   animated = false
 
-  private val series = new jfxsc.XYChart.Series[Number, Number]()
+  private val series = new jfxsc.XYChart.Series[String, Number]()
   series.setName("Net flow")
   series.setData(viewModel.dataPoints)
 

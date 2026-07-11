@@ -1,21 +1,28 @@
 package org.gridsim.gui.view
 
 import org.gridsim.gui.viewmodel.EntityDetailsViewModel
-import org.gridsim.gui.model.DetailsEntity
+import org.gridsim.gui.model.{
+  DetailsEntity,
+  DetailField,
+  DetailItem,
+  DetailSeparator
+}
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
 import scalafx.scene.control.{Label, Separator, ScrollPane}
 import scalafx.scene.layout.{GridPane, HBox, VBox}
 
-/**
- * View panel for displaying detailed information about a selected grid entity.
- *
- * This panel displays various properties of the entity (like ID, name, current power,
- * components) dynamically updating as the simulation state changes.
- *
- * @param viewModel the viewmodel driving this entity details view
- */
-class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane with ViewFX:
+/** View panel for displaying detailed information about a selected grid entity.
+  *
+  * This panel displays various properties of the entity (like ID, name, current
+  * power, components) dynamically updating as the simulation state changes.
+  *
+  * @param viewModel
+  *   the viewmodel driving this entity details view
+  */
+class EntityDetailsView(viewModel: EntityDetailsViewModel)
+    extends ScrollPane
+    with ViewFX:
 
   fitToWidth = true
   styleClass += "entity-details-scroll-pane"
@@ -46,7 +53,9 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
           new Label("No Selection") {
             styleClass += "details-placeholder-title"
           },
-          new Label("Select a node or cable in the simulation view to see details.") {
+          new Label(
+            "Select a node or cable in the simulation view to see details."
+          ) {
             styleClass += "details-placeholder-subtitle"
             wrapText = true
           }
@@ -58,12 +67,14 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
 
   private def createEntityCard(entity: DetailsEntity, isNested: Boolean): VBox =
     new VBox(10) {
-      styleClass += (if isNested then "entity-card-nested" else "entity-card-main")
+      styleClass += (if isNested then "entity-card-nested"
+                     else "entity-card-main")
 
       val header: HBox = new HBox(8) {
         alignment = Pos.CenterLeft
         val titleLabel: Label = new Label(entity.title) {
-          styleClass += (if isNested then "entity-title-nested" else "entity-title-main")
+          styleClass += (if isNested then "entity-title-nested"
+                         else "entity-title-main")
         }
         children = Seq(titleLabel)
       }
@@ -78,15 +89,22 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
         padding = Insets(4, 0, 4, 0)
       }
 
-      entity.fields.zipWithIndex.foreach { case (field, idx) =>
-        val nameLabel = new Label(field.field) {
-          styleClass += "entity-field-name"
-        }
-        val valLabel = new Label(field.value) {
-          styleClass += "entity-field-value"
-        }
-        grid.add(nameLabel, 0, idx)
-        grid.add(valLabel, 1, idx)
+      entity.fields.zipWithIndex.foreach { case (item, idx) =>
+        item match
+          case DetailField(name, value) =>
+            val nameLabel = new Label(name) {
+              styleClass += "entity-field-name"
+            }
+            val valLabel = new Label(value) {
+              styleClass += "entity-field-value"
+            }
+            grid.add(nameLabel, 0, idx)
+            grid.add(valLabel, 1, idx)
+          case DetailSeparator =>
+            val sep = new Separator {
+              styleClass += "details-separator"
+            }
+            grid.add(sep, 0, idx, 2, 1)
       }
 
       children = Seq(header, separator, grid)
@@ -96,7 +114,9 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel) extends ScrollPane wi
           styleClass += "components-header"
         }
         val compList = new VBox(8) {
-          children = entity.components.map(comp => createEntityCard(comp, isNested = true))
+          children = entity.components.map(comp =>
+            createEntityCard(comp, isNested = true)
+          )
         }
         children.addAll(compHeader, compList)
     }

@@ -1,9 +1,10 @@
 package org.gridsim.core.model
 
-import org.gridsim.core.common.{GeographicPoint, Irradiance, wm2}
+import org.gridsim.core.common.{GeographicPoint, Irradiance}
 import org.gridsim.core.common.Temperatures.{AnyTemperature, Temperature}
 
-import scala.concurrent.duration.FiniteDuration
+import java.time.LocalDateTime
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 /** Weather conditions at a geographic location and at a given tick. */
 trait WeatherConditions:
@@ -28,8 +29,15 @@ object WeatherConditions:
  * current tick.
  */
 trait Environment:
+  /** The calendar moment the simulation started at (tick 0). */
+  def startDateTime: LocalDateTime
+
   /** The current simulation time instant. */
   def time: FiniteDuration
+
+  /** The current calendar moment: [[startDateTime]] advanced by [[time]]. */
+  final def currentDateTime: LocalDateTime =
+    startDateTime.plusNanos(time.toNanos)
 
   /** Current hour of day, normalized to the range 0-23. */
   final def hourOfDay: Int =
@@ -61,28 +69,38 @@ trait Environment:
    */
   def advance(delta: FiniteDuration): Environment
 
-private final case class SimpleEnvironment(time: FiniteDuration) extends Environment:
-  /** Simple deterministic weather model (placeholder). */
-  override def weather(point: GeographicPoint): WeatherConditions =
-    val hour = hourOfDay
-    val irradiance =
-      if hour >= 6 && hour <= 18 then
-        (800.0 + 200.0 * math.sin(hour / 24.0 * math.Pi)).wm2
-      else
-        Irradiance.Zero
+private final case class EnvironmentImpl(startDateTime: LocalDateTime, time: FiniteDuration) extends Environment:
 
-    val temperature =
-      val base = 15.0
-      val daily = math.sin(hour / 24.0 * 2 * math.Pi) * 5
-      val seasonal = math.sin(time.toDays / 365.0 * 2 * math.Pi) * 10
-      Temperature.celsius(base + daily + seasonal).toAny
+  override def weather(point: GeographicPoint): WeatherConditions =
+    val current = currentDateTime
+    val dayOfYear = current.getDayOfYear
+    val declination = SolarModel.solarDeclinationDeg(dayOfYear)
+
+    val utcHour = current.getHour + current.getMinute / 60.0 + current.getSecond / 3600.0
+    val localHour = SolarModel.localSolarHour(utcHour, point.longitude)
+
+    val (sunrise, sunset) = SolarModel.sunriseSunset(point.latitude, declination)
+    val peakToday = SolarModel.clearSkyIrradiance(SolarModel.noonElevationDeg(point.latitude, declination))
+    val irradiance = SolarModel.irradianceAt(localHour, sunrise, sunset, peakToday)
+
+    val baseTemperatureC = 15.0
+    val seasonalC = SolarModel.seasonalTemperatureOffsetC(point.latitude, declination)
+    val dailyC = SolarModel.dailyTemperatureOffsetC(localHour)
+    val temperature = Temperature.celsius(baseTemperatureC + seasonalC + dailyC).toAny
 
     WeatherConditions(irradiance, temperature)
 
-  /** Advance simulation by one tick using external delta converted to minutes. */
   override def advance(delta: FiniteDuration): Environment =
-    copy(time + delta)
+    copy(time = time + delta)
 
 object Environment:
+  /** Reference start date used when no explicit calendar start is given (tests, DSL defaults). */
+  private val DefaultStartDateTime: LocalDateTime = LocalDateTime.now()
+
+  /** Backward-compatible: elapsed time only, counted from [[DefaultStartDateTime]]. */
   def apply(time: FiniteDuration): Environment =
-    SimpleEnvironment(time)
+    EnvironmentImpl(DefaultStartDateTime, time)
+
+  /** Starts the simulation clock at a specific calendar moment. */
+  def apply(startDateTime: LocalDateTime, time: FiniteDuration = 0.seconds): Environment =
+    EnvironmentImpl(startDateTime, time)

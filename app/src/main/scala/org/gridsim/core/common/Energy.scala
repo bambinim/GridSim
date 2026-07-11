@@ -40,6 +40,9 @@ object Energy:
       if e > 0.0 then Flow.Surplus(e)
       else if e < 0.0 then Flow.Deficit(e.abs)
       else Flow.Balanced
+    def instantPower(delta: FiniteDuration): Power = Power(
+      e / delta.toUnit(TimeUnit.HOURS)
+    )
 
 extension (d: Double) infix def kwh: Energy = Energy(d)
 

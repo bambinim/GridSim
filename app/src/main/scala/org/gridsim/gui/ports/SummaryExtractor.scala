@@ -6,23 +6,25 @@ import org.gridsim.core.common.Energy.toFlow
 import org.gridsim.core.common.kwh
 import org.gridsim.core.model.Environment
 
+import java.time.LocalDateTime
+
 /**
  * Data container for aggregate simulation metrics extracted from a simulation state snapshot.
  *
  * @param simulatedMinutes total simulation runtime in minutes
- * @param hourOfDay current hour of the day (0-23)
+ * @param dateTime current hour of the day (0-23)
  * @param netFlowKwh the total net energy flow (surplus or deficit) in kWh
  * @param netFlowKind the direction of the net energy flow (Surplus, Deficit, or Balanced)
  * @param entityCount the number of nodes in the grid topology
  * @param cableCount the number of cables in the grid topology
  */
 final case class ExtractedSummary(
-  simulatedMinutes: Long,
-  hourOfDay: Int,
-  netFlowKwh: Double,
-  netFlowKind: Flow[Energy],
-  entityCount: Int,
-  cableCount: Int
+                                   simulatedMinutes: Long,
+                                   dateTime: LocalDateTime,
+                                   netFlowKwh: Double,
+                                   netFlowKind: Flow[Energy],
+                                   entityCount: Int,
+                                   cableCount: Int
 )
 
 /**
@@ -46,7 +48,7 @@ class SummaryExtractor:
     val netFlowKwh = entityFlows.values.map(_.value).sum
     ExtractedSummary(
       simulatedMinutes = env.time.toMinutes,
-      hourOfDay = env.hourOfDay,
+      dateTime = env.currentDateTime,
       netFlowKwh = netFlowKwh,
       netFlowKind = netFlowKwh.kwh.toFlow,
       entityCount = model.grid.nodes.size,
