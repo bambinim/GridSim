@@ -5,13 +5,14 @@ import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.{GridEntity, GridEntityState}
 import org.gridsim.core.solver.PowerFlowSolver
 import org.gridsim.core.model.Environment
-
 import cats.data.State
+
+import scala.concurrent.duration.FiniteDuration
 /**
  * Default pure implementation of [[SimulationEngine]].
  *
  * A tick is evaluated in dependency order:
- *  1. advance the simulated environment by [[SimulationModel.delta]];
+ *  1. advance the simulated environment by [[SimulationState.delta]];
  *  2. evolve every entity-state pair through [[EntityEvolutionDispatcher]];
  *  3. collect the updated entity states and their residual energy flows;
  *  4. calculate cable loads through the configured [[PowerFlowSolver]].
@@ -39,6 +40,8 @@ final case class DefaultSimulationEngine(
   override def step(state: SimulationState): SimulationState =
     simulationPipeline.run(state).value._1
 
+
+
   private def simulationPipeline: State[SimulationState, Unit] =
     for {
       _ <- advanceEnvironment
@@ -47,11 +50,11 @@ final case class DefaultSimulationEngine(
     } yield()
 
   private def advanceEnvironment: State[SimulationState, Unit] = State.modify {
-    s => s.copy(environment = s.environment.advance(model.delta))
+    s => s.copy(environment = s.environment.advance(s.delta))
   }
 
   private def evolveEntities: State[SimulationState, Unit] = State.modify { s =>
-    val resolved = resolveEntities(s.entityStates, model.grid.nodes, s.environment)
+    val resolved = resolveEntities(s.entityStates, model.grid.nodes, s.environment, s.delta)
 
     s.copy(
       entityStates = resolved.map(pair => pair._1.entityId -> pair._1).toMap,
@@ -69,12 +72,14 @@ final case class DefaultSimulationEngine(
    * @param entityStates dynamic entity states from the current snapshot
    * @param entityModels static entities configured in the grid topology
    * @param environment environment already advanced to the new tick
+   * @param delta step duration used for evolution
    * @return one updated state and residual energy flow for each input state
    */
   private def resolveEntities(
     entityStates: Map[String, GridEntityState],
     entityModels: Iterable[GridEntity],
-    environment: Environment
+    environment: Environment,
+    delta: FiniteDuration
   ): Iterable[(GridEntityState, Flow[Energy])] =
     pairEntities(entityStates, entityModels).map {
       case (entityState, entityModel) =>
@@ -82,7 +87,7 @@ final case class DefaultSimulationEngine(
           entityState,
           entityModel,
           environment,
-          model.delta
+          delta
         )
     }
 

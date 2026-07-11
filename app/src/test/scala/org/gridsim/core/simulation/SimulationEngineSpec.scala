@@ -21,7 +21,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
 
   // Helper/Mock definitions
   private val defaultGraph = GridGraph(List(ExternalGrid("external-grid")), Nil)
-  private val defaultModel = SimulationModel(defaultGraph, 15.minutes)
+  private val defaultModel = SimulationModel(defaultGraph)
 
   private def createEngine(
     model: SimulationModel = defaultModel,
@@ -61,7 +61,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
       nodes = List(ExternalGrid("external-grid"), entity),
       cables = Nil
     )
-    val model = SimulationModel(graph, 15.minutes)
+    val model = SimulationModel(graph)
 
     val expectedNextState = TestEntityState("entity-1", "evolved")
     val expectedFlow = Flow.Surplus(Energy(0.5))
@@ -120,7 +120,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
       nodes = List(entity),
       cables = List(dummyCable)
     )
-    val model = SimulationModel(graph, 15.minutes)
+    val model = SimulationModel(graph)
 
     var solverReceivedFlows: Option[Map[String, Flow[Energy]]] = None
     val localSolver = new PowerFlowSolver:

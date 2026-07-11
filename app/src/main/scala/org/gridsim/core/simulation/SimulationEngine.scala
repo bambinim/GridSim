@@ -1,5 +1,7 @@
 package org.gridsim.core.simulation
 
+import scala.concurrent.duration.FiniteDuration
+
 /**
  * Pure algebra for advancing a simulation by one discrete time step.
  *

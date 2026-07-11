@@ -1,10 +1,13 @@
 package org.gridsim.gui.view
 
+import org.gridsim.gui.model.TickDurationUnit
 import org.gridsim.gui.viewmodel.SimulationControlViewModel
+import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Pos
 import scalafx.scene.Parent
-import scalafx.scene.control.{Button, Label}
+import scalafx.scene.control.{Button, ComboBox, Label, TextField}
 import scalafx.scene.layout.HBox
+import scalafx.util.StringConverter
 
 /**
  * View panel for controlling the simulation (Play/Pause, Step, Stop, Exit).
@@ -41,6 +44,20 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
     styleClass ++= Seq("control-button", "exit-btn")
     onAction = _ => viewModel.exit()
 
+  private val tickAmountField = new TextField:
+    text <==> viewModel.tickAmountText
+    prefWidth = 60
+
+  private val tickUnitCombo = new ComboBox[TickDurationUnit](ObservableBuffer(TickDurationUnit.values*)):
+    value <==> viewModel.tickUnit
+    converter = new StringConverter[TickDurationUnit]:
+      override def toString(unit: TickDurationUnit): String =
+        if unit == null then "" else unit.label
+
+      override def fromString(text: String): TickDurationUnit =
+        TickDurationUnit.values.find(_.label == text).orNull
+    prefWidth = 120
+
   // Dynamically update style classes of the status badge on state change
   private def updateBadgeStyle(status: String): Unit =
     statusLabel.styleClass.removeAll("status-running", "status-paused")
@@ -58,6 +75,12 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
   children = Seq(
     statusPrefix,
     statusLabel,
+    new Label(" | "):
+      styleClass += "muted-text"
+    ,
+    new Label("Step Duration:"),
+    tickAmountField,
+    tickUnitCombo,
     new Label(" | "):
       styleClass += "muted-text"
     ,

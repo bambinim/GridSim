@@ -18,7 +18,7 @@ class StatisticsRegistrySpec extends AnyFlatSpec with Matchers:
   private val start = LocalDateTime.of(2026, 1, 1, 12, 0)
 
   private def snapshotAt(second: Int, flows: Map[String, Flow[Energy]]): SimulationSnapshot =
-    SimulationSnapshot(Environment(start, second.seconds), Map.empty, flows, Map.empty)
+    SimulationSnapshot(Environment(start, second.seconds), Map.empty, flows, Map.empty, 1.hour)
 
   private val snapshots = List(
     snapshotAt(0, Map("house" -> Flow.Surplus(5.0.kwh))),

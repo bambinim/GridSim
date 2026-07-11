@@ -96,3 +96,10 @@ class SimulationStateSpec extends AnyFlatSpec with Matchers:
     next.entityFlows shouldBe Map("house-1" -> Balanced)
     next.entityStates shouldBe current.entityStates
     next.cableLoads shouldBe current.cableLoads
+
+  it should "store and update its simulation step delta" in:
+    val state = SimulationState(environment, Map.empty, delta = 30.minutes)
+    state.delta shouldBe 30.minutes
+
+    val updated = state.copy(delta = 1.hour)
+    updated.delta shouldBe 1.hour

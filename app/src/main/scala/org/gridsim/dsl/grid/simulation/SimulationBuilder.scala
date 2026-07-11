@@ -37,12 +37,12 @@ case class SimulationBuilder(
         GridGraph(
           ent.map(_._1) ++ List(ExternalGrid(SimulationBuilder.EG)),
           topCtx.cables
-        ),
-        dt
+        )
       )
       val state = SimulationState(
         Environment(0.seconds),
-        ent.map(e => e._1.id -> e._2).toMap
+        ent.map(e => e._1.id -> e._2).toMap,
+        delta = dt
       )
       (model, state).validNec
     }

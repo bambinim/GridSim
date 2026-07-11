@@ -104,7 +104,7 @@ final case class DefaultSimulationController(
     */
   override def resume(): Unit =
     start()
-  
+
   /** Advances the current state by one engine tick.
     *
     * @return
@@ -116,6 +116,12 @@ final case class DefaultSimulationController(
       d.dispatch(newState).unsafeRunSync()
     }
     newState
+
+  override def setTick(delta: FiniteDuration): Unit =
+    val newState = stateRef.updateAndGet(current => current.copy(delta = delta))
+    dispatcher.foreach { d =>
+      d.dispatch(newState).unsafeRunSync()
+    }
 
   private def cancelActiveTask(): Unit =
     activeTaskRef.getAndSet(None).foreach(_.cancel())

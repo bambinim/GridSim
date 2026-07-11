@@ -40,7 +40,7 @@ class FlowStatisticSpec extends AnyFlatSpec with Matchers:
   private val env = Environment(1.minute)
 
   private def snapshotWithFlows(flows: Map[String, Flow[Energy]]): SimulationSnapshot =
-    SimulationSnapshot(env, Map.empty, flows, Map.empty)
+    SimulationSnapshot(env, Map.empty, flows, Map.empty, 1.hour)
 
   "FlowSampler" should "record a net surplus as exported energy" in :
     val snapshot = snapshotWithFlows(Map("house" -> Flow.Deficit(2.0.kwh), "panel" -> Flow.Surplus(5.0.kwh)))

@@ -7,6 +7,8 @@ import org.gridsim.core.model.network.Cable
 import org.gridsim.core.simulation.SimulationState
 import scala.reflect.ClassTag
 
+import scala.concurrent.duration.FiniteDuration
+
 /** Algebraic Data Type representing discrete slices of simulation data. These
   * are emitted at the end of every simulation tick to be consumed by observers.
   */
@@ -32,7 +34,8 @@ enum SimulationData:
       environment: Environment,
       entityStates: Map[String, GridEntityState],
       entityFlows: Map[String, Flow[Energy]],
-      cableLoads: Map[Cable, Energy]
+      cableLoads: Map[Cable, Energy],
+      delta: FiniteDuration
   )
 
 /** A type class providing the ability to slice a complex state object into
@@ -71,7 +74,7 @@ given sliceableSimulationState: Sliceable[SimulationState] with
           SimulationData.CableLoadsData(s.cableLoads).asInstanceOf[T]
         case c if c == classOf[SimulationData.SimulationSnapshot] =>
           SimulationData
-            .SimulationSnapshot(s.environment, s.entityStates, s.entityFlows, s.cableLoads)
+            .SimulationSnapshot(s.environment, s.entityStates, s.entityFlows, s.cableLoads, s.delta)
             .asInstanceOf[T]
         case _ =>
           throw new RuntimeException(
