@@ -1,4 +1,4 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 import cats.kernel.Monoid
 import org.gridsim.core.common.{Energy, kwh}

@@ -2,7 +2,7 @@ package org.gridsim.gui.viewmodel
 
 import cats.implicits.toShow
 import org.gridsim.core.common.{Energy, kwh}
-import org.gridsim.core.statistics.FlowStatistic
+import org.gridsim.statistics.FlowStatistic
 import scalafx.beans.property.StringProperty
 
 class FlowStatisticViewModel:

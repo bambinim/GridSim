@@ -1,5 +1,6 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
+import org.gridsim.statistics.{FlowStatistic, Fold, NetFlowHistoryStatistic, NetFlowSample, Registration, StatKey, StatisticsEngine, StatsBoard}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

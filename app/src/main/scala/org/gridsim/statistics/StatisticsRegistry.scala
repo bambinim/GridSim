@@ -1,4 +1,4 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 import org.gridsim.core.observability.SimulationData.{EntityFlowsData, SimulationSnapshot}
 

@@ -5,9 +5,9 @@ import cats.effect.unsafe.implicits.global
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.{Environment, GridEntityState}
-import org.gridsim.core.statistics.{StatKey, StatisticsRegistry}
 import org.gridsim.core.model.network.Cable
 import org.gridsim.gui.model.*
+import org.gridsim.statistics.{StatKey, StatisticsRegistry}
 import scalafx.application.Platform
 import scala.concurrent.duration.FiniteDuration
 

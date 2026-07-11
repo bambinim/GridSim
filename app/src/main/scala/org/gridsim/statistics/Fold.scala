@@ -1,4 +1,4 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 /** A purely functional, single-pass accumulator over a stream of `In`. */
 trait Fold[-In, +Out]:

@@ -2,8 +2,7 @@ package org.gridsim.gui.viewmodel
 
 import javafx.scene.chart as jfxsc
 
-import org.gridsim.core.statistics.NetFlowHistoryStatistic
-import org.gridsim.core.statistics.NetFlowHistoryStatistic
+import org.gridsim.statistics.NetFlowHistoryStatistic
 import org.gridsim.util.Formatting
 
 import scalafx.collections.ObservableBuffer

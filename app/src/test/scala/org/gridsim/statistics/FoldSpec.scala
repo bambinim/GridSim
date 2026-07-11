@@ -1,6 +1,7 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 import cats.kernel.Monoid
+import org.gridsim.statistics.Fold
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
