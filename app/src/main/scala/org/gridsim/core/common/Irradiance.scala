@@ -2,7 +2,7 @@ package org.gridsim.core.common
 
 import cats.{Order, Show}
 
-import Formatting.show2
+import org.gridsim.util.Formatting.show2
 
 /** Represents solar irradiance (W/m²). */
 opaque type Irradiance = Double

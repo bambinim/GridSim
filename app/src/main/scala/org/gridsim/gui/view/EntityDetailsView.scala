@@ -4,7 +4,6 @@ import org.gridsim.gui.viewmodel.EntityDetailsViewModel
 import org.gridsim.gui.model.{
   DetailsEntity,
   DetailField,
-  DetailItem,
   DetailSeparator
 }
 import scalafx.geometry.{Insets, Pos}
@@ -67,14 +66,12 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel)
 
   private def createEntityCard(entity: DetailsEntity, isNested: Boolean): VBox =
     new VBox(10) {
-      styleClass += (if isNested then "entity-card-nested"
-                     else "entity-card-main")
+      styleClass += (if isNested then "entity-card-nested" else "entity-card-main")
 
       val header: HBox = new HBox(8) {
         alignment = Pos.CenterLeft
         val titleLabel: Label = new Label(entity.title) {
-          styleClass += (if isNested then "entity-title-nested"
-                         else "entity-title-main")
+          styleClass += (if isNested then "entity-title-nested" else "entity-title-main")
         }
         children = Seq(titleLabel)
       }

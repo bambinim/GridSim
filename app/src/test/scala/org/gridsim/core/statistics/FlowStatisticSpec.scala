@@ -31,11 +31,11 @@ class FlowStatisticSpec extends AnyFlatSpec with Matchers:
     combined.peakExport.toDouble shouldBe 5.0
 
   "averageNetFlow" should "be zero when no ticks have been recorded" in:
-    FlowStatistic.empty.averageNetFlow shouldBe 0.0
+    FlowStatistic.empty.averageNetFlow.toDouble shouldBe 0.0
 
   it should "be the mean net flow across all ticks" in:
     val stats = FlowStatistic(4L, 4.0.kwh, 12.0.kwh, 0.0.kwh, 0.0.kwh)
-    stats.averageNetFlow shouldBe 2.0 // (12 - 4) / 4
+    stats.averageNetFlow.toDouble shouldBe 2.0 // (12 - 4) / 4
 
   private val env = Environment(1.minute)
 

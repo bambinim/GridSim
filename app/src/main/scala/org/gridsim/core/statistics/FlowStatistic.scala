@@ -1,7 +1,7 @@
 package org.gridsim.core.statistics
 
 import cats.kernel.Monoid
-import org.gridsim.core.common.Energy
+import org.gridsim.core.common.{Energy, kwh}
 import org.gridsim.core.observability.SimulationData.EntityFlowsData
 
 /** A flow sample calculator */
@@ -36,6 +36,6 @@ object FlowStatistic:
       )
 
   extension (s: FlowStatistic)
-    def averageNetFlow: Double = s.ticks match
-      case ticks if ticks > 0 => (s.totalExported.toDouble - s.totalImported.toDouble) / ticks
-      case _ => 0.0
+    def averageNetFlow: Energy = s.ticks match
+      case ticks if ticks > 0 => ((s.totalExported.toDouble - s.totalImported.toDouble) / ticks).kwh
+      case _ => 0.0.kwh

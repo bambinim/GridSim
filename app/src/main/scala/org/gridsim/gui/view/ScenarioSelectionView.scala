@@ -2,6 +2,7 @@ package org.gridsim.gui.view
 
 import org.gridsim.gui.model.TickDurationUnit
 import org.gridsim.gui.viewmodel.ScenarioSelectionViewModel
+import org.gridsim.util.Formatting
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
@@ -11,7 +12,6 @@ import scalafx.scene.layout.{HBox, Priority, VBox}
 import scalafx.util.StringConverter
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 /**
  * View panel for selecting and loading preset scenarios.
@@ -59,17 +59,15 @@ class ScenarioSelectionView[A](
         TickDurationUnit.values.find(_.label == text).orNull
     prefWidth = 160
 
-  private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-
   private val startDatePicker = new DatePicker:
-    promptText = "yyyy-MM-dd"
+    promptText = Formatting.DatePattern
     converter = new StringConverter[LocalDate]:
       override def toString(date: LocalDate): String =
-        if date == null then "" else dateFormatter.format(date)
+        if date == null then "" else date.format(Formatting.DateFormatting)
 
       override def fromString(text: String): LocalDate =
         if text == null || text.isBlank then null
-        else scala.util.Try(LocalDate.parse(text.trim, dateFormatter)).getOrElse(null)
+        else scala.util.Try(LocalDate.parse(text.trim, Formatting.DateFormatting)).getOrElse(null)
     value <==> viewModel.startDate
     prefWidth = 130
 

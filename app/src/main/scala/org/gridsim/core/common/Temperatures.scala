@@ -1,7 +1,7 @@
 package org.gridsim.core.common
 
 import cats.Show
-import Formatting.*
+import org.gridsim.util.Formatting.*
 
 object Temperatures:
 

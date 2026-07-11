@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 import scala.annotation.targetName
 import scala.concurrent.duration.FiniteDuration
 
-import Formatting.*
+import org.gridsim.util.Formatting.*
 
 /** Represents electrical energy (kWh). */
 opaque type Energy = Double
@@ -18,7 +18,7 @@ object Energy:
   given CommutativeMonoid[Energy] =
     cats.instances.double.catsKernelStdGroupForDouble
   given Order[Energy] = cats.instances.double.catsKernelStdOrderForDouble
-  given showEnergy: Show[Energy] = Show.show(e => s"${e.show2} kWh")
+  given Show[Energy] = Show.show(e => s"${e.show2} kWh")
 
   extension (e: Energy)
     def toDouble: Double = e
@@ -44,6 +44,8 @@ object Energy:
       e / delta.toUnit(TimeUnit.HOURS)
     )
 
-extension (d: Double) infix def kwh: Energy = Energy(d)
+extension (d: Double)
+  def kwh: Energy = Energy(d)
 
-extension (i: Integer) infix def kwh: Energy = Energy(i.toDouble)
+extension (i: Integer)
+  def kwh: Energy = Energy(i.toDouble)

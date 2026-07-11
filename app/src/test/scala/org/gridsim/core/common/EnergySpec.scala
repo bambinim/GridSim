@@ -41,6 +41,6 @@ class EnergySpec extends AnyFlatSpec with Matchers {
 
   it should "show correctly" in {
     val e = 5.0.kwh
-    showEnergy.show(e) shouldBe "5.00 kWh"
+    e.show shouldBe "5.00 kWh"
   }
 }

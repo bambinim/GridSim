@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 import scala.annotation.targetName
 import scala.concurrent.duration.FiniteDuration
 
-import Formatting.show2
+import org.gridsim.util.Formatting.show2
 
 /** Represents electrical power (kW). */
 opaque type Power = Double
@@ -35,6 +35,8 @@ object Power:
     def max(o: Power): Power = if p >= o then p else o
     def abs: Power = Math.abs(p.toDouble).kw
 
-extension (d: Double) def kw: Power = Power(d)
+extension (d: Double)
+  def kw: Power = Power(d)
 
-extension (i: Integer) def kw: Power = Power(i.toDouble)
+extension (i: Integer)
+  def kw: Power = Power(i.toDouble)

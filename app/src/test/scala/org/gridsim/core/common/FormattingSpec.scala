@@ -2,7 +2,7 @@ package org.gridsim.core.common
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.gridsim.core.common.Formatting.*
+import org.gridsim.util.Formatting.*
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
 
