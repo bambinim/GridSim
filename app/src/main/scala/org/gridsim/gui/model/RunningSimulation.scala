@@ -4,7 +4,7 @@ import cats.effect.IO
 import fs2.concurrent.SignallingRef
 import org.gridsim.core.observability.SimulationData
 import org.gridsim.core.simulation.{SimulationController, SimulationModel}
-import org.gridsim.core.statistics.StatisticsRegistry
+import org.gridsim.statistics.StatisticsRegistry
 
 /**
  * Representation of an active simulation loop setup.

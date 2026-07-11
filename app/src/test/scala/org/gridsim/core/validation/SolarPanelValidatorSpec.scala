@@ -3,7 +3,7 @@ package org.gridsim.core.validation
 import cats.data.Validated
 import org.gridsim.core.common.{GeographicPoint, Power, kw}
 import org.gridsim.core.model.error.DomainError
-import org.gridsim.core.model.{SolarPanel, SolarPanelPhysics, SolarPanelState}
+import org.gridsim.core.model.{SolarPanel, SolarPanelState}
 import org.gridsim.core.validation.SolarPanelValidator.given
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec

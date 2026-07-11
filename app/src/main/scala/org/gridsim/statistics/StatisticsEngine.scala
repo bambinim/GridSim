@@ -1,4 +1,4 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 final case class Registration[In, A](key: StatKey[A], fold: Fold[In, A])
 

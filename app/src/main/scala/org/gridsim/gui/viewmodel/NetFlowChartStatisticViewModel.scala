@@ -1,7 +1,7 @@
 package org.gridsim.gui.viewmodel
 
 import javafx.scene.chart as jfxsc
-import org.gridsim.core.statistics.NetFlowHistoryStatistic
+import org.gridsim.statistics.NetFlowHistoryStatistic
 import scalafx.collections.ObservableBuffer
 
 import java.time.format.DateTimeFormatter

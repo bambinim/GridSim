@@ -1,10 +1,11 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 import cats.syntax.monoid.*
 import org.gridsim.core.common.Energy.*
 import org.gridsim.core.common.{Energy, Flow, kwh}
 import org.gridsim.core.model.Environment
 import org.gridsim.core.observability.SimulationData.{EntityFlowsData, SimulationSnapshot}
+import org.gridsim.statistics.{FlowSampler, FlowStatistic}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

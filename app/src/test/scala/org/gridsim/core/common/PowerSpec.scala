@@ -2,10 +2,8 @@ package org.gridsim.core.common
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import cats.Show
 import cats.syntax.all.*
 import org.gridsim.core.common.*
-import org.gridsim.core.common.Power
 import org.gridsim.core.common.Power.{given, *}
 import scala.concurrent.duration.*
 import org.junit.runner.RunWith

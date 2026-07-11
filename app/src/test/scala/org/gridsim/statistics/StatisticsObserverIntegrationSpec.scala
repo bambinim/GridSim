@@ -1,4 +1,4 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 import cats.effect.{IO, Ref}
 import cats.effect.unsafe.implicits.global
@@ -10,6 +10,7 @@ import org.gridsim.core.model.Environment
 import org.gridsim.core.observability.SimulationData.EntityFlowsData
 import org.gridsim.core.observability.{Fs2DataDispatcher, Observer, SimulationData}
 import org.gridsim.core.simulation.SimulationState
+import org.gridsim.statistics.{FlowSampler, FlowStatistic}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
