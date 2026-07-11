@@ -8,8 +8,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.junit.JUnitRunner
 
-import scala.concurrent.duration.*
-
 @RunWith(classOf[JUnitRunner])
 class SimulationModelSpec extends AnyFlatSpec with Matchers:
 
@@ -28,19 +26,14 @@ class SimulationModelSpec extends AnyFlatSpec with Matchers:
       cables = List(cable)
     )
 
-  "SimulationModel" should "store its grid and tick duration" in:
-    val model = SimulationModel(graph, 15.minutes)
+  "SimulationModel" should "store its grid" in:
+    val model = SimulationModel(graph)
 
     model.grid shouldBe graph
-    model.delta shouldBe 15.minutes
 
   it should "support structural equality" in:
-    SimulationModel(graph, 15.minutes) shouldBe
-      SimulationModel(graph, 15.minutes)
-
-  it should "distinguish models with different tick durations" in:
-    SimulationModel(graph, 15.minutes) should not be
-      SimulationModel(graph, 1.hour)
+    SimulationModel(graph) shouldBe
+      SimulationModel(graph)
 
   it should "distinguish models with different grid graphs" in:
     val otherGraph =
@@ -49,14 +42,5 @@ class SimulationModelSpec extends AnyFlatSpec with Matchers:
         cables = Nil
       )
 
-    SimulationModel(graph, 15.minutes) should not be
-      SimulationModel(otherGraph, 15.minutes)
-
-  it should "produce an updated immutable value through copy" in:
-    val original = SimulationModel(graph, 15.minutes)
-
-    val updated = original.copy(delta = 30.minutes)
-
-    original.delta shouldBe 15.minutes
-    updated.delta shouldBe 30.minutes
-    updated.grid shouldBe original.grid
+    SimulationModel(graph) should not be
+      SimulationModel(otherGraph)

@@ -1,12 +1,11 @@
 package org.gridsim.core.behaviour
 
-import org.gridsim.core.behaviour.house.*
 import org.gridsim.core.behaviour.house.HouseEvolution.evolve as evolveHouse
+import org.gridsim.core.behaviour.house.HouseEvolutionDependencies
 import org.gridsim.core.behaviour.producer.SolarPanelEvolution.evolve as evolveSolarPanel
-import org.gridsim.core.behaviour.shaping.DemandShaper
 import org.gridsim.core.common.{Energy, Flow}
-import org.gridsim.core.model.house.{House, HouseState}
 import org.gridsim.core.model.*
+import org.gridsim.core.model.house.{House, HouseState}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -24,17 +23,9 @@ trait EntityEvolutionDispatcher:
     delta: FiniteDuration
   ): (GridEntityState, Flow[Energy])
 
-object EntityEvolutionDispatcher:
-  given default(using
-    resolver: ConsumptionResolver,
-    shaper: DemandShaper
-  ): EntityEvolutionDispatcher =
-    DefaultEntityEvolutionDispatcher(
-      HouseEvolutionDependencies(resolver, shaper)
-    )
-
 /**
- * Central dispatcher for the entity families currently supported by GridSim.
+ * Dispatcher that routes each supported entity-state pair to its concrete
+ * evolution.
  */
 final case class DefaultEntityEvolutionDispatcher(
   houseDependencies: HouseEvolutionDependencies
@@ -63,3 +54,23 @@ final case class DefaultEntityEvolutionDispatcher(
         throw IllegalArgumentException(
           s"Unsupported entity-state pair: model '${entity.id}', state '${state.entityId}'"
         )
+
+object EntityEvolutionDispatcher:
+
+  /**
+   * Builds the default dispatcher from the dependencies required by supported
+   * entity evolutions.
+   */
+  def default(using
+    houseDependencies: HouseEvolutionDependencies
+  ): EntityEvolutionDispatcher =
+    DefaultEntityEvolutionDispatcher(houseDependencies)
+
+  /**
+   * Supplies the default dispatcher for simulation components that request one
+   * contextually.
+   */
+  given defaultDispatcher(using
+    houseDependencies: HouseEvolutionDependencies
+  ): EntityEvolutionDispatcher =
+    default

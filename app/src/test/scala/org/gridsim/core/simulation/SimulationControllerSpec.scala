@@ -157,3 +157,12 @@ class SimulationControllerSpec extends AnyFlatSpec with Matchers:
     controller.stop()
 
     controller.currentState.environment.time should be > stateAfterPause.environment.time
+
+  it should "update the simulation step delta via setTick" in:
+    val engine = CountingEngine()
+    val scheduler = ManualScheduler()
+    val controller = DefaultSimulationController(engine, initialState, scheduler, 50.millis)
+
+    controller.currentState.delta shouldBe 15.minutes
+    controller.setTick(1.hour)
+    controller.currentState.delta shouldBe 1.hour

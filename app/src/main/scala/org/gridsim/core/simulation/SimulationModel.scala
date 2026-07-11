@@ -2,8 +2,6 @@ package org.gridsim.core.simulation
 
 import org.gridsim.core.model.network.GridGraph
 
-import scala.concurrent.duration.FiniteDuration
-
 /**
  * Immutable configuration of a simulation.
  *
@@ -12,6 +10,5 @@ import scala.concurrent.duration.FiniteDuration
  * [[SimulationState]].
  *
  * @param grid the static entities and cable topology of the simulated micro-grid
- * @param delta the amount of simulated time represented by one execution step
  */
-final case class SimulationModel(grid: GridGraph, delta: FiniteDuration)
+final case class SimulationModel(grid: GridGraph)

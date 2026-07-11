@@ -2,6 +2,7 @@ package org.gridsim.gui.viewmodel
 
 import scalafx.beans.property.{ObjectProperty, ReadOnlyObjectProperty}
 import org.gridsim.core.common.{Energy, Flow}
+import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
 import org.gridsim.core.simulation.SimulationModel
 import org.gridsim.gui.model.{DetailsEntity, Selection}
@@ -11,7 +12,7 @@ import org.gridsim.gui.ports.{
   ExtractedSelectionDetails
 }
 import org.gridsim.core.model.network.Cable
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.*
 
 /** ViewModel for displaying and updating the details of the currently selected
   * entity.
@@ -31,8 +32,9 @@ class EntityDetailsViewModel(
 ):
   private var lastEntityStates: Map[String, GridEntityState] = Map.empty
   private var lastEntityFlows: Map[String, Flow[Energy]] = Map.empty
-  private var lastEnvironment: Option[Environment] = None
   private var lastCableLoads: Map[Cable, Energy] = Map.empty
+  private var lastEnvironment: Option[Environment] = None
+  private var lastDelta: FiniteDuration = 15.minutes
 
   private val _detailsEntityProperty =
     ObjectProperty[DetailsEntity](emptyDetails)
@@ -71,17 +73,22 @@ class EntityDetailsViewModel(
     *   a map of entity IDs to their current energy flows
     * @param environment
     *   the current environmental state (e.g., solar radiation, temperature)
+    * @param delta
+    *   the current simulation step delta
     */
   def update(
       entityStates: Map[String, GridEntityState],
       entityFlows: Map[String, Flow[Energy]],
       cableLoads: Map[Cable, Energy],
-      environment: Environment
+      environment: Environment,
+      delta: FiniteDuration
   ): Unit =
     lastEntityStates = entityStates
     lastEntityFlows = entityFlows
-    lastEnvironment = Some(environment)
     lastCableLoads = cableLoads
+    lastEnvironment = Some(environment)
+    lastDelta = delta
+
     recalculate(
       selectionProp.value,
       entityStates,
@@ -103,7 +110,7 @@ class EntityDetailsViewModel(
       entityFlows,
       cableLoads,
       environment,
-      model.delta
+      lastDelta
     )
     _detailsEntityProperty.value = mapExtractedToView(extracted, environment)
 

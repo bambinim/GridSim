@@ -1,5 +1,7 @@
 package org.gridsim.core.simulation
 
+import scala.concurrent.duration.FiniteDuration
+
 /**
  * Runtime controller for a simulation.
  *
@@ -46,6 +48,11 @@ trait SimulationController:
    * Pauses the periodic simulation loop without changing the current state.
    */
   def pause(): Unit
+
+  /**
+   * Set a new delta duration of simulatiom
+   */
+  def setTick(delta: FiniteDuration): Unit
 
   /**
    * Advances the simulation by exactly one tick.

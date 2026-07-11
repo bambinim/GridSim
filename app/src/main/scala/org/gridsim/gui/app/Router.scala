@@ -53,6 +53,14 @@ class AppRouter(
     rootPane
     
   /**
+   * Stops the active simulation if one is currently running.
+   */
+  def stopActiveSimulation(): Unit =
+    state.route match
+      case Simulation(running) => running.controller.stop()
+      case _ => ()
+
+  /**
    * Dispatches a navigation event, transitioning app state and rendering the new route.
    *
    * @param event the navigation event triggering the state transition

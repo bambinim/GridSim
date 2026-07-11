@@ -1,9 +1,12 @@
 package org.gridsim.gui.viewmodel
 
-import scalafx.beans.property.{BooleanProperty, StringProperty}
+import scalafx.beans.property.{BooleanProperty, ObjectProperty, StringProperty}
 import org.gridsim.core.simulation.SimulationControllerState
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
-import org.gridsim.gui.model.RunningSimulation
+import org.gridsim.gui.model.{RunningSimulation, TickDurationUnit}
+
+import java.time.LocalDateTime
+import scala.concurrent.duration.*
 
 /**
  * ViewModel responsible for managing simulation lifecycle commands and UI state properties.
@@ -24,6 +27,25 @@ class SimulationControlViewModel(
   /** Text representing the current state of the simulation controller (e.g., "RUNNING", "PAUSED", "STOPPED"). */
   val statusText: StringProperty = StringProperty("PAUSED")
 
+  private val (initialAmount, initialUnit) = {
+    val duration = running.controller.currentState.delta
+    val seconds = duration.toSeconds
+    if seconds > 0 && seconds % (24 * 3600) == 0 then
+      ((seconds / (24 * 3600)).toInt, TickDurationUnit.Days)
+    else if seconds > 0 && seconds % 3600 == 0 then
+      ((seconds / 3600).toInt, TickDurationUnit.Hours)
+    else if seconds > 0 && seconds % 60 == 0 then
+      ((seconds / 60).toInt, TickDurationUnit.Minutes)
+    else
+      (duration.toSeconds.toInt, TickDurationUnit.Seconds)
+  }
+
+  /** Property bound to the input field specifying the numeric tick amount. */
+  val tickAmountText = StringProperty(initialAmount.toString)
+
+  /** Property bound to the combo box specifying the tick's time unit. */
+  val tickUnit: ObjectProperty[TickDurationUnit] = ObjectProperty(initialUnit)
+
   /** Indicates whether the Play/Pause button should be disabled. */
   val playPauseDisabled: BooleanProperty = BooleanProperty(false)
 
@@ -35,6 +57,23 @@ class SimulationControlViewModel(
 
   /** Indicates whether the Exit button should be disabled. */
   val exitDisabled: BooleanProperty = BooleanProperty(false)
+
+  def parsed: Either[String, FiniteDuration] =
+    for
+      tickAmount <- tickAmountText.value.trim.toIntOption
+        .toRight("Not a valid tick amount inserted")
+        .filterOrElse(_ > 0, "Tick amount must be greater than zero")
+    yield tickUnit.value.toDuration(tickAmount)
+
+  private def updateTick(): Unit =
+    parsed match
+      case Left(err) => ()
+      case Right(tickDelta) =>
+        println(tickDelta)
+        running.controller.setTick(tickDelta)
+
+  tickAmountText.onChange { (_, _, _) => updateTick() }
+  tickUnit.onChange { (_, _, _) => updateTick() }
 
   /**
    * Updates the states of the bindable properties based on the simulation controller's state.

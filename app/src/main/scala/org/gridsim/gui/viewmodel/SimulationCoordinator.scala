@@ -9,6 +9,7 @@ import org.gridsim.core.statistics.{StatKey, StatisticsRegistry}
 import org.gridsim.core.model.network.Cable
 import org.gridsim.gui.model.*
 import scalafx.application.Platform
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Coordinates GUI-facing simulation updates and commands.
@@ -57,7 +58,7 @@ class SimulationCoordinator(
   }
 
   /** ViewModel managing the graph visualization. */
-  val graphViewModel = GridGraphViewModel(running.model.delta, running.model.grid, selectedEntity)
+  val graphViewModel = GridGraphViewModel(running.controller.currentState.delta, running.model.grid, selectedEntity)
 
   selectedEntity.onChange { (_, _, _) =>
     renderCurrent()
@@ -71,7 +72,8 @@ class SimulationCoordinator(
             snapshot.environment,
             snapshot.entityStates,
             snapshot.entityFlows,
-            snapshot.cableLoads
+            snapshot.cableLoads,
+            snapshot.delta
           )
         }
       }
@@ -81,11 +83,13 @@ class SimulationCoordinator(
   def renderCurrent(): Unit =
     Platform.runLater {
       val state = running.controller.currentState
+
       entityDetailsViewModel.update(
         state.entityStates,
         state.entityFlows,
         state.cableLoads,
-        state.environment
+        state.environment,
+        state.delta
       )
     }
 
@@ -93,10 +97,11 @@ class SimulationCoordinator(
       environment: Environment,
       entityStates: Map[String, GridEntityState],
       entityFlows: Map[String, Flow[Energy]],
-      cableLoads: Map[Cable, Energy]
+      cableLoads: Map[Cable, Energy],
+      delta: FiniteDuration
   ): Unit =
     val controllerState = running.controller.simulationControllerState
     summaryViewModel.update(entityFlows, environment, controllerState)
-    entityDetailsViewModel.update(entityStates, entityFlows, cableLoads, environment)
+    entityDetailsViewModel.update(entityStates, entityFlows, cableLoads, environment, delta)
     controlViewModel.update(controllerState)
     graphViewModel.update(entityFlows, cableLoads)

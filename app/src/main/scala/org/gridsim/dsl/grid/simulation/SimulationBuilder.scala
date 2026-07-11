@@ -8,7 +8,7 @@ import org.gridsim.dsl.GridEntityBuilder
 import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.{GridEntity, GridEntityState}
 import org.gridsim.dsl.grid.TopologyBuilderContext
-import org.gridsim.dsl.grid.entities.{HouseBuilder}
+import org.gridsim.dsl.grid.entities.{HouseBuilder, SolarArrayBuilder}
 
 import cats.syntax.all.*
 import org.gridsim.core.model.network.{ExternalGrid, GridGraph}
@@ -37,12 +37,12 @@ case class SimulationBuilder(
         GridGraph(
           ent.map(_._1) ++ List(ExternalGrid(SimulationBuilder.EG)),
           topCtx.cables
-        ),
-        dt
+        )
       )
       val state = SimulationState(
         Environment(0.seconds),
-        ent.map(e => e._1.id -> e._2).toMap
+        ent.map(e => e._1.id -> e._2).toMap,
+        delta = dt
       )
       (model, state).validNec
     }
@@ -86,6 +86,11 @@ object SimulationBuilder:
   ): Unit =
     val house = HouseBuilder.house(block)
     ctx.builders = ctx.builders ++ List(house)
+
+  infix def solarPanel(builder: SolarArrayBuilder)(using
+      ctx: EntityBuilderContext
+  ): Unit =
+    ctx.builders = ctx.builders ++ List(builder)
 
   infix def topology(
       block: (TopologyBuilderContext, List[GridEntity]) ?=> Unit

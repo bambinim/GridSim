@@ -44,7 +44,7 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
       nodes = List(externalGrid, house),
       cables = List(cable)
     )
-  private val model = SimulationModel(grid, 15.minutes)
+  private val model = SimulationModel(grid)
   private val state =
     SimulationState(
       environment = Environment(0.minutes),
@@ -57,9 +57,9 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
     result.isValid shouldBe true
 
   it should "reject a non-positive simulation delta" in:
-    val invalidModel = model.copy(delta = 0.minutes)
+    val invalidState = state.copy(delta = 0.minutes)
 
-    val result = SimulationSetup.make(state, invalidModel)
+    val result = SimulationSetup.make(invalidState, model)
 
     result.fold(
       errors =>
@@ -146,7 +146,7 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
       )
 
     val result =
-      SimulationSetup.make(invalidState, model.copy(delta = 0.minutes))
+      SimulationSetup.make(invalidState.copy(delta = 0.minutes), model)
 
     result.fold(
       errors =>

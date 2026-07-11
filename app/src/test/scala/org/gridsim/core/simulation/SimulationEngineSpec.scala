@@ -1,14 +1,10 @@
 package org.gridsim.core.simulation
 
-import org.gridsim.core.behaviour.{DefaultEntityEvolutionDispatcher, EntityEvolutionDispatcher}
-import org.gridsim.core.behaviour.house.{ConsumptionResolver, HouseEvolutionDependencies, StochasticConsumptionResolver}
-import org.gridsim.core.behaviour.shaping.{DemandShaper, IdentityShaper}
-import org.gridsim.core.common.{Energy, Flow, GeographicPoint, kw, kwh}
-import org.gridsim.core.model.{Environment, SolarPanel, SolarPanelState}
-import org.gridsim.core.model.house.{House, HouseState}
+import org.gridsim.core.behaviour.EntityEvolutionDispatcher
+import org.gridsim.core.common.{Energy, Flow, kw, kwh}
+import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
 import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
-import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
-import org.gridsim.core.solver.{PowerFlowSolver, SimplePowerFlowSolver}
+import org.gridsim.core.solver.PowerFlowSolver
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -18,142 +14,129 @@ import scala.concurrent.duration.*
 
 @RunWith(classOf[JUnitRunner])
 class SimulationEngineSpec extends AnyFlatSpec with Matchers:
-  import org.gridsim.core.validation.SolarPanelValidator.given
 
-  private val graph =
-    GridGraph(
-      nodes = List(ExternalGrid("external-grid")),
-      cables = Nil
-    )
+  // Mock domain entities for unit testing
+  private case class TestEntity(id: String) extends GridEntity
+  private case class TestEntityState(entityId: String, value: String = "") extends GridEntityState
 
-  private val model = SimulationModel(graph, 15.minutes)
+  // Helper/Mock definitions
+  private val defaultGraph = GridGraph(List(ExternalGrid("external-grid")), Nil)
+  private val defaultModel = SimulationModel(defaultGraph)
 
-  given ConsumptionResolver = new StochasticConsumptionResolver()
-  given DemandShaper = IdentityShaper()
+  private def createEngine(
+    model: SimulationModel = defaultModel,
+    flowSolver: PowerFlowSolver = mockFlowSolver
+  )(using dispatcher: EntityEvolutionDispatcher): DefaultSimulationEngine =
+    DefaultSimulationEngine(model, flowSolver)
 
-  given EntityEvolutionDispatcher = DefaultEntityEvolutionDispatcher(
-    HouseEvolutionDependencies(
-      resolver = StochasticConsumptionResolver(),
-      shaper = IdentityShaper()
-    )
-  )
+  private val mockFlowSolver = new PowerFlowSolver:
+    override def solve(entityFlowMap: scala.collection.Map[String, Flow[Energy]]): Map[Cable, Energy] =
+      Map.empty
 
-  private val engine = DefaultSimulationEngine(model, SimplePowerFlowSolver(graph))
+  private given mockDispatcher: EntityEvolutionDispatcher = new EntityEvolutionDispatcher:
+    override def evolve(
+      state: GridEntityState,
+      entity: GridEntity,
+      environment: Environment,
+      delta: FiniteDuration
+    ): (GridEntityState, Flow[Energy]) =
+      (state, Flow.Balanced)
 
-  it should "advance the environment by the model delta" in:
+  "SimulationEngine" should "advance the environment by the model delta" in:
     val current =
       SimulationState(
         environment = Environment(2.hours),
         entityStates = Map.empty
       )
 
+    val engine = createEngine()
     val next = engine.step(current)
 
     next.environment.time shouldBe 2.hours + 15.minutes
 
-  it should "resolve every grid entity state" in:
-
-    val battery =
-      Battery(
-        id = "battery-1",
-        maxCapacity = 2.kwh,
-        maxPowerCharge = 1.kw,
-        maxPowerDischarge = 1.kw,
-        minSoC = 0.2
-      )
-    val batteryState = BatteryState("battery-1", currentCharge = 1.kwh)
-    val house = House("house-1", components = List(battery))
-    val houseState =
-      HouseState("house-1", componentStates = List(batteryState))
-    val grid = GridGraph(
-      nodes = List(ExternalGrid("external-grid"), house),
+  it should "resolve every grid entity state using the dispatcher" in:
+    val entity = TestEntity("entity-1")
+    val state = TestEntityState("entity-1", "initial")
+    val graph = GridGraph(
+      nodes = List(ExternalGrid("external-grid"), entity),
       cables = Nil
     )
-    val engine =
-      DefaultSimulationEngine(
-        SimulationModel(grid, 15.minutes),
-        SimplePowerFlowSolver(grid)
-      )
+    val model = SimulationModel(graph)
+
+    val expectedNextState = TestEntityState("entity-1", "evolved")
+    val expectedFlow = Flow.Surplus(Energy(0.5))
+
+    var calledWithArgs: Option[(GridEntityState, GridEntity, Environment, FiniteDuration)] = None
+    given localDispatcher: EntityEvolutionDispatcher = new EntityEvolutionDispatcher:
+      override def evolve(
+        s: GridEntityState,
+        e: GridEntity,
+        env: Environment,
+        delta: FiniteDuration
+      ): (GridEntityState, Flow[Energy]) =
+        calledWithArgs = Some((s, e, env, delta))
+        (expectedNextState, expectedFlow)
+
+    val engine = createEngine(model = model)
     val current =
       SimulationState(
         environment = Environment(2.hours),
-        entityStates = Map(houseState.entityId -> houseState)
+        entityStates = Map(state.entityId -> state)
       )
 
     val next = engine.step(current)
 
-    val nextBatteryCharge =
-      next.entityStates
-        .values
-        .collectFirst { case state: HouseState => state }
-        .flatMap(
-          _.componentStates
-            .collectFirst { case state: BatteryState => state.currentCharge }
-        )
+    // Verify dispatcher called with advanced environment and model delta
+    val expectedAdvancedEnv = current.environment.advance(15.minutes)
+    calledWithArgs shouldBe Some((state, entity, expectedAdvancedEnv, 15.minutes))
 
-    nextBatteryCharge shouldBe Some(0.9625.kwh)
-    next.entityFlows.get(house.id) shouldBe Some(Flow.Balanced)
+    // Verify next state maps the updated states and flows
+    next.entityStates.get("entity-1") shouldBe Some(expectedNextState)
+    next.entityFlows.get("entity-1") shouldBe Some(expectedFlow)
 
-  it should "resolve solar panel entities through the default dispatcher" in:
-    val (panel, panelState) =
-      SolarPanel(
-        id = "panel-1",
-        location = GeographicPoint(44.3, 11.7),
-        maxProduction = 5.kw,
-        areaSqm = 20.0,
-        efficiency = 0.20
-      ).toOption.get
-    val grid =
-      GridGraph(
-        nodes = List(ExternalGrid("external-grid"), panel),
-        cables = Nil
-      )
-    val engine =
-      DefaultSimulationEngine(
-        SimulationModel(grid, 1.hour),
-        SimplePowerFlowSolver(grid)
-      )
-    val current =
-      SimulationState(
-        environment = Environment(6.hours),
-        entityStates = Map(panelState.entityId -> panelState)
-      )
-
-    val next = engine.step(current)
-
-    val nextPanelState =
-      next.entityStates.values.collectFirst { case state: SolarPanelState => state }
-
-    nextPanelState.map(_.efficiency) shouldBe Some(panel.efficiency)
-  // FIXME: doesn't work when changing weather logic
-//    val Some(Flow.Surplus(surplus)) = next.entityFlows.get(panel.id): @unchecked
-//    surplus.toDouble shouldBe (0.27 +- 0.01)
-
-  it should "calculate the load on every cable" in:
-    val externalGrid = ExternalGrid("external-grid")
-    val house = House("house-1", components = Nil)
-    val houseState = HouseState("house-1", componentStates = Nil)
-    val cable =
-      Cable(
-        CableConnections(externalGrid.id, house.id),
-        maxCapacity = 1.kw
-      )
-    val grid =
-      GridGraph(
-        nodes = List(externalGrid, house),
-        cables = List(cable)
-      )
-    val engine =
-      DefaultSimulationEngine(
-        SimulationModel(grid, 15.minutes),
-        SimplePowerFlowSolver(grid)
-      )
+  it should "fail to step if a state has no matching model" in:
+    val state = TestEntityState("unmatched-entity")
     val current =
       SimulationState(
         environment = Environment(2.hours),
-        entityStates = Map(houseState.entityId -> houseState)
+        entityStates = Map(state.entityId -> state)
+      )
+
+    val engine = createEngine()
+
+    an[IllegalArgumentException] should be thrownBy engine.step(current)
+
+  it should "calculate the load on every cable using the flow solver" in:
+    // Setup solver that returns a pre-configured load
+    val dummyCable = Cable(
+      CableConnections("node-1", "node-2"),
+      maxCapacity = 10.kw
+    )
+    val expectedLoads = Map(dummyCable -> Energy(1.5))
+
+    val entity = TestEntity("node-1")
+    val state = TestEntityState("node-1")
+    val graph = GridGraph(
+      nodes = List(entity),
+      cables = List(dummyCable)
+    )
+    val model = SimulationModel(graph)
+
+    var solverReceivedFlows: Option[Map[String, Flow[Energy]]] = None
+    val localSolver = new PowerFlowSolver:
+      override def solve(entityFlowMap: scala.collection.Map[String, Flow[Energy]]): Map[Cable, Energy] =
+        solverReceivedFlows = Some(entityFlowMap.toMap)
+        expectedLoads
+
+    val engine = createEngine(model = model, flowSolver = localSolver)
+    val current =
+      SimulationState(
+        environment = Environment(2.hours),
+        entityStates = Map(state.entityId -> state)
       )
 
     val next = engine.step(current)
 
-    next.cableLoads.get(cable) shouldBe Some(0.0375.kwh)
+    solverReceivedFlows shouldBe Some(Map("node-1" -> Flow.Balanced))
+
+    next.cableLoads shouldBe expectedLoads

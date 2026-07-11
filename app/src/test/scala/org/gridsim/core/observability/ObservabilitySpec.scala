@@ -107,6 +107,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
     snp.entityStates shouldBe sampleState.entityStates
     snp.entityFlows shouldBe sampleState.entityFlows
     snp.cableLoads shouldBe sampleState.cableLoads
+    snp.delta shouldBe sampleState.delta
 
   "Simulation integration" should "dispatch events correctly over multiple ticks" in:
     import org.gridsim.core.simulation.{

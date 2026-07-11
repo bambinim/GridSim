@@ -3,7 +3,9 @@ package org.gridsim.gui.ports
 import DetailExtractor.given
 import cats.implicits.toShow
 import org.gridsim.core.common.{Energy, Flow}
+import org.gridsim.core.common.Energy.toPower
 import org.gridsim.core.model.house.{House, HouseState}
+import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.storage.StorageState.percentage
 import org.gridsim.core.model.storage.battery.{Battery, BatteryState}
 import org.gridsim.core.model.{

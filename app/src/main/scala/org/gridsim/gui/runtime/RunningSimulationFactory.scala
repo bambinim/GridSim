@@ -34,7 +34,8 @@ object RunningSimulationFactory:
       state.environment,
       state.entityStates,
       state.entityFlows,
-      state.cableLoads
+      state.cableLoads,
+      state.delta
     )
     val snapshotSignal = SignallingRef[IO, SimulationData.SimulationSnapshot](initialSnapshot).unsafeRunSync()
     val guiObserver = Observer[IO, SimulationData.SimulationSnapshot](snapshotSignal.set)

@@ -14,27 +14,9 @@ import scala.concurrent.duration.FiniteDuration
  * an energy surplus (charging) or deficit (discharging).
  */
 trait BatteryStrategy extends StorageStrategy[BatteryState, Battery]:
-  /**
-   * Calculates the updated state and residual energy after a charging attempt.
-   *
-   * @param state   The current state of the battery (via extension).
-   * @param offered The amount of energy available for charging.
-   * @param spec    The physical specifications of the battery.
-   * @param delta   The duration of the simulation tick.
-   * @return A State transition for the [[BatteryState]].
-   */
   extension (state: BatteryState)
     def charge(offered: Energy, b: Battery)(using delta: FiniteDuration): (BatteryState, Flow[Energy])
-
-    /**
-     * Calculates the updated state and residual energy after a discharging attempt.
-     *
-     * @param state  The current state of the battery (via extension).
-     * @param needed The amount of energy requested from the battery.
-     * @param spec   The physical specifications of the battery.
-     * @param delta  The duration of the simulation tick.
-     * @return A State transition for the [[BatteryState]].
-     */
+    
     def discharge(needed: Energy, b: Battery)(using delta: FiniteDuration): (BatteryState, Flow[Energy])
 
 object BatteryStrategy:
