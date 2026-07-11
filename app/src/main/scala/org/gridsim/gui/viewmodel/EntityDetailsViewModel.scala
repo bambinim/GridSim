@@ -34,7 +34,6 @@ class EntityDetailsViewModel(
   private var lastEntityFlows: Map[String, Flow[Energy]] = Map.empty
   private var lastCableLoads: Map[Cable, Energy] = Map.empty
   private var lastEnvironment: Option[Environment] = None
-  private var lastCableLoads: Map[Cable, Energy] = Map.empty
 
   private val _detailsEntityProperty =
     ObjectProperty[DetailsEntity](emptyDetails)
