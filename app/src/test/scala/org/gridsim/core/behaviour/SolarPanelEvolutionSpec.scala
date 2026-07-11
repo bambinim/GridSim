@@ -2,7 +2,7 @@ package org.gridsim.core.behaviour
 
 import org.gridsim.core.behaviour.producer.SolarPanelEvolution.evolve
 import org.gridsim.core.common.*
-import org.gridsim.core.model.{Environment, SolarPanel, SolarPanelState}
+import org.gridsim.core.model.{Environment, SolarPanel}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -32,7 +32,7 @@ class SolarPanelEvolutionSpec extends AnyFlatSpec with Matchers:
     given EvolutionContext[Unit] = EvolutionContext(delta = 1.hour, Nil: Unit)
 
     val firstEfficiency = state.efficiency
-    
+
     firstEfficiency shouldEqual panel.efficiency
     state.entityId shouldEqual panel.id
 

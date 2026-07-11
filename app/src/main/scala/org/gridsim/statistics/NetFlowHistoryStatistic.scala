@@ -1,4 +1,4 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 import java.time.LocalDateTime
 import org.gridsim.core.observability.SimulationData.SimulationSnapshot

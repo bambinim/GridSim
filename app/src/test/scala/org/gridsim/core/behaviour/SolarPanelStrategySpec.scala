@@ -1,8 +1,8 @@
 package org.gridsim.core.behaviour
 
-import org.gridsim.core.common.{Flow, Irradiance, Power, kw, kwh, wm2}
+import org.gridsim.core.common.{Flow, Irradiance, kw, kwh, wm2}
 import org.gridsim.core.common.Flow.balanced
-import org.gridsim.core.model.{SolarPanel, SolarPanelPhysics, SolarPanelState}
+import org.gridsim.core.model.{SolarPanel, SolarPanelPhysics}
 import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.behaviour.producer.{SolarPanelStrategy, StandardSolarPanelStrategy}
 import org.gridsim.core.behaviour.producer.SolarPanelStrategy.produce
@@ -20,7 +20,7 @@ class SolarPanelStrategySpec extends AnyFlatSpec with Matchers with TableDrivenP
   import org.gridsim.core.validation.SolarPanelValidator.given
 
   private val location = GeographicPoint(44.3, 11.7)
-  
+
   private val (panel, state) =
     SolarPanel(
       id = "panel-01",

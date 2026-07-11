@@ -1,9 +1,10 @@
-package org.gridsim.core.statistics
+package org.gridsim.statistics
 
 import org.gridsim.core.common.Energy.*
 import org.gridsim.core.common.{Energy, Flow, kwh}
 import org.gridsim.core.model.Environment
 import org.gridsim.core.observability.SimulationData.SimulationSnapshot
+import org.gridsim.statistics.{FlowStatistic, StatKey, StatisticsRegistry, StatsBoard}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -6,9 +6,9 @@ import org.gridsim.core.observability.{Observer, SimulationData}
 import org.gridsim.core.simulation.{SimulationControllerFactory, SimulationModel, SimulationState}
 import org.gridsim.gui.model.RunningSimulation
 import fs2.concurrent.SignallingRef
+import org.gridsim.statistics.StatisticsRegistry
 
 import scala.concurrent.duration.DurationInt
-import org.gridsim.core.statistics.StatisticsRegistry
 
 /**
  * Factory for instantiating and configuring running simulation loops.
