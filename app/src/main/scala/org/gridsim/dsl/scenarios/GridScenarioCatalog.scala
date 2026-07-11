@@ -1,26 +1,13 @@
 package org.gridsim.dsl.scenarios
 
-import org.gridsim.core.behaviour.house.DefaultConsumptionStrategy.traditionalProfile
+import org.gridsim.core.behaviour.house.DefaultConsumptionStrategy.{commercialProfile, ecoProfile, traditionalProfile}
 import org.gridsim.core.common.{kw, kwh}
 import org.gridsim.dsl.grid.Topology.*
 import org.gridsim.dsl.grid.entities.BatteryBuilder.battery
-import org.gridsim.dsl.grid.entities.HouseBuilder.{
-  consumptionStrategy,
-  contains,
-  energyStorageSystems,
-  id
-}
+import org.gridsim.dsl.grid.entities.HouseBuilder.{consumptionStrategy, contains, energyStorageSystems, id}
 import org.gridsim.dsl.grid.entities.SolarArrayBuilder.solarArray
 import org.gridsim.dsl.simulation.SimulationBuilder
-import org.gridsim.dsl.simulation.SimulationBuilder.{
-  E,
-  EG,
-  entities,
-  house,
-  simulation,
-  tick,
-  topology
-}
+import org.gridsim.dsl.simulation.SimulationBuilder.{E, EG, entities, house, simulation, solarPanel, tick, topology}
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
@@ -43,6 +30,11 @@ object GridScenarioCatalog:
       name = "Advanced neighborhood",
       build = advancedNeighborhood
     ),
+    GridScenarioPreset(
+      id = "solar-farm-grid",
+      name = "Solar Farm Grid",
+      build = solarFarmGrid
+    )
   )
 
   def byId(id: String): Option[GridScenarioPreset] =
@@ -129,5 +121,49 @@ object GridScenarioCatalog:
         E(0) <-- 10.kw --> E(2)
         E(2) <-- 8.kw --> E(3)
         E(2) <-- 10.kw --> E(4)
+      }
+    }
+
+  def solarFarmGrid(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+    simulation {
+      tick(tickDuration)
+
+      entities {
+        solarPanel(
+          solarArray id "solar-farm-1" installedPower 100.kw location (44.53, 11.37) surface 500.0 efficiency 0.22
+        )
+
+        house:
+          id("house-1")
+          consumptionStrategy(traditionalProfile)
+          energyStorageSystems(
+            battery id "house-1-battery" capacity 20.kwh maxChargingPower 5.kw maxDischargingPower 5.kw minSoC 0.10
+          )
+
+        house:
+          id("house-2")
+          consumptionStrategy(traditionalProfile)
+          contains(
+            solarArray id "house-2-pv" installedPower 5.kw location (44.54, 11.38) surface 25.0 efficiency 0.20
+          )
+
+        house:
+          id("house-3")
+          consumptionStrategy(traditionalProfile)
+
+        house:
+          id("house-4")
+          consumptionStrategy(traditionalProfile)
+          energyStorageSystems(
+            battery id "house-4-battery" capacity 15.kwh maxChargingPower 4.kw maxDischargingPower 4.kw minSoC 0.15
+          )
+      }
+
+      topology {
+        EG <-- 150.kw --> E(0)
+        E(0) <-- 40.kw --> E(1)
+        E(1) <-- 30.kw --> E(2)
+        E(0) <-- 35.kw --> E(3)
+        E(3) <-- 20.kw --> E(4)
       }
     }
