@@ -8,6 +8,7 @@ import org.gridsim.dsl.simulation.SimulationBuilder.{
   simulation,
   entities,
   house,
+  solarPowerPlant,
   E,
   EG,
   topology
@@ -48,11 +49,15 @@ class SimulationBuilderSpec extends AnyFlatSpec with Matchers:
         )
       house:
         consumptionStrategy(traditionalProfile)
+      solarPowerPlant(
+        solarArray installedPower 5.kw location (0.0, 0.0) surface 10 efficiency 0.98
+      )
     }
     topology {
       EG <-- 10.kw --> E(0)
       E(0) <-- 20.kw --> E(1)
       E(1) <-- 30.kw --> E(2)
+      E(2) <-- 30.kw --> E(3)
     }
   }
 
@@ -65,12 +70,12 @@ class SimulationBuilderSpec extends AnyFlatSpec with Matchers:
   "A fully-compiled simulation builder" should "contain all specified elements" in:
     builder.tickDelta shouldBe Some(5.seconds)
     builder.topologyBlock.isDefined shouldBe true
-    builder.entitiesBuilders.length shouldBe 3
+    builder.entitiesBuilders.length shouldBe 4
 
   it should "build a simulation containing all specified informations" in:
     val (model, state) = builder.build().getOrElse(fail())
     state.delta shouldBe 5.seconds
-    model.grid.cables.size shouldBe 3
-    model.grid.nodes.size shouldBe 4
+    model.grid.cables.size shouldBe 4
+    model.grid.nodes.size shouldBe 5
     state.environment shouldBe Environment(0.seconds)
-    state.entityStates.size shouldBe 3
+    state.entityStates.size shouldBe 4

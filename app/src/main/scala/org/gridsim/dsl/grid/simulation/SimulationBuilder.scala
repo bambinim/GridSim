@@ -87,7 +87,7 @@ object SimulationBuilder:
     val house = HouseBuilder.house(block)
     ctx.builders = ctx.builders ++ List(house)
 
-  infix def solarPanel(builder: SolarArrayBuilder)(using
+  infix def solarPowerPlant(builder: SolarArrayBuilder)(using
       ctx: EntityBuilderContext
   ): Unit =
     ctx.builders = ctx.builders ++ List(builder)

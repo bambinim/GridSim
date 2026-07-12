@@ -3,55 +3,83 @@
 ## 1. Divisione in Moduli / Macro-Componenti
 La struttura del sistema si articola in quattro macro-componenti principali indipendenti per garantire coesione e basso accoppiamento:
 
-- **Engine (Motore di Simulazione):** Il nucleo del sistema, implementato in modo puramente funzionale. Definisce i modelli delle entità, le regole di transizione di stato ad ogni tick e la monade di stato per gestire l'evoluzione temporale. È un motore totalmente puro: non contiene riferimenti a interfacce grafiche o ad effetti collaterali. Riceve uno stato e restituisce lo stato successivo.
-- **GUI (Interfaccia Utente):** Componente basato su JavaFX/ScalaFX per il rendering dello stato della griglia e dei grafici in tempo reale. Gestisce i comandi di controllo (start/pause).
-- **DSL (Domain Specific Language):** Un layer sintattico embedded in Scala che espone le primitive per configurare la simulazione. Traduce le dichiarazioni dell'utente nei **modelli delle entità** (case class) e nello `SimulationState` iniziale.
+- **Core (Motore di Simulazione):** Il nucleo del sistema, implementato in modo puramente funzionale. Definisce i modelli statici e dinamici delle entità (`core.model`), le logiche di evoluzione (`core.behaviour`) e le regole di transizione di stato ad ogni tick (`core.simulation`). È un motore totalmente puro: riceve in ingresso uno stato, non muta riferimenti esterni e restituisce semplicemente lo stato successivo.
+- **Statistics (Analisi e Metriche):** Modulo dedicato all'elaborazione delle metriche, isolato dal core della simulazione (`statistics`). Contiene l'engine statistico e il registro per calcolare, aggregare e conservare lo storico dei dati quantitativi (es. bilanci energetici) prodotti dalla simulazione.
+- **GUI (Interfaccia Utente):** Componente basato su JavaFX/ScalaFX (`gui.view`, `gui.viewmodel`). Sfrutta il pattern **MVVM (Model-View-ViewModel)** per il rendering e l'aggiornamento in tempo reale dello stato della griglia, dei dettagli entità e dei grafici di andamento.
+- **DSL (Domain Specific Language):** Un layer sintattico embedded in Scala (`dsl.grid`, `dsl.scenarios`) che espone in modo fluido e leggibile le primitive per configurare la simulazione. Traduce le dichiarazioni dell'utente nei modelli delle entità e nello stato iniziale pronto per l'Engine.
 
-- **Analytics (Statistiche):** Modulo dedicato all'elaborazione e all'interrogazione dei dati estratti dagli stati di simulazione per calcolare le metriche di business (autosufficienza, blackout, ecc.).
+```mermaid
+flowchart TD
+    subgraph DSL [DSL]
+        Builder[DSL Builder]
+    end
 
-## 2. Architettura del Motore (Separazione Dati, Logica e Orchestrazione)
-Il design del motore segue rigidamente il principio di separazione tra dati, logica di calcolo e orchestrazione degli effetti.
+    subgraph Core [Core]
+        Model["SimulationModel<br/>(Topologia Rete, Entità Statiche)"]
+        State["SimulationState<br/>(Stati Dinamici Entità, Ambiente)"]
+        Engine[SimulationEngine]
+        Dispatcher[EntityEvolutionDispatcher]
+        Solver[PowerFlowSolver]
+        
+        Model -.->|Lettura Modelli| Engine
+        State -.->|Lettura/Scrittura Stato| Engine
+        Engine -->|Evoluzione Nodi| Dispatcher
+        Engine -->|Flussi sui Cavi| Solver
+    end
 
-- **Modelli Dati (Pure Data) e Abbellimenti di Dominio:**
-  - *Modelli / Entità:* Rappresentano la struttura statica della rete definita tramite DSL. La topologia della rete è definita come un **Grafo**, in cui i vertici sono le entità della rete (es. case, generatori) e gli archi sono i cavi (con i riferimenti ai nodi connessi e la portata massima).
-  - *Stato a runtime:* Rappresenta lo stato dinamico di nodi e cavi in un dato istante (es. livello di carica corrente della batteria, flusso di potenza effettivo su un cavo).
-  - *Astrazione Unificata (GridEntity):* Tutti gli elementi di primo livello connessi direttamente alla micro-grid (case, produttori standalone, ecc.) implementano o condividono una stessa astrazione o interfaccia (es. `GridEntity`). Questo permette al ciclo di simulazione di trattarli uniformemente per risolverne il bilancio energetico con un'unica chiamata di funzione.
-- **Logica di Dominio (Type Classes & Strategie di Calcolo):**
-  Le operazioni matematiche e le formule fisiche sono separate in due livelli:
-  - `trait EnergyResolver[A]` (Type Class): per calcolare polimorficamente lo scambio energetico netto di ciascuna tipologia di nodo (es. casa, produttore). È una Type Class stateless e indipendente dal grafo.
-  - `trait PowerFlowSolver` (Strategy / Algebra): un'interfaccia pura per il calcolo della distribuzione dei flussi di potenza (load flow) sugli archi del grafo. Accetta la mappa dei bilanci energetici dei nodi e la lista dei cavi, restituendo il carico calcolato per ogni cavo. Questa astrazione permette di scambiare facilmente diversi algoritmi di risoluzione (es. calcolo lineare su albero vs leggi di Kirchhoff su rete magliata).
-  Tutte le logiche di calcolo sono pure e indipendenti dalla monade di stato.
-- **Orchestration (Tagless Final & State Monad):**
-    Il flusso e il sequenziamento delle operazioni ad ogni tick sono astratti tramite algebre in stile **Tagless Final** (trait parametrici rispetto a un costruttore di tipo `F[_]`). L'interprete di queste algebre usa la monade `State[SimulationState, A]` fornita da **Cats** per applicare in modo puramente funzionale le logiche di dominio (risoluzione dei nodi e dei flussi sui cavi) e produrre lo stato successivo.
+    subgraph Statistics [Statistics]
+        StatsEngine[StatisticsEngine]
+    end
+
+    subgraph GUI [GUI]
+        Coordinator[SimulationCoordinator]
+        VM[ViewModels]
+        View[Views]
+    end
+
+    Builder -->|Genera Configurazione| Model
+    Builder -->|Inizializza Stato| State
+    Coordinator -->|Avanza Tick Temporale| Engine
+    Engine -->|Emette Flussi Reattivi| StatsEngine
+    Engine -->|Emette Flussi Reattivi| VM
+    Coordinator -->|Coordina UI| VM
+    VM -.->|Data Binding passivo| View
+```
+
+## 2. Architettura dell'engine (Separazione Dati, Logica e Orchestrazione)
+Il design del segue rigidamente il principio di separazione tra dati, logica di calcolo e orchestrazione degli effetti, sfruttando ampiamente concetti di programmazione funzionale.
+
+- **Modelli Dati (Pure Data):**
+  - *Modelli Statici e Dinamici:* Viene mantenuta una rigorosa distinzione tra la configurazione statica e invariante di un'entità (es. `House`, `SolarPanel`) e il suo stato mutevole che evolve nel tempo a runtime (es. `HouseState`, `SolarPanelState`).
+  - *Astrazione Unificata (GridEntity):* Tutti gli elementi connessi alla rete implementano astrazioni comuni (`GridEntity`, `GridEntityState`). Questo permette al ciclo di simulazione di trattarli uniformemente.
+- **Logica di Dominio (Pattern Strategy, Type Classes ed Extension Methods):**
+  Le operazioni matematiche e le logiche evolutive sono isolate e fortemente polimorfiche:
+  - *Strategy Pattern:* Ampiamente utilizzato per definire i comportamenti specifici di consumo o produzione (es. `ConsumptionStrategy`, `StorageStrategy`) e per scambiare facilmente gli algoritmi di calcolo di distribuzione della potenza in rete (`PowerFlowSolver` come `KirchhoffPowerFlowSolver` o `SimplePowerFlowSolver`).
+  - *Type Classes e Context Parameters:* Costrutti nativi di Scala 3 (`given` e `using`) sono usati estensivamente per l'injection di dipendenze context-bound (es. `EvolutionContext`, `ConsumptionResolver`), evitando di inquinare i costruttori o le signature pubbliche dei metodi.
+  - *Extension Methods:* Sono impiegati per arricchire i puri record di stato (come `HouseState`) con le capacità evolutive tramite il type class pattern `GridEvolution` (es. `def evolve(...)`), preservando la purezza strutturale dei dati ed estraendo i comportamenti in oggetti separati (`HouseEvolution`).
+- **Orchestration (State Monad):**
+  Il sequenziamento delle operazioni all'interno della `DefaultSimulationEngine` è orchestrato mediante la monade `State[SimulationState, A]` offerta dalla libreria **Cats**. L'aggiornamento dell'ambiente, l'evoluzione delle entità e il calcolo dei carichi di potenza sono combinati come pura trasformazione sequenziale e funzionale.
 
 ## 3. Gestione dello Stato e Ciclo Temporale (Simulation Loop)
-La simulazione viene modellata come una serie di transizioni di stato pure guidate da un runner asincrono esterno.
+La simulazione viene modellata come una serie di transizioni di stato pure guidate da un runner esterno.
 
 - **La Singola Transizione di Stato (Il Tick):**
-  Un singolo passo temporale rappresenta una transizione pura da uno stato $S_t$ a uno stato $S_{t+1}$. La transizione viene eseguita dall'Engine tramite una funzione pura `SimulationState => SimulationState` (sotto forma di transizione monadica di `State`), implementando i seguenti passi:
-  1. *Aggiornamento dell'Ambiente:* Modifica dell'ora solare e delle condizioni meteorologiche.
-  2. *Risoluzione Unificata dei Nodi:* Applicazione della funzione di risoluzione energetica su tutte le `GridEntity` connesse alla rete per ottenere il surplus/deficit di ciascuna tramite la stessa chiamata.
-  3. *Risoluzione dei Flussi sui Cavi:* Calcolo dei carichi di potenza transitati su ciascun cavo in base al bilancio dei nodi, delegato all'istanza dell'algebra `PowerFlowSolver` configurata.
-  4. *Bilancio Globale:* Somma algebrica dei flussi per calcolare lo scambio netto con la Rete Esterna.
+  Un singolo passo temporale è una transizione pura eseguita dalla `SimulationEngine`, calcolata seguendo uno stretto ordine di dipendenza:
+  1. *Aggiornamento dell'Ambiente:* Modifica dell'ora solare, temperatura e radianza.
+  2. *Evoluzione delle Entità:* Delegata all'`EntityEvolutionDispatcher`, ogni entità calcola il proprio nuovo stato interno e l'energia netta residua (surplus o deficit). Tale calcolo rispetta un preciso ordine di esecuzione locale (es. un'abitazione risolve prima i consumi base, poi i produttori solari e, infine, bilancia gli accumulatori prima di scambiare con la rete).
+  3. *Risoluzione dei Flussi sui Cavi:* Calcolo dell'intensità di potenza trasferita su ciascun cavo fisico della rete.
 
-- **Gestione dell'Osservabilità e del Tempo Reale (Simulation Runner):**
-  Il motore di simulazione è tenuto puro e privo di effetti collaterali. L'osservabilità e il loop temporale sono gestiti dal **Simulation Runner** (collocato nel modulo asincrono/GUI):
-  - Il Runner gestisce lo stato mutabile del tempo reale (avviato, in pausa).
-  - In esecuzione, ad ogni intervallo di tempo (es. 1 secondo), il Runner calcola lo stato successivo chiamando la funzione pura dell'Engine: `currentState = Engine.step(currentState)`.
-  - Subito dopo il calcolo, il Runner notifica gli **Observer** registrati (es. il controller della GUI per aggiornare i grafici). In questo modo, l'Engine rimane 100% puro e isolato da logiche di I/O o di notifica.
+- **Gestione dell'Osservabilità (Event Dispatching e Flussi Reattivi):**
+  L'engine di dominio non effettua I/O né push di dati per preservare la propria natura funzionale. Il lato reattivo è delegato all'interfaccia utente (strato runtime/coordinator):
+  - Il calcolo dei "tick" genera nuovi stati `SimulationState` che vengono incanalati all'interno di flussi continui asincroni.
+  - Un modulo apposito di Dispatching si occupa di sezionare e smistare in modo reattivo le varie parti dello stato di simulazione (ambiente, metriche, stato delle entità) su canali dedicati. Questo assicura isolamento, asincronia e disaccoppiamento estremo tra l'esecuzione pura del modello e i molteplici listener di sistema.
 
-## 4. Architettura dell'Interfaccia Utente (Unidirectional Flow)
-L'interfaccia grafica (GUI) adotta un pattern a **Flusso di Dati Unidirezionale (Unidirectional Data Flow)** per interfacciarsi in modo pulito con la natura funzionale dell'Engine:
+## 4. Architettura dell'Interfaccia Utente (MVVM e Flusso Reattivo)
+L'interfaccia grafica si integra con i canali reattivi del sistema impiegando un solido pattern **Model-View-ViewModel (MVVM)**, ottimizzato per mantenere un Flusso Dati Unidirezionale pulito:
 
-- **View (Vista):** Sviluppata in JavaFX/ScalaFX, descrive il layout della dashboard (controlli di avvio/pausa, visualizzazione della griglia e grafici di andamento temporale). La vista è passiva: visualizza i dati dello stato corrente e delega le interazioni dell'utente al Controller.
-- **Controller:** Gestisce le interazioni (pressione del tasto Play, Pause) e controlla l'istanza del *Simulation Runner*.
-- **Simulation Runner (Lo "Stato Mutabile" dell'applicazione):** È l'unico punto in cui risiede lo stato mutabile a runtime (il riferimento alla simulazione corrente e lo stato di pausa/play). 
-- **Flusso dei Dati:**
-  1.  L'utente interagisce con la View (es. preme "Start").
-  2.  Il Controller comanda al Runner di avviare il timer asincrono.
-  3.  Ad ogni tick del timer, il Runner invia il vecchio `SimulationState` all'Engine, che calcola il nuovo `SimulationState` in modo puro.
-  4.  Il Runner riceve il nuovo stato e notifica il Controller (Observer).
-  5.  Il Controller aggiorna i nodi della View con le nuove metriche (aggiornando i grafici e lo stato delle batterie in tempo reale).
+- **View:** Componenti ScalaFX puramente dichiarativi (`ViewFX`) che si occupano di definire i layout e gestire gli aspetti visivi della simulazione (es. `GridGraphView`, `StatisticsView`). Non contengono logica se non i binding passivi diretti verso le proprietà esposte dai ViewModel.
+- **ViewModel:** Oggetti intermediari che astraggono lo stato GUI per le specifiche view (es. `SimulationSummaryViewModel`, `FlowStatisticViewModel`). Sottoscrivono i canali dati della simulazione e ne traducono gli aggiornamenti in proprietà mutabili ScalaFX (`ObjectProperty` ecc.), forzando e isolando il ricalcolo sul thread grafico (`Platform.runLater`).
+- **Coordinator:** Il `SimulationCoordinator` funge da raccordo e orchestratore principale. Inizializza tutte le registrazioni ai canali della simulazione e coordina le reazioni a cascata sui vari ViewModel, centralizzando in tal modo le dipendenze al motore e ripulendo i ViewModel stessi.
 
 [Sommario](index.md) |
 [Capitolo precedente](03-requirements.md) |
