@@ -1,10 +1,13 @@
 package org.gridsim.statistics
 
-import org.gridsim.core.observability.SimulationData.{EntityFlowsData, SimulationSnapshot}
+import org.gridsim.core.observability.SimulationData.{EntityFlowsData, EntityStatesData, SimulationSnapshot}
 
 enum StatKey[A](val name: String):
-  case SimStats extends StatKey[FlowStatistic]("simulationStatistics")
-  case NetFlowHist extends StatKey[NetFlowHistoryStatistic]("netFlowHistory")
+  case FlowStatKey extends StatKey[FlowStatistic]("flowStat")
+  case NetFlowHistoryStatKey extends StatKey[NetFlowHistoryStatistic]("netFlowHistory")
+  case BatteryChargeStatKey extends StatKey[BatteriesChargeStatistic]("batteryCharge")
+  case CableOverloadStatKey extends StatKey[CablesOverloadStatistic]("cableOverload")
+  case SimTimeStatKey extends StatKey[SimulationTimeStatistic]("simulationTime")
 
 object StatisticsRegistry:
 
@@ -17,9 +20,19 @@ object StatisticsRegistry:
       (history, snapshot) => history.record(NetFlowSampler.sample(snapshot))
     )(identity)
 
+  private val batteryChargeFold: Fold[SimulationSnapshot, BatteriesChargeStatistic] =
+    Fold.monoidal(BatteriesChargeSampler.sample)
+      .contramap(snapshot => EntityStatesData(snapshot.entityStates))
+
+  private val cableOverloadFold: Fold[SimulationSnapshot, CablesOverloadStatistic] =
+    Fold.monoidal(CablesOverloadSampler.sample)
+
   private def allStatistics: List[Registration[SimulationSnapshot, ?]] = List(
-    Registration(StatKey.SimStats, flowStatisticFold),
-    Registration(StatKey.NetFlowHist, netFlowHistoryStatisticFold)
+    Registration(StatKey.FlowStatKey, flowStatisticFold),
+    Registration(StatKey.NetFlowHistoryStatKey, netFlowHistoryStatisticFold),
+    Registration(StatKey.BatteryChargeStatKey, batteryChargeFold),
+    Registration(StatKey.CableOverloadStatKey, cableOverloadFold),
+    Registration(StatKey.SimTimeStatKey, SimulationTimeStatistic.fold)
   )
 
   val engine: Fold[SimulationSnapshot, StatsBoard] = StatisticsEngine.build(allStatistics)

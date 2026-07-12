@@ -1,10 +1,8 @@
 package org.gridsim.gui.view
 
 import org.gridsim.gui.viewmodel.SimulationCoordinator
-import org.gridsim.gui.model.SummaryViewState
-import scalafx.geometry.{Insets, Orientation}
 import scalafx.scene.Parent
-import scalafx.scene.control.{SplitPane, Tab, TabPane}
+import scalafx.scene.control.{Tab, TabPane}
 import scalafx.scene.layout.{BorderPane, Priority, VBox}
 
 /**
@@ -25,7 +23,10 @@ class SimulationView(val coordinator: SimulationCoordinator)
 
   private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
-  private val statisticsView = new FlowStatisticView(coordinator.flowStatisticViewModel)
+  private val flowStatView = new FlowStatisticView(coordinator.flowStatisticViewModel)
+  private val batteryChargeStatView = new BatteriesChargeStatisticView(coordinator.batteryChargeStatisticViewModel)
+  private val cableOverloadStatView = new CableOverloadStatisticView(coordinator.cableOverloadStatisticViewModel)
+  private val simulationTimeStatView = new SimulationTimeStatisticView(coordinator.simulationTimeStatisticViewModel)
   private val netFlowChartView = new NetFlowChartStatisticView(coordinator.netFlowChartStatisticViewModel)
   private val controlView = new SimulationControlView(coordinator.controlViewModel)
   private val gridGraphView = new GridGraphView(coordinator.graphViewModel)
@@ -34,9 +35,32 @@ class SimulationView(val coordinator: SimulationCoordinator)
     center = gridGraphView
     right = entityDetailsView
 
+  private val statisticTabs = new TabPane:
+    tabs = Seq(
+      new Tab:
+        text = "Flow"
+        content = flowStatView
+        closable = false
+      ,
+      new Tab:
+        text = "Battery Charge"
+        content = batteryChargeStatView
+        closable = false
+      ,
+      new Tab:
+        text = "Cable Overload"
+        content = cableOverloadStatView
+        closable = false
+      ,
+      new Tab:
+        text = "Simulation Time"
+        content = simulationTimeStatView
+        closable = false
+    )
+
   private val statisticsArea = new BorderPane:
     center = netFlowChartView
-    right = statisticsView
+    right = statisticTabs
 
   private val detailsTabs = new TabPane:
     tabs = Seq(

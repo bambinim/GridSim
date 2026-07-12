@@ -18,9 +18,13 @@ class FlowStatisticView(viewModel: FlowStatisticViewModel) extends VBox with Vie
 
   styleClass += "statistics"
 
-  private val avgNetFlowLabel =
+  private val currentNetFlow =
     new Label():
       styleClass += "title"
+      text <== viewModel.currentNetFlow
+
+  private val avgNetFlowLabel =
+    new Label():
       text <== viewModel.avgNetFlowText
 
   private val exportedLabel =
@@ -40,6 +44,7 @@ class FlowStatisticView(viewModel: FlowStatisticViewModel) extends VBox with Vie
       text <== viewModel.peakImportText
 
   children = Seq(
+    currentNetFlow,
     avgNetFlowLabel,
     exportedLabel,
     peakExportedLabel,

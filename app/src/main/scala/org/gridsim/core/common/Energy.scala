@@ -12,8 +12,9 @@ import org.gridsim.util.Formatting.*
 opaque type Energy = Double
 
 object Energy:
-  def apply(v: Double): Energy = v
   val Zero: Energy = 0.0
+
+  def apply(v: Double): Energy = v
 
   given CommutativeMonoid[Energy] =
     cats.instances.double.catsKernelStdGroupForDouble
@@ -35,7 +36,7 @@ object Energy:
     )
     def min(o: Energy): Energy = if e <= o then e else o
     def max(o: Energy): Energy = if e >= o then e else o
-    def abs: Energy = Math.abs(e.toDouble).kwh
+    def abs: Energy = Math.abs(e).kwh
     def toFlow: Flow[Energy] =
       if e > 0.0 then Flow.Surplus(e)
       else if e < 0.0 then Flow.Deficit(e.abs)

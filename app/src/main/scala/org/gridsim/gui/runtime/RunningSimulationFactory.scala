@@ -48,7 +48,7 @@ object RunningSimulationFactory:
     val controller = SimulationControllerFactory.create(
       model,
       state,
-      observers = List(guiObserver, statisticsObserver, statisticsObserver),
+      observers = List(guiObserver, statisticsObserver),
       tickInterval = 2.seconds
     )
 

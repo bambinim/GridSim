@@ -1,11 +1,10 @@
 package org.gridsim.core.behaviour
 
+import org.gridsim.core.behaviour.producer.SolarPanelStrategy.produce
 import org.gridsim.core.common.{Flow, Irradiance, kw, kwh, wm2}
-import org.gridsim.core.common.Flow.balanced
 import org.gridsim.core.model.{SolarPanel, SolarPanelPhysics}
 import org.gridsim.core.common.GeographicPoint
 import org.gridsim.core.behaviour.producer.{SolarPanelStrategy, StandardSolarPanelStrategy}
-import org.gridsim.core.behaviour.producer.SolarPanelStrategy.produce
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -34,7 +33,7 @@ class SolarPanelStrategySpec extends AnyFlatSpec with Matchers with TableDrivenP
 
   "StandardSolarPanelStrategy" should "produce zero energy at zero irradiance" in:
     val (_, flow) = StandardSolarPanelStrategy.produce(state, panel, Irradiance.Zero)
-    flow shouldBe balanced
+    flow shouldBe Flow.Balanced
 
   it should "produce energy proportional to irradiance, area, and efficiency" in:
     // rawKw = 1000 W/m² × 20 m² × 0.20 / 1000 = 4.0 kW → 4.0 kWh over 1 h
@@ -59,7 +58,7 @@ class SolarPanelStrategySpec extends AnyFlatSpec with Matchers with TableDrivenP
     forAll(cases) { (irr, expectedKwh) =>
       val (_, flow) = StandardSolarPanelStrategy.produce(state, panel, irr.wm2)
       if expectedKwh == 0.0 then
-        flow shouldBe balanced
+        flow shouldBe Flow.Balanced
       else
         flow shouldBe Flow.Surplus(expectedKwh.kwh)
     }

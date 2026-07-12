@@ -47,7 +47,7 @@ class StatisticsObserverIntegrationSpec extends AnyFlatSpec with Matchers:
     } yield result
 
     val stats = testIO.unsafeRunSync()
-    stats.ticks shouldBe 3L
+    stats.samples shouldBe 3L
     stats.totalExported.toDouble shouldBe 14.0
     stats.totalImported.toDouble shouldBe 2.0
     stats.peakExport.toDouble shouldBe 9.0

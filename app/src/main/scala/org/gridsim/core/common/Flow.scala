@@ -11,17 +11,16 @@ enum Flow[+A]:
   case Balanced
 
 object Flow:
-
-  given [A: Show]: Show[Flow[A]] = Show.show:
-    case Flow.Surplus(amount) => s"Surplus(${amount.show})"
-    case Flow.Deficit(amount) => s"Deficit(${amount.show})"
-    case Flow.Balanced => "Balanced"
+  val balanced: Flow[Energy] = Flow.Balanced
 
   def surplus(amount: Energy): Flow[Energy] = Flow.Surplus(amount.abs)
 
   def deficit(amount: Energy): Flow[Energy] = Flow.Deficit(amount.abs)
 
-  val balanced: Flow[Energy] = Flow.Balanced
+  given [A: Show]: Show[Flow[A]] = Show.show:
+    case Flow.Surplus(amount) => s"Surplus(${amount.show})"
+    case Flow.Deficit(amount) => s"Deficit(${amount.show})"
+    case Flow.Balanced => "Balanced"
 
   extension (f: Flow[Energy])
     def value: Double = f match

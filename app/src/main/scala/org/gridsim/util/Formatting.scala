@@ -17,7 +17,7 @@ object Formatting:
 
   /** Patterns used for dates. */
   val DatePattern = "yyyy-MM-dd"
-  val DateTimePattern = "yyyy-MM-dd HH:mm:ss"
+  val DateTimePattern = s"$DatePattern HH:mm:ss"
 
   val DateFormatting: DateTimeFormatter =
     DateTimeFormatter.ofPattern(DatePattern)
