@@ -53,7 +53,6 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
     converter = new StringConverter[TickDurationUnit]:
       override def toString(unit: TickDurationUnit): String =
         if unit == null then "" else unit.label
-
       override def fromString(text: String): TickDurationUnit =
         TickDurationUnit.values.find(_.label == text).orNull
     prefWidth = 120

@@ -5,7 +5,6 @@ import org.gridsim.core.simulation.SimulationControllerState
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.{RunningSimulation, TickDurationUnit}
 
-import java.time.LocalDateTime
 import scala.concurrent.duration.*
 
 /**
@@ -69,7 +68,8 @@ class SimulationControlViewModel(
     parsed match
       case Left(err) => ()
       case Right(tickDelta) =>
-        println(tickDelta)
+        // FIXME: To remove println here and check why observability is compromised with this triggered partial update
+        //println(tickDelta)
         running.controller.setTick(tickDelta)
 
   tickAmountText.onChange { (_, _, _) => updateTick() }
@@ -86,37 +86,31 @@ class SimulationControlViewModel(
     stopDisabled.value = isStopped
     exitDisabled.value = false
 
-    if (isStopped) then
+    if isStopped then
       stepDisabled.value = true
       playPauseText.value = "Play"
       statusText.value = "STOPPED"
     else
-      stepDisabled.value = (controllerState == RUNNING)
-      playPauseText.value = if (controllerState == RUNNING) then "Pause" else "Play"
+      stepDisabled.value = controllerState == RUNNING
+      playPauseText.value = if controllerState == RUNNING then "Pause" else "Play"
       statusText.value = controllerState.toString
 
-  /**
-   * Toggles the simulation status between running and paused.
-   */
+  /** Toggles the simulation status between running and paused. */
   def togglePlayPause(): Unit =
-    if (!stoppedProperty.value) then
+    if !stoppedProperty.value then
       running.controller.simulationControllerState match
         case RUNNING => running.controller.pause()
         case PAUSED  => running.controller.resume()
     update(running.controller.simulationControllerState)
 
-  /**
-   * Advances the simulation by a single tick if currently paused.
-   */
+  /** Advances the simulation by a single tick if currently paused. */
   def stepOnce(): Unit =
-    if (!stoppedProperty.value && running.controller.simulationControllerState == PAUSED) then
+    if !stoppedProperty.value && running.controller.simulationControllerState == PAUSED then
       running.controller.stepOnce()
 
-  /**
-   * Stops the simulation and triggers the exit callback.
-   */
+  /** Stops the simulation and triggers the exit callback. */
   def exit(): Unit =
-    if (!stoppedProperty.value) then
+    if !stoppedProperty.value then
       running.controller.stop()
       stoppedProperty.value = true
     onExitCallback()

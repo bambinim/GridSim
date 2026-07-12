@@ -64,7 +64,6 @@ class ScenarioSelectionView[A](
     converter = new StringConverter[LocalDate]:
       override def toString(date: LocalDate): String =
         if date == null then "" else date.format(Formatting.DateFormatting)
-
       override def fromString(text: String): LocalDate =
         if text == null || text.isBlank then null
         else scala.util.Try(LocalDate.parse(text.trim, Formatting.DateFormatting)).getOrElse(null)
