@@ -1,20 +1,38 @@
 package org.gridsim.dsl.scenarios
 
-import org.gridsim.core.behaviour.house.DefaultConsumptionStrategy.{commercialProfile, ecoProfile, traditionalProfile}
+import org.gridsim.core.behaviour.house.DefaultConsumptionStrategy.{
+  commercialProfile,
+  ecoProfile,
+  traditionalProfile
+}
 import org.gridsim.core.common.{kw, kwh}
 import org.gridsim.dsl.grid.Topology.*
 import org.gridsim.dsl.grid.entities.BatteryBuilder.battery
-import org.gridsim.dsl.grid.entities.HouseBuilder.{consumptionStrategy, contains, energyStorageSystems, id}
+import org.gridsim.dsl.grid.entities.HouseBuilder.{
+  consumptionStrategy,
+  contains,
+  energyStorageSystems,
+  id
+}
 import org.gridsim.dsl.grid.entities.SolarArrayBuilder.solarArray
 import org.gridsim.dsl.simulation.SimulationBuilder
-import org.gridsim.dsl.simulation.SimulationBuilder.{E, EG, entities, house, simulation, solarPanel, tick, topology}
+import org.gridsim.dsl.simulation.SimulationBuilder.{
+  E,
+  EG,
+  entities,
+  house,
+  simulation,
+  solarPowerPlant,
+  tick,
+  topology
+}
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 case class GridScenarioPreset(
-  id: String,
-  name: String,
-  build: FiniteDuration => SimulationBuilder
+    id: String,
+    name: String,
+    build: FiniteDuration => SimulationBuilder
 )
 
 object GridScenarioCatalog:
@@ -40,7 +58,9 @@ object GridScenarioCatalog:
   def byId(id: String): Option[GridScenarioPreset] =
     all.find(_.id == id)
 
-  def baseNeighborhood(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+  def baseNeighborhood(
+      tickDuration: FiniteDuration = 15.minutes
+  ): SimulationBuilder =
     simulation {
       tick(tickDuration)
 
@@ -53,7 +73,10 @@ object GridScenarioCatalog:
           id("base-house-2")
           consumptionStrategy(traditionalProfile)
           contains(
-            solarArray id "base-house-2-pv" installedPower 4.kw location (44.49, 11.34) surface 22.0 efficiency 0.19
+            solarArray id "base-house-2-pv" installedPower 4.kw location (
+              44.49,
+              11.34
+            ) surface 22.0 efficiency 0.19
           )
           energyStorageSystems(
             battery id "base-house-2-battery" capacity 10.kwh maxChargingPower 3.kw maxDischargingPower 3.kw minSoC 0.15
@@ -71,7 +94,9 @@ object GridScenarioCatalog:
       }
     }
 
-  def advancedNeighborhood(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+  def advancedNeighborhood(
+      tickDuration: FiniteDuration = 15.minutes
+  ): SimulationBuilder =
     simulation {
       tick(tickDuration)
 
@@ -84,7 +109,10 @@ object GridScenarioCatalog:
           id("advanced-house-2")
           consumptionStrategy(traditionalProfile)
           contains(
-            solarArray id "advanced-house-2-pv" installedPower 6.kw location (44.50, 11.34) surface 32.0 efficiency 0.20
+            solarArray id "advanced-house-2-pv" installedPower 6.kw location (
+              44.50,
+              11.34
+            ) surface 32.0 efficiency 0.20
           )
           energyStorageSystems(
             battery id "advanced-house-2-battery" capacity 16.kwh maxChargingPower 4.kw maxDischargingPower 4.kw minSoC 0.15
@@ -94,7 +122,10 @@ object GridScenarioCatalog:
           id("advanced-house-3")
           consumptionStrategy(traditionalProfile)
           contains(
-            solarArray id "advanced-house-3-pv" installedPower 3.kw location (44.51, 11.35) surface 18.0 efficiency 0.18
+            solarArray id "advanced-house-3-pv" installedPower 3.kw location (
+              44.51,
+              11.35
+            ) surface 18.0 efficiency 0.18
           )
 
         house:
@@ -108,7 +139,10 @@ object GridScenarioCatalog:
           id("advanced-house-5")
           consumptionStrategy(traditionalProfile)
           contains(
-            solarArray id "advanced-house-5-pv" installedPower 8.kw location (44.52, 11.36) surface 40.0 efficiency 0.21
+            solarArray id "advanced-house-5-pv" installedPower 8.kw location (
+              44.52,
+              11.36
+            ) surface 40.0 efficiency 0.21
           )
           energyStorageSystems(
             battery id "advanced-house-5-battery" capacity 20.kwh maxChargingPower 5.kw maxDischargingPower 5.kw minSoC 0.10
@@ -124,13 +158,18 @@ object GridScenarioCatalog:
       }
     }
 
-  def solarFarmGrid(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+  def solarFarmGrid(
+      tickDuration: FiniteDuration = 15.minutes
+  ): SimulationBuilder =
     simulation {
       tick(tickDuration)
 
       entities {
-        solarPanel(
-          solarArray id "solar-farm-1" installedPower 100.kw location (44.53, 11.37) surface 500.0 efficiency 0.22
+        solarPowerPlant(
+          solarArray id "solar-farm-1" installedPower 100.kw location (
+            44.53,
+            11.37
+          ) surface 500.0 efficiency 0.22
         )
 
         house:
@@ -144,7 +183,10 @@ object GridScenarioCatalog:
           id("house-2")
           consumptionStrategy(traditionalProfile)
           contains(
-            solarArray id "house-2-pv" installedPower 5.kw location (44.54, 11.38) surface 25.0 efficiency 0.20
+            solarArray id "house-2-pv" installedPower 5.kw location (
+              44.54,
+              11.38
+            ) surface 25.0 efficiency 0.20
           )
 
         house:
