@@ -34,24 +34,16 @@ trait SimulationController:
    */
   def start(): Unit
 
-  /**
-   * Stops the runner and releases its scheduling resources.
-   */
+  /** Stops the runner and releases its scheduling resources. */
   def stop(): Unit
 
-  /**
-   * Resumes a paused simulation loop.
-   */
+  /** Resumes a paused simulation loop. */
   def resume(): Unit
 
-  /**
-   * Pauses the periodic simulation loop without changing the current state.
-   */
+  /** Pauses the periodic simulation loop without changing the current state. */
   def pause(): Unit
 
-  /**
-   * Set a new delta duration of simulatiom
-   */
+  /** Set a new delta duration of the Simulation */
   def setTick(delta: FiniteDuration): Unit
 
   /**

@@ -1,24 +1,21 @@
 package org.gridsim.gui.view
 
 import scalafx.scene.layout.BorderPane
-import com.brunomnsilva.smartgraph.graph.{Graph, GraphEdgeList}
-import com.brunomnsilva.smartgraph.graphview.{
-  SmartGraphPanel,
-  SmartCircularSortedPlacementStrategy
-}
-import org.gridsim.core.model.GridEntity
-import org.gridsim.core.model.network.{Cable, CableConnections}
-import org.gridsim.core.common.Power
+import com.brunomnsilva.smartgraph.graphview.{SmartCircularSortedPlacementStrategy, SmartGraphPanel}
 import scalafx.application.Platform
 import scalafx.Includes.*
 import org.gridsim.gui.viewmodel.GridGraphViewModel
 import com.brunomnsilva.smartgraph.graphview.SmartGraphVertexNode
 import javafx.beans.binding.Bindings
 import javafx.scene.text.Text
+import scalafx.scene.Parent
 
-/** Mock UI view for displaying the Grid graph. Uses JavaFXSmartGraph to
-  * visualize GridEntity nodes and Cable edges.
-  */
+import java.net.URL
+
+/**
+ * Mock UI view for displaying the Grid graph. Uses JavaFXSmartGraph to
+ * visualize GridEntity nodes and Cable edges.
+ */
 class GridGraphView(viewModel: GridGraphViewModel)
     extends BorderPane
     with ViewFX:
@@ -27,10 +24,8 @@ class GridGraphView(viewModel: GridGraphViewModel)
     new SmartCircularSortedPlacementStrategy()
   )
 
-  val css = getClass.getResource("/smartgraph.css")
-  if (css != null) {
-    this.stylesheets.add(css.toExternalForm)
-  }
+  val css: URL = getClass.getResource("/smartgraph.css")
+  if css != null then this.stylesheets.add(css.toExternalForm)
 
   // SmartGraphPanel extends javafx.scene.layout.Pane.
   // We can assign it directly to center because of implicit conversion from JavaFX Node to ScalaFX Node.
@@ -134,4 +129,4 @@ class GridGraphView(viewModel: GridGraphViewModel)
     (e: MouseEvent) => e.consume()
   )
 
-  override def root = this
+  override def root: Parent = this
