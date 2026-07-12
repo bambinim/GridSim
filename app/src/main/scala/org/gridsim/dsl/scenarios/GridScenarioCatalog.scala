@@ -34,13 +34,18 @@ object GridScenarioCatalog:
       id = "solar-farm-grid",
       name = "Solar Farm Grid",
       build = solarFarmGrid
+    ),
+    GridScenarioPreset(
+      id = "incoherent-neighborhood",
+      name = "Incoherent Neighborhood (Error Testing)",
+      build = incoherentNeighborhood
     )
   )
 
   def byId(id: String): Option[GridScenarioPreset] =
     all.find(_.id == id)
 
-  def baseNeighborhood(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+  private def baseNeighborhood(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
     simulation {
       tick(tickDuration)
 
@@ -71,7 +76,7 @@ object GridScenarioCatalog:
       }
     }
 
-  def advancedNeighborhood(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+  private def advancedNeighborhood(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
     simulation {
       tick(tickDuration)
 
@@ -124,7 +129,7 @@ object GridScenarioCatalog:
       }
     }
 
-  def solarFarmGrid(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+  private def solarFarmGrid(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
     simulation {
       tick(tickDuration)
 
@@ -165,5 +170,34 @@ object GridScenarioCatalog:
         E(1) <-- 30.kw --> E(2)
         E(0) <-- 35.kw --> E(3)
         E(3) <-- 20.kw --> E(4)
+      }
+    }
+
+  private def incoherentNeighborhood(tickDuration: FiniteDuration = 15.minutes): SimulationBuilder =
+    simulation {
+      tick(tickDuration)
+
+      entities {
+        house:
+          id("h1")
+          consumptionStrategy(traditionalProfile)
+          contains(
+            solarArray id "incoherent-pv" installedPower 4.kw location (44.49, 11.34) surface -22.0 efficiency 0.19
+          )
+          energyStorageSystems(
+            battery id "incoherent-battery" capacity -10.kwh maxChargingPower 3.kw maxDischargingPower 3.kw minSoC 0.15
+          )
+
+        house:
+          id("incoherent-house-2")
+          consumptionStrategy(traditionalProfile)
+          energyStorageSystems(
+            battery id "incoherent-battery-2" capacity 10.kwh maxChargingPower 13.kw maxDischargingPower 3.kw minSoC 1.5
+          )
+      }
+
+      topology {
+        EG <-- 12.kw --> E(0)
+        E(0) <-- 8.kw --> E(1)
       }
     }
