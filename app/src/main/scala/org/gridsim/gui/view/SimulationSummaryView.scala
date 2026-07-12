@@ -13,7 +13,7 @@ import scalafx.scene.layout.VBox
  *
  * @param viewModel the viewmodel driving this simulation summary view
  */
-class SimulationSummaryView(viewModel: SimulationSummaryViewModel) extends VBox with ViewFX:
+class SimulationSummaryView(name: String, viewModel: SimulationSummaryViewModel) extends VBox with ViewFX:
   override def root: Parent = this
 
   styleClass += "summary"
@@ -21,7 +21,7 @@ class SimulationSummaryView(viewModel: SimulationSummaryViewModel) extends VBox 
   private val nameLabel =
     new Label():
       styleClass += "title"
-      text <== viewModel.nameText
+      text = name
 
   private val numEntities =
     new Label():

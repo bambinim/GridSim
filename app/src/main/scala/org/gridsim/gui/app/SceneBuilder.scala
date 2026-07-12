@@ -44,4 +44,3 @@ class SceneBuilder(
             onExit = () => dispatch(SimulationExited)
           )
         )
-

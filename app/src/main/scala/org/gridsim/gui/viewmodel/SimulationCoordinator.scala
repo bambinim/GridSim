@@ -28,6 +28,8 @@ class SimulationCoordinator(
     onExit: () => Unit = () => ()
 ):
 
+  val scenarioName: String = running.name
+
   /** Property tracking the currently selected entity in the GUI. */
   val selectedEntity: ObjectProperty[Selection] = ObjectProperty(Selection.NoSelection)
 

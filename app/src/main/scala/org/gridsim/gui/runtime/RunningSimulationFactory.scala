@@ -22,13 +22,15 @@ object RunningSimulationFactory:
    *
    * Creates an FS2-stream-based pipeline to dispatch updates to observers.
    *
+   * @param name the name of the simulation
    * @param model the grid topology and configuration of the simulation
    * @param state the initial conditions of the grid entities and environment
    * @return the wired [[RunningSimulation]] ready for play/pause/step controls
    */
   def createSimpleSimulation(
-      model: SimulationModel,
-      state: SimulationState
+                              name: String,
+                              model: SimulationModel,
+                              state: SimulationState
   ): RunningSimulation =
     val initialSnapshot: SimulationData.SimulationSnapshot = SimulationData.SimulationSnapshot(
       state.environment,
@@ -52,4 +54,4 @@ object RunningSimulationFactory:
       tickInterval = 2.seconds
     )
 
-    RunningSimulation(model, controller, snapshotSignal, statisticsStateSignal)
+    RunningSimulation(name, model, controller, snapshotSignal, statisticsStateSignal)

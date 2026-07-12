@@ -11,8 +11,7 @@ import cats.effect.unsafe.implicits.global
 import org.gridsim.core.observability.{DataDispatcher, SimulationData}
 
 
-/** Lifecycle state of a [[SimulationRunner]].
-  */
+/** Lifecycle state of a [[SimulationRunner]]. */
 enum SimulationControllerState:
   /** The runner is executing scheduled simulation ticks. */
   case RUNNING
@@ -100,8 +99,7 @@ final case class DefaultSimulationController(
     cancelActiveTask()
     scheduler.stop()
 
-  /** Resumes periodic execution by delegating to [[start]].
-    */
+  /** Resumes periodic execution by delegating to [[start]]. */
   override def resume(): Unit =
     start()
 

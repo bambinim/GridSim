@@ -16,6 +16,7 @@ import org.gridsim.statistics.StatisticsRegistry
  * @param snapshotSignal signaling stream emitting simulation snapshot updates
  */
 case class RunningSimulation(
+  name: String,
   model: SimulationModel,
   controller: SimulationController,
   snapshotSignal: SignallingRef[IO, SimulationData.SimulationSnapshot],

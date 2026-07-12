@@ -24,8 +24,7 @@ case class SimulationBuilder(
     tickDelta: Option[FiniteDuration]
 ) extends Builder[(SimulationModel, SimulationState)]:
 
-  override def build()
-      : ValidatedNec[DSLError, (SimulationModel, SimulationState)] =
+  override def build(): ValidatedNec[DSLError, (SimulationModel, SimulationState)] =
     val entities = entitiesBuilders.traverse(_.build())
     val topBlk =
       topologyBlock.toValidNec(DSLBuilderError.MissingBlock("topology"))

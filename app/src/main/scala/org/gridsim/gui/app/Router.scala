@@ -6,9 +6,7 @@ import org.gridsim.gui.model.RunningSimulation
 import scalafx.scene.Parent
 import scalafx.scene.layout.BorderPane
 
-/**
- * Represents the current navigational route/screen in the application.
- */
+/** Represents the current navigational route/screen in the application. */
 enum Route:
   /** The scenario list selection view. */
   case ScenarioSelection
@@ -21,12 +19,10 @@ enum Route:
  * @param route the active route/screen
  */
 case class AppState(
-  route: Route                   
+  route: Route
 )
 
-/**
- * Global application events that trigger navigational route changes.
- */
+/** Global application events that trigger navigational route changes. */
 enum AppEvent:
   /** Emitted when a scenario is loaded and the simulation page should open. */
   case ScenarioLoaded(running: RunningSimulation)
@@ -42,19 +38,15 @@ class AppRouter(
   render: (Route, AppEvent => Unit) => Parent
 ):
   private var state = AppState(route = ScenarioSelection)
-  
+
   private val rootPane = new BorderPane:
     center = render(state.route, dispatch)
-    
-  /**
-   * The root parent component of the routing layout.
-   */
+
+  /** The root parent component of the routing layout. */
   def root: Parent =
     rootPane
-    
-  /**
-   * Stops the active simulation if one is currently running.
-   */
+
+  /** Stops the active simulation if one is currently running. */
   def stopActiveSimulation(): Unit =
     state.route match
       case Simulation(running) => running.controller.stop()

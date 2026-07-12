@@ -2,7 +2,7 @@ package org.gridsim.gui.view
 
 import org.gridsim.gui.viewmodel.SimulationCoordinator
 import scalafx.scene.Parent
-import scalafx.scene.control.{Tab, TabPane}
+import scalafx.scene.control.{Label, Tab, TabPane}
 import scalafx.scene.layout.{BorderPane, Priority, VBox}
 
 /**
@@ -21,7 +21,7 @@ class SimulationView(val coordinator: SimulationCoordinator)
     with ViewFX:
   override def root: Parent = this
 
-  private val summaryView = new SimulationSummaryView(coordinator.summaryViewModel)
+  private val summaryView = new SimulationSummaryView(coordinator.scenarioName, coordinator.summaryViewModel)
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
   private val flowStatView = new FlowStatisticView(coordinator.flowStatisticViewModel)
   private val batteryChargeStatView = new BatteriesChargeStatisticView(coordinator.batteryChargeStatisticViewModel)

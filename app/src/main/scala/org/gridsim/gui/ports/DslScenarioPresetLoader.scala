@@ -31,7 +31,7 @@ class DslScenarioPresetLoader extends ScenarioPresetLoader[RunningSimulation]:
           .map(formatErrors)
           .map { case (model, state) =>
             val seededState = state.copy(environment = Environment(config.startDateTime))
-            RunningSimulationFactory.createSimpleSimulation(model, seededState)
+            RunningSimulationFactory.createSimpleSimulation(preset.name, model, seededState)
           }
       }
 
@@ -39,5 +39,3 @@ class DslScenarioPresetLoader extends ScenarioPresetLoader[RunningSimulation]:
     import cats.syntax.show.*
     import org.gridsim.dsl.given
     errors.toNonEmptyList.toList.map(_.show).mkString(", ")
-    
-    
