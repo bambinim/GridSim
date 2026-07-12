@@ -11,19 +11,11 @@ object NetFlowSampler:
       netFlowKwh = snapshot.entityFlows.values.map(_.value).sum
     )
 
-/**
- * A single point in a [[NetFlowHistoryStatistic]], the net flow recorded at a given simulation time.
- *
- * @param dateTime the simulation date the sample was taken at
- * @param netFlowKwh net flow (kWh, signed: if positive it is export, if negative it is import)
- */
 final case class NetFlowSample(dateTime: LocalDateTime, netFlowKwh: Double)
 
 /**
  * A bounded, chronologically ordered window of recent net-flow samples.
- *
- * @param samples net flow values in a [[NetFlowSample]]
- * @param capacity maximum number of samples retained; older samples are dropped first (FIFO)
+ * Older samples are dropped first (FIFO).
  */
 final case class NetFlowHistoryStatistic private(samples: Vector[NetFlowSample], capacity: Int):
   def record(sample: NetFlowSample): NetFlowHistoryStatistic =

@@ -5,7 +5,6 @@ import org.gridsim.core.common.{Energy, Flow, kwh}
 import org.gridsim.core.common.Energy.toFlow
 import org.gridsim.core.observability.SimulationData.EntityFlowsData
 
-/** A flow sample calculator */
 object FlowSampler:
   def sample(flowsData: EntityFlowsData): FlowStatistic =
     val netEnergy = flowsData.flows.values.map(_.value).sum
