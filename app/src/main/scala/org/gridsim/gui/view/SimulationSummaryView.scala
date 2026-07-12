@@ -18,10 +18,10 @@ class SimulationSummaryView(viewModel: SimulationSummaryViewModel) extends VBox 
 
   styleClass += "summary"
 
-  private val netFlowLabel =
+  private val nameLabel =
     new Label():
       styleClass += "title"
-      text <== viewModel.netFlowText
+      text <== viewModel.nameText
 
   private val numEntities =
     new Label():
@@ -31,13 +31,8 @@ class SimulationSummaryView(viewModel: SimulationSummaryViewModel) extends VBox 
     new Label():
       text <== viewModel.cablesText
 
-  private val simHours =
-    new Label():
-      text <== viewModel.timeText
-
   children = Seq(
-    netFlowLabel,
+    nameLabel,
     numEntities,
-    numCables,
-    simHours
+    numCables
   )

@@ -105,6 +105,8 @@ class ScenarioSelectionViewModel[A](
         tickAmount <- tickAmountText.value.trim.toIntOption
           .toRight("Not a valid tick amount inserted")
           .filterOrElse(_ > 0, "Tick amount must be greater than zero")
+        date <- Option(startDate.value)
+          .toRight("Not a valid start date inserted")
         hour <- startHourText.value.trim.toIntOption
           .toRight("Not a valid start hour inserted")
           .filterOrElse(h => h >= 0 && h <= 23, "Start hour must be between 0 and 23")

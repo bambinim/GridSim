@@ -13,31 +13,17 @@ class SimulationSummaryViewModel(model: SimulationModel, extractor: SummaryExtra
   private object Labels:
     val Entities = "Entities"
     val Cables = "Cables"
-    val Time = "Time"
-
-  val netFlowText: StringProperty = StringProperty(s"${Energy.Zero.show} Balanced")
+  
+  val nameText = StringProperty("Unknown")
   val entitiesText: StringProperty = StringProperty(s"${Labels.Entities}: 0")
   val cablesText: StringProperty = StringProperty(s"${Labels.Cables}: 0")
-  val timeText: StringProperty = StringProperty(s"${Labels.Time}: 0")
   val controllerState: ObjectProperty[SimulationControllerState] =
     ObjectProperty(SimulationControllerState.PAUSED)
 
-  def update(
-    entityFlows: Map[String, Flow[Energy]],
-    env: Environment,
-    state: SimulationControllerState
-  ): Unit =
-    val extracted = extractor.extract(model, entityFlows, env)
+  def update(state: SimulationControllerState): Unit =
+    val extracted = extractor.extract(model)
 
-    netFlowText.value = formatFlow(extracted.netFlowKind, extracted.netFlowKwh)
+    nameText.value = extracted.name
     entitiesText.value = s"${Labels.Entities}: ${extracted.entityCount}"
     cablesText.value = s"${Labels.Cables}: ${extracted.cableCount}"
-    timeText.value = s"${Labels.Time}: ${extracted.dateTime.format(Formatting.DateTimeFormatting)}"
     controllerState.value = state
-
-  private def formatFlow(flow: Flow[Energy], rawKwh: Double): String =
-    val dir = flow match
-      case Flow.Surplus(_) => "Exporting"
-      case Flow.Deficit(_) => "Importing"
-      case Flow.Balanced   => "Balanced"
-    f"${Energy(rawKwh).show} $dir"

@@ -43,13 +43,19 @@ class SimulationCoordinator(
   /** ViewModels managing the statistics. */
   val flowStatisticViewModel = FlowStatisticViewModel()
   val netFlowChartStatisticViewModel = NetFlowChartStatisticViewModel()
+  val batteryChargeStatisticViewModel = BatteriesChargeStatisticViewModel()
+  val cableOverloadStatisticViewModel = CableOverloadStatisticViewModel()
+  val simulationTimeStatisticViewModel = SimulationTimeStatisticViewModel()
 
   running.statisticsSignal.discrete
     .map(StatisticsRegistry.engine.extract)
     .evalMap(board => IO {
       Platform.runLater {
-        flowStatisticViewModel.update(board.get(StatKey.SimStats))
-        netFlowChartStatisticViewModel.update(board.get(StatKey.NetFlowHist))
+        flowStatisticViewModel.update(board.get(StatKey.FlowStatKey))
+        netFlowChartStatisticViewModel.update(board.get(StatKey.NetFlowHistoryStatKey))
+        batteryChargeStatisticViewModel.update(board.get(StatKey.BatteryChargeStatKey))
+        cableOverloadStatisticViewModel.update(board.get(StatKey.CableOverloadStatKey))
+        simulationTimeStatisticViewModel.update(board.get(StatKey.SimTimeStatKey))
       }
     }).compile.drain.unsafeRunAndForget()
 
@@ -101,7 +107,7 @@ class SimulationCoordinator(
       delta: FiniteDuration
   ): Unit =
     val controllerState = running.controller.simulationControllerState
-    summaryViewModel.update(entityFlows, environment, controllerState)
+    summaryViewModel.update(controllerState)
     entityDetailsViewModel.update(entityStates, entityFlows, cableLoads, environment, delta)
     controlViewModel.update(controllerState)
     graphViewModel.update(entityFlows, cableLoads)
