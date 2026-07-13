@@ -16,9 +16,9 @@ import java.net.URL
  * Mock UI view for displaying the Grid graph. Uses JavaFXSmartGraph to
  * visualize GridEntity nodes and Cable edges.
  */
-class GridGraphView(viewModel: GridGraphViewModel)
-    extends BorderPane
-    with ViewFX:
+class GridGraphView(viewModel: GridGraphViewModel) extends BorderPane with ViewFX:
+  override def root: Parent = this
+
   private val graphView = new SmartGraphPanel[String, String](
     viewModel.uiGraph,
     new SmartCircularSortedPlacementStrategy()
@@ -128,5 +128,3 @@ class GridGraphView(viewModel: GridGraphViewModel)
     MouseEvent.MouseDragged,
     (e: MouseEvent) => e.consume()
   )
-
-  override def root: Parent = this

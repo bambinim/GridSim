@@ -17,15 +17,18 @@ class BatteriesChargeStatisticView(viewModel: BatteriesChargeStatisticViewModel)
 
   private val averageLabel =
     new Label():
-      styleClass += "title"
+      styleClass += "bold"
+      styleClass += "statistic"
       text <== viewModel.averageText
 
   private val minLabel =
     new Label():
+      styleClass += "statistic"
       text <== viewModel.totalText
 
   private val maxLabel =
     new Label():
+      styleClass += "statistic"
       text <== viewModel.maxText
 
   children = Seq(averageLabel, minLabel, maxLabel)

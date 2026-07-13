@@ -36,6 +36,7 @@ class ScenarioSelectionView[A](
   private val titleLabel =
     new Label("GridSim"):
       styleClass += "title"
+      styleClass += "main-title"
 
   private val subtitleLabel =
     new Label("Select a predefined scenario and start the simulation."):

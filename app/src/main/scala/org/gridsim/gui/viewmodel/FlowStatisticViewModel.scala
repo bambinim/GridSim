@@ -12,8 +12,8 @@ class FlowStatisticViewModel:
     val AvgNetFlow = "Average"
     val Imported = "Total imported"
     val Exported = "Total exported"
-    val PeakImport = "Peak import"
-    val PeakExport = "Peak export"
+    val PeakImport = "Peak imported"
+    val PeakExport = "Peak exported"
 
   val currentNetFlow = StringProperty(s"${Labels.Current}: ${Flow.balanced.show}")
   val avgNetFlowText = StringProperty(s"${Labels.AvgNetFlow}: ${Energy.Zero.show}")

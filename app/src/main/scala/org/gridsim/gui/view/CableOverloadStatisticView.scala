@@ -17,6 +17,7 @@ class CableOverloadStatisticView(viewModel: CableOverloadStatisticViewModel) ext
 
   private val overloadedLabel =
     new Label():
+      styleClass += "statistic"
       text <== viewModel.overloadedText
 
   children = Seq(overloadedLabel)

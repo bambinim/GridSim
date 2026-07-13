@@ -21,6 +21,7 @@ class SimulationSummaryView(name: String, viewModel: SimulationSummaryViewModel)
   private val nameLabel =
     new Label():
       styleClass += "title"
+      styleClass += "main-title"
       text = name
 
   private val numEntities =

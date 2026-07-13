@@ -6,7 +6,7 @@ import scalafx.beans.property.StringProperty
 class CableOverloadStatisticViewModel:
 
   private object Labels:
-    val OverloadedCablesCount = "Total Overloaded Cables"
+    val OverloadedCablesCount = "Total"
 
   val overloadedText = StringProperty(s"${Labels.OverloadedCablesCount}: 0")
 
