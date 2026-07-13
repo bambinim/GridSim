@@ -1,6 +1,6 @@
 package org.gridsim.core.simulation
 
-import org.gridsim.core.behaviour.EntityEvolutionDispatcher
+import org.gridsim.core.behaviour.{EntityEvolutionDispatcher, EvolutionRequest}
 import org.gridsim.core.common.{Energy, Flow}
 import org.gridsim.core.model.{GridEntity, GridEntityState}
 import org.gridsim.core.solver.PowerFlowSolver
@@ -81,12 +81,13 @@ final case class DefaultSimulationEngine(
   ): Iterable[(GridEntityState, Flow[Energy])] =
     pairEntities(entityStates, entityModels).map {
       case (entityState, entityModel) =>
-        entityDispatcher.evolve(
-          entityState,
+        val request = EvolutionRequest(
           entityModel,
+          entityState,
           environment,
           delta
         )
+        entityDispatcher.evolve(request)
     }
 
   /**

@@ -1,6 +1,6 @@
 package org.gridsim.core.simulation
 
-import org.gridsim.core.behaviour.EntityEvolutionDispatcher
+import org.gridsim.core.behaviour.{EntityEvolutionDispatcher, EvolutionRequest}
 import org.gridsim.core.common.{Energy, Flow, kw, kwh}
 import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
 import org.gridsim.core.model.network.{Cable, CableConnections, ExternalGrid, GridGraph}
@@ -35,12 +35,9 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
 
   private given mockDispatcher: EntityEvolutionDispatcher = new EntityEvolutionDispatcher:
     override def evolve(
-      state: GridEntityState,
-      entity: GridEntity,
-      environment: Environment,
-      delta: FiniteDuration
+      request: EvolutionRequest
     ): (GridEntityState, Flow[Energy]) =
-      (state, Flow.Balanced)
+      (request.state, Flow.Balanced)
 
   "SimulationEngine" should "advance the environment by the model delta" in:
     val current =
@@ -69,12 +66,9 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     var calledWithArgs: Option[(GridEntityState, GridEntity, Environment, FiniteDuration)] = None
     given localDispatcher: EntityEvolutionDispatcher = new EntityEvolutionDispatcher:
       override def evolve(
-        s: GridEntityState,
-        e: GridEntity,
-        env: Environment,
-        delta: FiniteDuration
+        request: EvolutionRequest
       ): (GridEntityState, Flow[Energy]) =
-        calledWithArgs = Some((s, e, env, delta))
+        calledWithArgs = Some((request.state, request.entity, request.env, request.delta))
         (expectedNextState, expectedFlow)
 
     val engine = createEngine(model = model)
