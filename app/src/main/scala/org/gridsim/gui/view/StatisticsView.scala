@@ -16,7 +16,7 @@ class StatisticsView(val coordinator: SimulationCoordinator):
   
   private def statSection(title: String, content: Parent): VBox =
     val titleLabel = new Label(title) {
-      styleClass += "entity-title-main"
+      styleClass += "details-panel-title-main"
     }
     val header = new HBox(8) {
       alignment = Pos.CenterLeft
@@ -26,12 +26,12 @@ class StatisticsView(val coordinator: SimulationCoordinator):
       styleClass += "details-separator"
     }
     new VBox(10) {
-      styleClass += "entity-card-main"
+      styleClass += "details-panel-card-main"
       children = Seq(header, separator, content)
     }
 
   private val statisticsStack = new VBox(12) {
-    styleClass += "entity-details-view"
+    styleClass += "details-panel-details-view"
     children = Seq(
       statSection("Simulation Time", simulationTimeStatView),
       statSection("Flow", flowStatView),
@@ -44,7 +44,7 @@ class StatisticsView(val coordinator: SimulationCoordinator):
     fitToWidth = true
     minWidth = 220
     content = statisticsStack
-    styleClass += "entity-details-scroll-pane"
+    styleClass += "details-panel-details-scroll-pane"
 
   val statisticsArea: SplitPane = new SplitPane:
     items ++= Seq(netFlowChartView, statisticsScroll)

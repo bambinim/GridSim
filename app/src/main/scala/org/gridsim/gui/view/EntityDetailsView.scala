@@ -24,10 +24,10 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel)
     with ViewFX:
 
   fitToWidth = true
-  styleClass += "entity-details-scroll-pane"
+  styleClass += "details-panel-details-scroll-pane"
 
   private val contentContainer = new VBox(12) {
-    styleClass += "entity-details-view"
+    styleClass += "details-panel-details-view"
   }
 
   content = contentContainer
@@ -66,12 +66,12 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel)
 
   private def createEntityCard(entity: DetailsEntity, isNested: Boolean): VBox =
     new VBox(10) {
-      styleClass += (if isNested then "entity-card-nested" else "entity-card-main")
+      styleClass += (if isNested then "details-panel-card-nested" else "details-panel-card-main")
 
       val header: HBox = new HBox(8) {
         alignment = Pos.CenterLeft
         val titleLabel: Label = new Label(entity.title) {
-          styleClass += (if isNested then "entity-title-nested" else "entity-title-main")
+          styleClass += (if isNested then "details-panel-title-nested" else "details-panel-title-main")
         }
         children = Seq(titleLabel)
       }
@@ -90,10 +90,10 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel)
         item match
           case DetailField(name, value) =>
             val nameLabel = new Label(name) {
-              styleClass += "entity-field-name"
+              styleClass += "details-panel-field-name"
             }
             val valLabel = new Label(value) {
-              styleClass += "entity-field-value"
+              styleClass += "details-panel-field-value"
             }
             grid.add(nameLabel, 0, idx)
             grid.add(valLabel, 1, idx)

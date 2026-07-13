@@ -94,12 +94,12 @@
   -fx-text-fill: #b91c1c;
 }
 
-.entity-details-view {
+.details-panel-details-view {
   -fx-padding: 16px;
   -fx-background-color: transparent;
 }
 
-.entity-card-main {
+.details-panel-card-main {
   -fx-background-color: #ffffff;
   -fx-border-color: #e5e7eb;
   -fx-border-width: 1px;
@@ -109,7 +109,7 @@
   -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.04), 8, 0, 0, 3);
 }
 
-.entity-card-nested {
+.details-panel-card-nested {
   -fx-background-color: #f9fafb;
   -fx-border-color: #f3f4f6;
   -fx-border-width: 1.5px;
@@ -118,25 +118,25 @@
   -fx-padding: 12px;
 }
 
-.entity-title-main {
+.details-panel-title-main {
   -fx-font-size: 15px;
   -fx-font-weight: bold;
   -fx-text-fill: #111827;
 }
 
-.entity-title-nested {
+.details-panel-title-nested {
   -fx-font-size: 13px;
   -fx-font-weight: bold;
   -fx-text-fill: #374151;
 }
 
-.entity-field-name {
+.details-panel-field-name {
   -fx-font-size: 12px;
   -fx-text-fill: #6b7280;
   -fx-font-weight: 500;
 }
 
-.entity-field-value {
+.details-panel-field-value {
   -fx-font-size: 12px;
   -fx-text-fill: #111827;
   -fx-font-weight: 600;
@@ -161,7 +161,7 @@
   -fx-font-size: 16px;
 }
 
-.entity-details-scroll-pane {
+.details-panel-details-scroll-pane {
   -fx-background-color: transparent;
   -fx-background: transparent;
   -fx-border-color: transparent;
