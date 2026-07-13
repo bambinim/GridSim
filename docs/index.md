@@ -6,9 +6,12 @@
 4. [Design architetturale](04-architectural_design.md)
 5. [Design di dettaglio](05-detailed-design.md)
 6. [Implementazione](06-implementation/06-implementation.md)
-7. [Conclusioni](07-conclusion.md)
+7. [Testing](07-testing.md)
+8. [Conclusioni](08-conclusion.md)
 
 Guarda anche le [linee guida sui commit](guidelines/commit_guidelines.md) e il [flusso di lavoro](guidelines/workflow.md)
 scelti per la collaborazione su GitHub.
+
+---
 
 [Home](../README.md)

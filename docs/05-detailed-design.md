@@ -169,6 +169,8 @@ La costruzione degli scenari (entità, topologia e regole) sfrutta la **Scala 3 
   in grado di ispezionare tutti i parametri di un'entità e accumulare una lista completa degli eventuali errori
   semantici/sintattici omettendo l'utilizzo di eccezioni.
 
+---
+
 [Sommario](index.md) |
 [Capitolo precedente](04-architectural_design.md) |
-[Capitolo successivo](06-implementation/06-implementation.md)
+[Capitolo successivo](06-testing.md)

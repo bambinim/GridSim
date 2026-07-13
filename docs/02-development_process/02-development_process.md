@@ -131,6 +131,8 @@ Prima di considerare concluso il capitolo, il gruppo dovrebbe concordare e inser
 - eventuali strumenti non presenti nel repository;
 - criticità incontrate nel processo e miglioramenti introdotti durante il progetto.
 
+---
+
 [Sommario](../index.md) |
 [Capitolo precedente](../01-introduction.md) |
 [Capitolo successivo](../03-requirements.md)
