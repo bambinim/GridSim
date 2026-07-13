@@ -28,6 +28,6 @@ object StorageState:
       )
 
       if storage.maxCapacity > Energy.Zero then
-        (state.currentCharge / storage.maxCapacity)
+        state.currentCharge / storage.maxCapacity
       else
         0.0

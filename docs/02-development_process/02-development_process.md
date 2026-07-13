@@ -132,5 +132,5 @@ Prima di considerare concluso il capitolo, il gruppo dovrebbe concordare e inser
 - criticità incontrate nel processo e miglioramenti introdotti durante il progetto.
 
 [Sommario](../index.md) |
-[Workflow Git](../guidelines/workflow.md) |
-[Regole per i commit](../guidelines/commit_guidelines.md)
+[Capitolo precedente](../01-introduction.md) |
+[Capitolo successivo](../03-requirements.md)
