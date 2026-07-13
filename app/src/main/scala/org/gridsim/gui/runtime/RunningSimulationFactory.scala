@@ -3,12 +3,12 @@ package org.gridsim.gui.runtime
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.gridsim.core.observability.{Observer, SimulationData}
-import org.gridsim.core.simulation.{SimulationControllerFactory, SimulationModel, SimulationState}
+import org.gridsim.core.simulation.{SimulationConf, SimulationControllerFactory, SimulationModel, SimulationState}
 import org.gridsim.gui.model.RunningSimulation
 import fs2.concurrent.SignallingRef
 import org.gridsim.statistics.StatisticsRegistry
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 /**
  * Factory for instantiating and configuring running simulation loops.
@@ -28,16 +28,17 @@ object RunningSimulationFactory:
    * @return the wired [[RunningSimulation]] ready for play/pause/step controls
    */
   def createSimpleSimulation(
-                              name: String,
-                              model: SimulationModel,
-                              state: SimulationState
+    name: String,
+    model: SimulationModel,
+    state: SimulationState,
+    delta: FiniteDuration
   ): RunningSimulation =
     val initialSnapshot: SimulationData.SimulationSnapshot = SimulationData.SimulationSnapshot(
       state.environment,
       state.entityStates,
       state.entityFlows,
       state.cableLoads,
-      state.delta
+      delta
     )
     val snapshotSignal = SignallingRef[IO, SimulationData.SimulationSnapshot](initialSnapshot).unsafeRunSync()
     val guiObserver = Observer[IO, SimulationData.SimulationSnapshot](snapshotSignal.set)
@@ -51,7 +52,7 @@ object RunningSimulationFactory:
       model,
       state,
       observers = List(guiObserver, statisticsObserver),
-      tickInterval = 2.seconds
+      conf = SimulationConf(delta)
     )
 
     RunningSimulation(name, model, controller, snapshotSignal, statisticsStateSignal)

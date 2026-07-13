@@ -31,7 +31,12 @@ class DslScenarioPresetLoader extends ScenarioPresetLoader[RunningSimulation]:
           .map(formatErrors)
           .map { case (model, state) =>
             val seededState = state.copy(environment = Environment(config.startDateTime))
-            RunningSimulationFactory.createSimpleSimulation(preset.name, model, seededState)
+            RunningSimulationFactory.createSimpleSimulation(
+              preset.name,
+              model,
+              seededState,
+              config.tickDelta
+            )
           }
       }
 

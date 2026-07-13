@@ -37,7 +37,7 @@ class SimulationCoordinator(
   val summaryViewModel = SimulationSummaryViewModel(running.model)
 
   /** ViewModel managing the detailed properties and components of the selected entity. */
-  val entityDetailsViewModel = EntityDetailsViewModel(running.model, selectedEntity, () => running.controller.currentState.delta)
+  val entityDetailsViewModel = EntityDetailsViewModel(running.model, selectedEntity, () => running.controller.configuration.delta)
 
   /** ViewModel controlling simulation commands like play, pause, step, and stop. */
   val controlViewModel = SimulationControlViewModel(running, onExit, () => renderCurrent())
@@ -66,7 +66,7 @@ class SimulationCoordinator(
   }
 
   /** ViewModel managing the graph visualization. */
-  val graphViewModel = GridGraphViewModel(running.controller.currentState.delta, running.model.grid, selectedEntity)
+  val graphViewModel = GridGraphViewModel(running.controller.configuration.delta, running.model.grid, selectedEntity)
 
   selectedEntity.onChange { (_, _, _) =>
     renderCurrent()

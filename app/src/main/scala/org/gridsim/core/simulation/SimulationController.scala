@@ -26,6 +26,9 @@ trait SimulationController:
    */
   def simulationControllerState: SimulationControllerState
 
+  /** Current configuration used by future simulation ticks. */
+  def configuration: SimulationConf
+
   /**
    * Starts the periodic simulation loop.
    *
@@ -45,6 +48,12 @@ trait SimulationController:
 
   /** Set a new delta duration of the Simulation */
   def setTick(delta: FiniteDuration): Unit
+
+  /**
+   * Set the simulation speed
+   * @param speed the new time speed of the simulation
+   */
+  def setSpeed(speed: SimulationSpeed): Unit
 
   /**
    * Advances the simulation by exactly one tick.

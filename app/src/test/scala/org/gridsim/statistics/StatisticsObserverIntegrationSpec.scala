@@ -38,9 +38,9 @@ class StatisticsObserverIntegrationSpec extends AnyFlatSpec with Matchers:
       dispatcher <- Fs2DataDispatcher[IO](List(obs))
       _ <- IO.sleep(500.millis) // let the subscriber fiber start, same as ObservabilitySpec
 
-      _ <- dispatcher.dispatch(stateWithFlow(Flow.Surplus(5.0.kwh)))
-      _ <- dispatcher.dispatch(stateWithFlow(Flow.Deficit(2.0.kwh)))
-      _ <- dispatcher.dispatch(stateWithFlow(Flow.Surplus(9.0.kwh)))
+      _ <- dispatcher.dispatch(stateWithFlow(Flow.Surplus(5.0.kwh)), 15.minutes)
+      _ <- dispatcher.dispatch(stateWithFlow(Flow.Deficit(2.0.kwh)), 15.minutes)
+      _ <- dispatcher.dispatch(stateWithFlow(Flow.Surplus(9.0.kwh)), 15.minutes)
       _ <- IO.sleep(200.millis) // let the last update settle
 
       result <- statsRef.get

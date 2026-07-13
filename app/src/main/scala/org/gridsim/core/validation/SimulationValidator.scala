@@ -25,15 +25,8 @@ object SimulationValidator:
     def validate(pair: (SimulationState, SimulationModel)): ValidatedNec[DomainError, (SimulationState, SimulationModel)] =
       val (state, model) = pair
       (
-        validateState(state),
         validateStateAndModelCoherence(state, model)
-      ).mapN((_, _) => pair)
-
-  /** Validates simulation parameters owned by the state itself. */
-  private def validateState(state: SimulationState): ValidatedNec[DomainError, Unit] =
-    (
-      state.delta.toNanos.toDouble.mustBePositive("Simulation Delta")
-    ).map(_ => ())
+      ).map(_ => pair)
 
   /**
    * Checks references from runtime state back to the static model.
@@ -96,7 +89,7 @@ object SimulationValidator:
           ).map(_ => ())
         (acc, current).mapN((_, _) => ())
     }
-  
+
   private def requireValid(cond: Boolean, error: DomainError): ValidatedNec[DomainError, Unit] =
     Validated.condNec(
       cond,

@@ -12,13 +12,13 @@ import scala.concurrent.duration.FiniteDuration
 case class DefaultScheduler() extends Scheduler:
   private val scheduler = Executors.newSingleThreadScheduledExecutor()
 
-  override def schedule(task: SimulationTask, interval: FiniteDuration): ScheduledTask =
+  override def scheduleOnce(task: SimulationTask, delay: FiniteDuration): ScheduledTask =
+    val runnable: Runnable = () => task()
     val future =
-      scheduler.scheduleAtFixedRate(
-        () => task(),
-        0L,
-        interval.toMillis,
-        TimeUnit.MILLISECONDS
+      scheduler.schedule(
+        runnable,
+        delay.toNanos,
+        TimeUnit.NANOSECONDS
       )
     DefaultScheduledTask(future)
 

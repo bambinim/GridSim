@@ -74,7 +74,6 @@ class SimulationBuilderSpec extends AnyFlatSpec with Matchers:
 
   it should "build a simulation containing all specified informations" in:
     val (model, state) = builder.build().getOrElse(fail())
-    state.delta shouldBe 5.seconds
     model.grid.cables.size shouldBe 4
     model.grid.nodes.size shouldBe 5
     state.environment shouldBe Environment(0.seconds)

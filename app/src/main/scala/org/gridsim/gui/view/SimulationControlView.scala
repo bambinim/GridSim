@@ -2,10 +2,11 @@ package org.gridsim.gui.view
 
 import org.gridsim.gui.model.TickDurationUnit
 import org.gridsim.gui.viewmodel.SimulationControlViewModel
+import org.gridsim.core.simulation.SimulationSpeed
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Pos
 import scalafx.scene.Parent
-import scalafx.scene.control.{Button, ComboBox, Label, TextField}
+import scalafx.scene.control.{Button, ComboBox, Label, TextField, ToggleButton, ToggleGroup, Tooltip}
 import scalafx.scene.layout.HBox
 import scalafx.util.StringConverter
 
@@ -57,6 +58,33 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
         TickDurationUnit.values.find(_.label == text).orNull
     prefWidth = 120
 
+  private val speedToggleGroup = new ToggleGroup()
+
+  private def speedButton(
+    label: String,
+    speed: SimulationSpeed,
+    description: String
+  ): ToggleButton =
+    new ToggleButton(label):
+      toggleGroup = speedToggleGroup
+      selected = viewModel.selectedSpeed.value == speed
+      disable <== viewModel.speedSelectionDisabled
+      tooltip = Tooltip(description)
+      styleClass += "speed-button"
+      onAction = _ =>
+        viewModel.selectSpeed(speed)
+        selected = true
+
+  private val speedSelector = new HBox(2):
+    alignment = Pos.Center
+    styleClass += "speed-selector"
+    children = Seq(
+      speedButton("0.5×", SimulationSpeed.Slow, "Slow — one tick every 2 seconds"),
+      speedButton("1×", SimulationSpeed.Normal, "Normal — one tick every second"),
+      speedButton("2×", SimulationSpeed.Speed, "Fast — two ticks per second"),
+      speedButton("10×", SimulationSpeed.UltraSpeed, "Ultra — ten ticks per second")
+    )
+
   // Dynamically update style classes of the status badge on state change
   private def updateBadgeStyle(status: String): Unit =
     statusLabel.styleClass.removeAll("status-running", "status-paused")
@@ -80,6 +108,11 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
     new Label("Step Duration:"),
     tickAmountField,
     tickUnitCombo,
+    new Label(" | "):
+      styleClass += "muted-text"
+    ,
+    new Label("Speed:"),
+    speedSelector,
     new Label(" | "):
       styleClass += "muted-text"
     ,

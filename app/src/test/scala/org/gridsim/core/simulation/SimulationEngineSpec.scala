@@ -50,7 +50,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
       )
 
     val engine = createEngine()
-    val next = engine.step(current)
+    val next = engine.step(current, 15.minutes)
 
     next.environment.time shouldBe 2.hours + 15.minutes
 
@@ -84,7 +84,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
         entityStates = Map(state.entityId -> state)
       )
 
-    val next = engine.step(current)
+    val next = engine.step(current, 15.minutes)
 
     // Verify dispatcher called with advanced environment and model delta
     val expectedAdvancedEnv = current.environment.advance(15.minutes)
@@ -104,7 +104,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
 
     val engine = createEngine()
 
-    an[IllegalArgumentException] should be thrownBy engine.step(current)
+    an[IllegalArgumentException] should be thrownBy engine.step(current, 15.minutes)
 
   it should "calculate the load on every cable using the flow solver" in:
     // Setup solver that returns a pre-configured load
@@ -135,7 +135,7 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
         entityStates = Map(state.entityId -> state)
       )
 
-    val next = engine.step(current)
+    val next = engine.step(current, 15.minutes)
 
     solverReceivedFlows shouldBe Some(Map("node-1" -> Flow.Balanced))
 

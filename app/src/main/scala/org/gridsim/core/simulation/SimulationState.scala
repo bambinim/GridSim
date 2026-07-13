@@ -17,12 +17,10 @@ import scala.concurrent.duration.*
  * @param entityFlows net energy flow of each grid entity, indexed by entity ID;
  *                    this also includes the flow exchanged with the external grid
  * @param cableLoads energy transported by each cable during this tick
- * @param delta the amount of simulated time represented by one execution step
  */
 final case class SimulationState(
   environment: Environment,
   entityStates: Map[String, GridEntityState],
   entityFlows: Map[String, Flow[Energy]] = Map.empty,
-  cableLoads: Map[Cable, Energy] = Map.empty,
-  delta: FiniteDuration = 15.minutes
+  cableLoads: Map[Cable, Energy] = Map.empty
 )

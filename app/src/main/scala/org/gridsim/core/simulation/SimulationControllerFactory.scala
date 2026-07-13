@@ -16,14 +16,14 @@ object SimulationControllerFactory:
    * @param model the grid topology and configuration of the simulation
    * @param state the initial conditions of the grid entities and environment
    * @param observers the observers that want to subscribe to simulation events
-   * @param tickInterval the interval between ticks
+   * @param conf simulated tick duration and real-time execution speed
    * @return the wired SimulationController
    */
   def create(
       model: SimulationModel,
       state: SimulationState,
       observers: List[Observer[IO]] = Nil,
-      tickInterval: FiniteDuration = 2.seconds
+      conf: SimulationConf
   ): SimulationController =
     val dispatcher = Fs2DataDispatcher[IO](observers).unsafeRunSync()
     val engine = DefaultSimulationEngine(model, KirchhoffPowerFlowSolver(model.grid))
@@ -31,6 +31,6 @@ object SimulationControllerFactory:
       engine,
       state,
       DefaultScheduler(),
-      tickInterval,
+      conf,
       dispatcher = Some(dispatcher)
     )

@@ -17,4 +17,4 @@ trait SimulationEngine:
    * @param state current immutable simulation snapshot
    * @return the new snapshot after all phases of the tick have been resolved
    */
-  def step(state: SimulationState): SimulationState
+  def step(state: SimulationState, delta: FiniteDuration): SimulationState

@@ -56,19 +56,6 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
 
     result.isValid shouldBe true
 
-  it should "reject a non-positive simulation delta" in:
-    val invalidState = state.copy(delta = 0.minutes)
-
-    val result = SimulationSetup.make(invalidState, model)
-
-    result.fold(
-      errors =>
-        errors.toList should contain(
-          ValueMustBePositive("Simulation Delta", 0.0)
-        ),
-      _ => fail("It should have failed")
-    )
-
   it should "reject an entity state whose map key does not match its entity id" in:
     val invalidState =
       state.copy(
@@ -145,14 +132,12 @@ class SimulationValidatorSpec extends AnyFlatSpec with Matchers:
         cableLoads = Map(Cable(CableConnections("x", "y"), 1.kw) -> 1.kwh)
       )
 
-    val result =
-      SimulationSetup.make(invalidState.copy(delta = 0.minutes), model)
+    val result = SimulationSetup.make(invalidState, model)
 
     result.fold(
       errors =>
         val errorsList = errors.toList
 
-        errorsList should contain(ValueMustBePositive("Simulation Delta", 0.0))
         errorsList should contain(EntityStateKeyMismatch("wrong-id", house.id))
         errorsList should contain(EntityStateWithoutModel("wrong-id"))
         errorsList should contain(EntityFlowWithoutModel("missing-flow-node"))

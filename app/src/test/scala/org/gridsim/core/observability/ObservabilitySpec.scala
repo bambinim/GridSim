@@ -2,7 +2,7 @@ package org.gridsim.core.observability
 
 import org.gridsim.core.model.Environment
 import org.gridsim.core.model.GridEntityState
-import org.gridsim.core.simulation.SimulationState
+import org.gridsim.core.simulation.{SimulationConf, SimulationState}
 import org.junit.runner.RunWith
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -18,6 +18,7 @@ import cats.effect.unsafe.implicits.global
 class ObservabilitySpec extends AnyFlatSpec with Matchers:
 
   private val sampleEnvironment = Environment(1.minute)
+  private val sampleDelta = 15.minutes
   private val sampleState = SimulationState(
     environment = sampleEnvironment,
     entityStates = Map.empty,
@@ -37,7 +38,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
       _ <- IO.sleep(500.millis) // Wait for subscriber fibers to initialize
 
       // Dispatch the entire state
-      _ <- dispatcher.dispatch(sampleState)
+      _ <- dispatcher.dispatch(sampleState, sampleDelta)
 
       // We expect the observer to only receive the EnvironmentData slice
       received <- q.take
@@ -58,7 +59,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
 
       // Dispatch state. CableLoads is empty in sampleState, but the event is still dispatched.
       // However, we only subscribed to CableLoadsData.
-      _ <- dispatcher.dispatch(sampleState)
+      _ <- dispatcher.dispatch(sampleState, sampleDelta)
 
       // To prove we didn't receive EnvironmentData or EntityStatesData or Snapshot,
       // we just take one event and verify it's CableLoadsData.
@@ -89,7 +90,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
       )
       _ <- IO.sleep(500.millis)
 
-      _ <- dispatcher.dispatch(sampleState)
+      _ <- dispatcher.dispatch(sampleState, sampleDelta)
 
       envData <- qEnv.take
       entData <- qEnt.take
@@ -107,7 +108,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
     snp.entityStates shouldBe sampleState.entityStates
     snp.entityFlows shouldBe sampleState.entityFlows
     snp.cableLoads shouldBe sampleState.cableLoads
-    snp.delta shouldBe sampleState.delta
+    snp.delta shouldBe sampleDelta
 
   "Simulation integration" should "dispatch events correctly over multiple ticks" in:
     import org.gridsim.core.simulation.{
@@ -121,14 +122,14 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
     }
 
     val dummyScheduler = new Scheduler:
-      override def schedule(
+      override def scheduleOnce(
           task: SimulationTask,
-          interval: FiniteDuration
+          delay: FiniteDuration
       ): ScheduledTask = null
       override def stop(): Unit = ()
 
     val engine = new SimulationEngine:
-      override def step(state: SimulationState): SimulationState =
+      override def step(state: SimulationState, delta: FiniteDuration): SimulationState =
         state.copy(environment = state.environment.advance(1.minute))
 
     val testIO = for {
@@ -141,7 +142,7 @@ class ObservabilitySpec extends AnyFlatSpec with Matchers:
         engine = engine,
         state = sampleState, // Starts at 1.minute
         scheduler = dummyScheduler,
-        interval = 1.second,
+        conf = SimulationConf(sampleDelta),
         dispatcher = Some(dispatcher)
       )
 

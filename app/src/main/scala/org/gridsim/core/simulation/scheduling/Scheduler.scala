@@ -16,20 +16,15 @@ trait ScheduledTask:
    */
   def cancel(): Unit
 
-/**
- * Abstraction for scheduling periodic tasks.
- *
- * Implementations are responsible for managing the execution lifecycle
- * and timing of simulation ticks.
- */
+/** Abstraction for scheduling delayed tasks. */
 trait Scheduler:
   /**
-   * Schedules a task to be executed periodically.
+   * Schedules a task for one execution after `delay`.
    *
    * @param task the unit of work to execute.
-   * @param interval the time between task executions.
+   * @param delay the time to wait before executing the task.
    */
-  def schedule(task: SimulationTask, interval: FiniteDuration): ScheduledTask
+  def scheduleOnce(task: SimulationTask, delay: FiniteDuration): ScheduledTask
 
   /**
    * Stops the scheduler and releases any underlying resources.

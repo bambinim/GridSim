@@ -41,7 +41,6 @@ case class SimulationBuilder(
       val state = SimulationState(
         Environment(0.seconds),
         ent.map(e => e._1.id -> e._2).toMap,
-        delta = dt
       )
       (model, state).validNec
     }

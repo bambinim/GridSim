@@ -20,7 +20,7 @@ enum SimulationData:
 
   /** Contains the updated dynamic states of all grid entities */
   case EntityStatesData(states: Map[String, GridEntityState])
-  
+
   case EntityFlowsData(flows: Map[String, Flow[Energy]])
 
   /** Contains the energy loads calculated for cables during the last tick */
@@ -49,20 +49,21 @@ trait Sliceable[A]:
     *
     * @tparam T
     *   the subtype of [[SimulationData]] to extract.
+    * @param delta duration of each time step
     * @param tag
     *   the implicit class tag used to resolve the requested slice type at
     *   runtime.
     * @return
     *   the extracted data slice of type `T`.
     */
-  extension (a: A) def slice[T <: SimulationData](using tag: ClassTag[T]): T
+  extension (a: A) def slice[T <: SimulationData](delta: FiniteDuration)(using tag: ClassTag[T]): T
 
 /** Provides the capability to slice a [[SimulationState]] into discrete
   * [[SimulationData]] events based on the requested type tag.
   */
 given sliceableSimulationState: Sliceable[SimulationState] with
   extension (s: SimulationState)
-    def slice[T <: SimulationData](using tag: ClassTag[T]): T =
+    def slice[T <: SimulationData](delta: FiniteDuration)(using tag: ClassTag[T]): T =
       tag.runtimeClass match
         case c if c == classOf[SimulationData.EnvironmentData] =>
           SimulationData.EnvironmentData(s.environment).asInstanceOf[T]
@@ -74,7 +75,7 @@ given sliceableSimulationState: Sliceable[SimulationState] with
           SimulationData.CableLoadsData(s.cableLoads).asInstanceOf[T]
         case c if c == classOf[SimulationData.SimulationSnapshot] =>
           SimulationData
-            .SimulationSnapshot(s.environment, s.entityStates, s.entityFlows, s.cableLoads, s.delta)
+            .SimulationSnapshot(s.environment, s.entityStates, s.entityFlows, s.cableLoads, delta)
             .asInstanceOf[T]
         case _ =>
           throw new RuntimeException(

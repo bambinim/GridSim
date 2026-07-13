@@ -7,15 +7,15 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class DefaultSchedulerSpec extends AnyFlatSpec with Matchers:
 
-  "DefaultScheduler" should "execute tasks periodically" in:
+  "DefaultScheduler" should "execute a delayed task exactly once" in:
     val count = new AtomicInteger(0)
     val scheduler = DefaultScheduler()
 
-    scheduler.schedule(() => {
+    scheduler.scheduleOnce(() => {
       count.incrementAndGet()
     }, 20.millis)
 
     Thread.sleep(80)
     scheduler.stop()
 
-    count.get() should be >= 3
+    count.get() shouldBe 1

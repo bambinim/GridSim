@@ -6,6 +6,8 @@ import cats.syntax.all.*
 import fs2.concurrent.Topic
 import org.gridsim.core.simulation.SimulationState
 
+import scala.concurrent.duration.FiniteDuration
+
 /** An implementation of [[DataDispatcher]] backed by fs2 [[Topic]]s.
   *
   * It routes incoming [[SimulationState]] snapshots to specific FS2 topics
@@ -38,12 +40,12 @@ case class Fs2DataDispatcher[F[_]](
     *   an effect `F[Unit]` representing the successful publication of all data
     *   slices.
     */
-  override def dispatch(state: SimulationState): F[Unit] =
+  override def dispatch(state: SimulationState, delta: FiniteDuration): F[Unit] =
     topics.toList.traverse_ { case (cls, topic) =>
       val tag = scala.reflect.ClassTag[SimulationData](
         cls.asInstanceOf[Class[SimulationData]]
       )
-      val data = state.slice[SimulationData](using tag)
+      val data = state.slice[SimulationData](delta)(using tag)
       topic.publish1(data).void
     }
 

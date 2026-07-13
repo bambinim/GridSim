@@ -5,9 +5,10 @@ import org.gridsim.core.model.GridEntityState
 import org.gridsim.core.common.Energy
 import org.gridsim.core.model.network.Cable
 import org.gridsim.core.simulation.SimulationState
-
 import cats.Monad
 import cats.syntax.all.*
+
+import scala.concurrent.duration.FiniteDuration
 
 /** Represents a subscriber that listens to a specific type of simulation data.
   *
@@ -64,7 +65,9 @@ trait DataDispatcher[F[_]]:
     *
     * @param state
     *   the current overall state of the simulation at the end of a tick.
+    * @param delta
+    *   the current time duration of each simulation step.
     * @return
     *   an effect `F[Unit]` representing the completion of the dispatch process.
     */
-  def dispatch(state: SimulationState): F[Unit]
+  def dispatch(state: SimulationState, delta: FiniteDuration): F[Unit]

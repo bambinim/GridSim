@@ -12,7 +12,7 @@ import scala.concurrent.duration.FiniteDuration
  * Default pure implementation of [[SimulationEngine]].
  *
  * A tick is evaluated in dependency order:
- *  1. advance the simulated environment by [[SimulationState.delta]];
+ *  1. advance the simulated environment by the supplied tick duration;
  *  2. evolve every entity-state pair through [[EntityEvolutionDispatcher]];
  *  3. collect the updated entity states and their residual energy flows;
  *  4. calculate cable loads through the configured [[PowerFlowSolver]].
@@ -37,24 +37,22 @@ final case class DefaultSimulationEngine(
    * @return snapshot containing the advanced environment, evolved entities,
    *         entity flows and cable loads
    */
-  override def step(state: SimulationState): SimulationState =
-    simulationPipeline.run(state).value._1
+  override def step(state: SimulationState, delta: FiniteDuration): SimulationState =
+    simulationPipeline(delta).run(state).value._1
 
-
-
-  private def simulationPipeline: State[SimulationState, Unit] =
+  private def simulationPipeline(delta: FiniteDuration): State[SimulationState, Unit] =
     for {
-      _ <- advanceEnvironment
-      _ <- evolveEntities
+      _ <- advanceEnvironment(delta)
+      _ <- evolveEntities(delta)
       _ <- calculateCableLoads
     } yield()
 
-  private def advanceEnvironment: State[SimulationState, Unit] = State.modify {
-    s => s.copy(environment = s.environment.advance(s.delta))
+  private def advanceEnvironment(delta: FiniteDuration): State[SimulationState, Unit] = State.modify {
+    s => s.copy(environment = s.environment.advance(delta))
   }
 
-  private def evolveEntities: State[SimulationState, Unit] = State.modify { s =>
-    val resolved = resolveEntities(s.entityStates, model.grid.nodes, s.environment, s.delta)
+  private def evolveEntities(delta: FiniteDuration): State[SimulationState, Unit] = State.modify { s =>
+    val resolved = resolveEntities(s.entityStates, model.grid.nodes, s.environment, delta)
 
     s.copy(
       entityStates = resolved.map(pair => pair._1.entityId -> pair._1).toMap,

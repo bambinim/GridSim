@@ -187,6 +187,41 @@
   -fx-cursor: hand;
 }
 
+.speed-selector {
+  -fx-background-color: #f3f4f6;
+  -fx-background-radius: 7px;
+  -fx-border-color: #e5e7eb;
+  -fx-border-radius: 7px;
+  -fx-padding: 2px;
+}
+
+.speed-button {
+  -fx-background-color: transparent;
+  -fx-background-radius: 5px;
+  -fx-border-color: transparent;
+  -fx-font-size: 11px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #6b7280;
+  -fx-padding: 5px 9px;
+  -fx-cursor: hand;
+}
+
+.speed-button:hover {
+  -fx-background-color: #e5e7eb;
+  -fx-text-fill: #374151;
+}
+
+.speed-button:selected {
+  -fx-background-color: #2563eb;
+  -fx-text-fill: white;
+  -fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.22), 4, 0, 0, 1);
+}
+
+.speed-button:disabled {
+  -fx-opacity: 0.5;
+  -fx-cursor: default;
+}
+
 .play-pause-btn {
   -fx-background-color: #2563eb;
   -fx-text-fill: white;

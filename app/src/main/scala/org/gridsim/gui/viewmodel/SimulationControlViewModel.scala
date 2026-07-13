@@ -1,7 +1,7 @@
 package org.gridsim.gui.viewmodel
 
 import scalafx.beans.property.{BooleanProperty, ObjectProperty, StringProperty}
-import org.gridsim.core.simulation.SimulationControllerState
+import org.gridsim.core.simulation.{SimulationControllerState, SimulationSpeed}
 import org.gridsim.core.simulation.SimulationControllerState.{PAUSED, RUNNING}
 import org.gridsim.gui.model.{RunningSimulation, TickDurationUnit}
 
@@ -28,7 +28,7 @@ class SimulationControlViewModel(
   val statusText: StringProperty = StringProperty("PAUSED")
 
   private val (initialAmount, initialUnit) = {
-    val duration = running.controller.currentState.delta
+    val duration = running.controller.configuration.delta
     val seconds = duration.toSeconds
     if seconds > 0 && seconds % (24 * 3600) == 0 then
       ((seconds / (24 * 3600)).toInt, TickDurationUnit.Days)
@@ -45,6 +45,13 @@ class SimulationControlViewModel(
 
   /** Property bound to the combo box specifying the tick's time unit. */
   val tickUnit: ObjectProperty[TickDurationUnit] = ObjectProperty(initialUnit)
+
+  /** Execution speed selected for the simulation lifecycle scheduler. */
+  val selectedSpeed: ObjectProperty[SimulationSpeed] =
+    ObjectProperty(running.controller.configuration.speed)
+
+  /** Prevents changing lifecycle speed after the controller has stopped. */
+  val speedSelectionDisabled: BooleanProperty = BooleanProperty(false)
 
   /** Indicates whether the Play/Pause button should be disabled. */
   val playPauseDisabled: BooleanProperty = BooleanProperty(false)
@@ -84,6 +91,7 @@ class SimulationControlViewModel(
     val isStopped = stoppedProperty.value
     playPauseDisabled.value = isStopped
     stopDisabled.value = isStopped
+    speedSelectionDisabled.value = isStopped
     exitDisabled.value = false
 
     if isStopped then
@@ -107,6 +115,12 @@ class SimulationControlViewModel(
   def stepOnce(): Unit =
     if !stoppedProperty.value && running.controller.simulationControllerState == PAUSED then
       running.controller.stepOnce()
+
+  /** Changes the delay used when the controller schedules its next tick. */
+  def selectSpeed(speed: SimulationSpeed): Unit =
+    if !stoppedProperty.value then
+      running.controller.setSpeed(speed)
+      selectedSpeed.value = speed
 
   /** Stops the simulation and triggers the exit callback. */
   def exit(): Unit =
