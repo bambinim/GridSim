@@ -6,7 +6,7 @@
 
 - [Enrico Marchionni](enrymarch10/enrymarch10.md)
 - [Matteo Bambini]()
-- [Michele Nardini]()
+- [Michele Nardini](michelenardini/michelenardini.md)
 
 [Sommario](../index.md) |
 [Capitolo precedente](../05-detailed_design/05-detailed_design.md) |
