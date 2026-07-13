@@ -1,10 +1,9 @@
 package org.gridsim.gui.view
 
-import org.gridsim.gui.viewmodel.{SimulationCoordinator, DetailsLayout}
-import scalafx.geometry.Pos
+import org.gridsim.gui.viewmodel.{SimulationCoordinator, SimulationViewLayout}
 import scalafx.scene.Parent
-import scalafx.scene.control.{Label, ScrollPane, Separator, SplitPane, Tab, TabPane}
-import scalafx.scene.layout.{BorderPane, HBox, Priority, StackPane, VBox}
+import scalafx.scene.control.{Label, SplitPane, Tab, TabPane}
+import scalafx.scene.layout.{BorderPane, Priority, StackPane, VBox}
 
 /**
  * Main view layout for the active simulation screen.
@@ -62,11 +61,11 @@ class SimulationView(val coordinator: SimulationCoordinator) extends BorderPane 
   center = centerContent
 
   coordinator.controlViewModel.detailsLayout.onChange { (_, _, layout) =>
-    tabLayout.visible = layout == DetailsLayout.Tabs
-    tabLayout.managed = layout == DetailsLayout.Tabs
+    tabLayout.visible = layout == SimulationViewLayout.Tabs
+    tabLayout.managed = layout == SimulationViewLayout.Tabs
 
-    splitLayout.visible = layout == DetailsLayout.Split
-    splitLayout.managed = layout == DetailsLayout.Split
+    splitLayout.visible = layout == SimulationViewLayout.Split
+    splitLayout.managed = layout == SimulationViewLayout.Split
   }
 
   coordinator.renderCurrent()

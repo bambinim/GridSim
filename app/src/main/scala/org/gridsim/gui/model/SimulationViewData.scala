@@ -3,8 +3,7 @@ package org.gridsim.gui.model
 import org.gridsim.core.model.GridEntity
 import org.gridsim.core.model.network.CableConnections
 
-/** Represents the interactive selection in the graphical simulation viewport.
-  */
+/** Represents the interactive selection in the graphical simulation viewport. */
 enum Selection:
   /** No element is selected. */
   case NoSelection

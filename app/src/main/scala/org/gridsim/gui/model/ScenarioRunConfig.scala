@@ -3,9 +3,7 @@ package org.gridsim.gui.model
 import java.time.LocalDateTime
 import scala.concurrent.duration.FiniteDuration
 
-/**
- * Value class wrapper representing the unique identifier of a scenario preset.
- */
+/** Value class wrapper representing the unique identifier of a scenario preset. */
 case class ScenarioPresetId(value: String)
 
 /**

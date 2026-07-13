@@ -6,10 +6,6 @@ import org.gridsim.gui.model.Selection
 import org.gridsim.core.common.Flow
 import org.gridsim.core.common.{Power, Energy}
 import com.brunomnsilva.smartgraph.graph.Graph
-import org.gridsim.core.model.GridEntity
-import com.brunomnsilva.smartgraph.graph.Vertex
-import com.brunomnsilva.smartgraph.graph.Edge
-import java.{util => ju}
 import com.brunomnsilva.smartgraph.graph.GraphEdgeList
 import org.gridsim.core.model.network.{CableConnections, Cable}
 import scala.concurrent.duration.FiniteDuration

@@ -82,13 +82,13 @@ class SimulationControlViewModel(
   tickAmountText.onChange { (_, _, _) => updateTick() }
   tickUnit.onChange { (_, _, _) => updateTick() }
 
-  val detailsLayout = ObjectProperty(DetailsLayout.Tabs)
+  val detailsLayout = ObjectProperty(SimulationViewLayout.Tabs)
 
   def toggleLayout(): Unit =
     detailsLayout.value =
-      if detailsLayout.value == DetailsLayout.Tabs
-      then DetailsLayout.Split
-      else DetailsLayout.Tabs
+      if detailsLayout.value == SimulationViewLayout.Tabs
+      then SimulationViewLayout.Split
+      else SimulationViewLayout.Tabs
 
   /**
    * Updates the states of the bindable properties based on the simulation controller's state.

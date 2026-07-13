@@ -1,4 +1,4 @@
 package org.gridsim.gui.viewmodel
 
-enum DetailsLayout:
+enum SimulationViewLayout:
   case Tabs, Split

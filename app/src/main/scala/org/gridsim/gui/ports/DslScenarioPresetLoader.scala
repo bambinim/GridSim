@@ -2,9 +2,8 @@ package org.gridsim.gui.ports
 
 import cats.data.NonEmptyChain
 import org.gridsim.core.model.Environment
-import org.gridsim.dsl.{DSLBuilderError, DSLError}
-import org.gridsim.dsl.scenarios.{GridScenarioCatalog, GridScenarioPreset}
-import org.gridsim.dsl.simulation.SimulationBuilder
+import org.gridsim.dsl.DSLError
+import org.gridsim.dsl.scenarios.GridScenarioCatalog
 import org.gridsim.gui.model.{RunningSimulation, ScenarioRunConfig}
 import org.gridsim.gui.runtime.RunningSimulationFactory
 

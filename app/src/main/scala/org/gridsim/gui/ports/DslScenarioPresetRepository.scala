@@ -3,9 +3,7 @@ package org.gridsim.gui.ports
 import org.gridsim.dsl.scenarios.GridScenarioCatalog
 import org.gridsim.gui.model.ScenarioPresetId
 
-/**
- * Implementation of [[ScenarioPresetRepository]] retrieving presets registered in the DSL scenario catalog.
- */
+/** Implementation of [[ScenarioPresetRepository]] retrieving presets registered in the DSL scenario catalog. */
 class DslScenarioPresetRepository extends ScenarioPresetRepository:
   /**
    * Retrieves all available scenario presets.

@@ -6,7 +6,7 @@ import org.gridsim.util.Formatting
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
-import scalafx.scene.control.{Button, ComboBox, DatePicker, Label, ListView, Spinner, TextField}
+import scalafx.scene.control.{Button, ComboBox, DatePicker, Label, ListView, TextField}
 import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
 import scalafx.scene.layout.{HBox, Priority, VBox}
 import scalafx.util.StringConverter

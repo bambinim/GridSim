@@ -6,7 +6,7 @@ import scalafx.beans.property.{BooleanProperty, ObjectProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
 
 import java.time.{LocalDate, LocalDateTime}
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * ViewModel for selecting and starting a simulation scenario.

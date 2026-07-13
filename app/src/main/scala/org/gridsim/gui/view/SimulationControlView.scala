@@ -2,7 +2,7 @@ package org.gridsim.gui.view
 
 import org.gridsim.gui.model.TickDurationUnit
 import org.gridsim.gui.viewmodel.SimulationControlViewModel
-import org.gridsim.gui.viewmodel.DetailsLayout
+import org.gridsim.gui.viewmodel.SimulationViewLayout
 import org.gridsim.core.simulation.SimulationSpeed
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Pos
@@ -103,15 +103,15 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
   private val layoutButton = new ToggleButton:
     styleClass ++= Seq("control-button", "sym-layout-btn")
     text <== viewModel.detailsLayout.map {
-      case DetailsLayout.Tabs => "Split View"
-      case DetailsLayout.Split => "Tabbed View"
+      case SimulationViewLayout.Tabs => "Split View"
+      case SimulationViewLayout.Split => "Tabbed View"
     }
-    selected = viewModel.detailsLayout.value == DetailsLayout.Split
+    selected = viewModel.detailsLayout.value == SimulationViewLayout.Split
     tooltip = Tooltip("Switch between tabs and split view")
     onAction = _ => viewModel.toggleLayout()
 
   viewModel.detailsLayout.onChange { (_, _, layout) =>
-    layoutButton.selected = layout == DetailsLayout.Split
+    layoutButton.selected = layout == SimulationViewLayout.Split
   }
 
   children = Seq(

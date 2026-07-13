@@ -2,7 +2,6 @@ package org.gridsim.gui.viewmodel
 
 import scalafx.beans.property.{ObjectProperty, ReadOnlyObjectProperty}
 import org.gridsim.core.common.{Energy, Flow}
-import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.{Environment, GridEntity, GridEntityState}
 import org.gridsim.core.simulation.SimulationModel
 import org.gridsim.gui.model.{DetailsEntity, Selection}

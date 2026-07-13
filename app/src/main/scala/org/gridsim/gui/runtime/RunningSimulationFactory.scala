@@ -8,7 +8,7 @@ import org.gridsim.gui.model.RunningSimulation
 import fs2.concurrent.SignallingRef
 import org.gridsim.statistics.StatisticsRegistry
 
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Factory for instantiating and configuring running simulation loops.

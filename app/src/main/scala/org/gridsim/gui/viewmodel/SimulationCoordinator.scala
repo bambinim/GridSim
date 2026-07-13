@@ -9,7 +9,6 @@ import org.gridsim.core.model.network.Cable
 import org.gridsim.gui.model.*
 import org.gridsim.statistics.{StatKey, StatisticsRegistry}
 import scalafx.application.Platform
-import scala.concurrent.duration.FiniteDuration
 
 /**
  * Coordinates GUI-facing simulation updates and commands.
