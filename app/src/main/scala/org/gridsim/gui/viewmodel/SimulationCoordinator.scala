@@ -37,10 +37,10 @@ class SimulationCoordinator(
   val summaryViewModel = SimulationSummaryViewModel(running.model)
 
   /** ViewModel managing the detailed properties and components of the selected entity. */
-  val entityDetailsViewModel = EntityDetailsViewModel(running.model, selectedEntity)
+  val entityDetailsViewModel = EntityDetailsViewModel(running.model, selectedEntity, () => running.controller.currentState.delta)
 
   /** ViewModel controlling simulation commands like play, pause, step, and stop. */
-  val controlViewModel = SimulationControlViewModel(running, onExit)
+  val controlViewModel = SimulationControlViewModel(running, onExit, () => renderCurrent())
 
   /** ViewModels managing the statistics. */
   val flowStatisticViewModel = FlowStatisticViewModel()
@@ -80,8 +80,7 @@ class SimulationCoordinator(
             snapshot.environment,
             snapshot.entityStates,
             snapshot.entityFlows,
-            snapshot.cableLoads,
-            snapshot.delta
+            snapshot.cableLoads
           )
         }
       }
@@ -96,8 +95,7 @@ class SimulationCoordinator(
         state.entityStates,
         state.entityFlows,
         state.cableLoads,
-        state.environment,
-        state.delta
+        state.environment
       )
     }
 
@@ -105,11 +103,10 @@ class SimulationCoordinator(
       environment: Environment,
       entityStates: Map[String, GridEntityState],
       entityFlows: Map[String, Flow[Energy]],
-      cableLoads: Map[Cable, Energy],
-      delta: FiniteDuration
+      cableLoads: Map[Cable, Energy]
   ): Unit =
     val controllerState = running.controller.simulationControllerState
     summaryViewModel.update(controllerState)
-    entityDetailsViewModel.update(entityStates, entityFlows, cableLoads, environment, delta)
+    entityDetailsViewModel.update(entityStates, entityFlows, cableLoads, environment)
     controlViewModel.update(controllerState)
     graphViewModel.update(entityFlows, cableLoads)

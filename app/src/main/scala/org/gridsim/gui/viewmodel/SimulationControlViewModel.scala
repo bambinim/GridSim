@@ -16,7 +16,8 @@ import scala.concurrent.duration.*
  */
 class SimulationControlViewModel(
   running: RunningSimulation,
-  onExitCallback: () => Unit
+  onExitCallback: () => Unit,
+  onTickChanged: () => Unit = () => ()
 ):
   private val stoppedProperty = BooleanProperty(false)
 
@@ -68,9 +69,8 @@ class SimulationControlViewModel(
     parsed match
       case Left(err) => ()
       case Right(tickDelta) =>
-        // FIXME: To remove println here and check why observability is compromised with this triggered partial update
-        //println(tickDelta)
         running.controller.setTick(tickDelta)
+        onTickChanged()
 
   tickAmountText.onChange { (_, _, _) => updateTick() }
   tickUnit.onChange { (_, _, _) => updateTick() }

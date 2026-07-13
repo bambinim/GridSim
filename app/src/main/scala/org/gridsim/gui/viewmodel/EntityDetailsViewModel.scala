@@ -28,13 +28,13 @@ import scala.concurrent.duration.*
   */
 class EntityDetailsViewModel(
     model: SimulationModel,
-    selectionProp: ObjectProperty[Selection]
+    selectionProp: ObjectProperty[Selection],
+    deltaProvider: () => FiniteDuration
 ):
   private var lastEntityStates: Map[String, GridEntityState] = Map.empty
   private var lastEntityFlows: Map[String, Flow[Energy]] = Map.empty
   private var lastCableLoads: Map[Cable, Energy] = Map.empty
   private var lastEnvironment: Option[Environment] = None
-  private var lastDelta: FiniteDuration = 15.minutes
 
   private val _detailsEntityProperty =
     ObjectProperty[DetailsEntity](emptyDetails)
@@ -80,14 +80,12 @@ class EntityDetailsViewModel(
       entityStates: Map[String, GridEntityState],
       entityFlows: Map[String, Flow[Energy]],
       cableLoads: Map[Cable, Energy],
-      environment: Environment,
-      delta: FiniteDuration
+      environment: Environment
   ): Unit =
     lastEntityStates = entityStates
     lastEntityFlows = entityFlows
     lastCableLoads = cableLoads
     lastEnvironment = Some(environment)
-    lastDelta = delta
 
     recalculate(
       selectionProp.value,
@@ -110,7 +108,7 @@ class EntityDetailsViewModel(
       entityFlows,
       cableLoads,
       environment,
-      lastDelta
+      deltaProvider()
     )
     _detailsEntityProperty.value = mapExtractedToView(extracted, environment)
 
