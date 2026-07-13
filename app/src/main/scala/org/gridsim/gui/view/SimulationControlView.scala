@@ -2,6 +2,7 @@ package org.gridsim.gui.view
 
 import org.gridsim.gui.model.TickDurationUnit
 import org.gridsim.gui.viewmodel.SimulationControlViewModel
+import org.gridsim.gui.viewmodel.DetailsLayout
 import org.gridsim.core.simulation.SimulationSpeed
 import scalafx.collections.ObservableBuffer
 import scalafx.geometry.Pos
@@ -99,6 +100,20 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
 
   updateBadgeStyle(viewModel.statusText.value)
 
+  private val layoutButton = new ToggleButton:
+    styleClass ++= Seq("control-button", "sym-layout-btn")
+    text <== viewModel.detailsLayout.map {
+      case DetailsLayout.Tabs => "Split View"
+      case DetailsLayout.Split => "Tabbed View"
+    }
+    selected = viewModel.detailsLayout.value == DetailsLayout.Split
+    tooltip = Tooltip("Switch between tabs and split view")
+    onAction = _ => viewModel.toggleLayout()
+
+  viewModel.detailsLayout.onChange { (_, _, layout) =>
+    layoutButton.selected = layout == DetailsLayout.Split
+  }
+
   children = Seq(
     statusPrefix,
     statusLabel,
@@ -113,6 +128,10 @@ class SimulationControlView(viewModel: SimulationControlViewModel) extends HBox(
     ,
     new Label("Speed:"),
     speedSelector,
+    new Label(" | "):
+      styleClass += "muted-text"
+    ,
+    layoutButton,
     new Label(" | "):
       styleClass += "muted-text"
     ,

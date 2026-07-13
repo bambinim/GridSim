@@ -4,19 +4,21 @@ import org.gridsim.core.common.Energy.given
 import cats.implicits.catsKernelOrderingForOrder
 import cats.kernel.Monoid
 import org.gridsim.core.common.{Energy, kwh}
+import org.gridsim.core.model.GridEntityState
 import org.gridsim.core.model.house.HouseState
 import org.gridsim.core.model.storage.battery.BatteryState
 import org.gridsim.core.observability.SimulationData.EntityStatesData
 
 object BatteriesChargeSampler:
+  private def totalBatteryCharge(state: GridEntityState): Energy = state match
+    case b: BatteryState => b.currentCharge
+    case h: HouseState => h.componentStates.foldLeft[Energy](0.kwh)(_ + totalBatteryCharge(_))
+    case _ => 0.kwh
+
   def sample(statesData: EntityStatesData): BatteriesChargeStatistic =
     val charges = statesData.states.values.collect[Energy] {
       case b: BatteryState => b.currentCharge
-      case h: HouseState => h.componentStates.collect {
-          case b: BatteryState => b.currentCharge
-        }
-        .reduceOption(_ + _)
-        .getOrElse(0.kwh)
+      case h: HouseState => totalBatteryCharge(h)
     }
     if charges.isEmpty then BatteriesChargeStatistic.empty
     else BatteriesChargeStatistic(

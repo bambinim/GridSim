@@ -17,15 +17,18 @@ class SimulationTimeStatisticView(viewModel: SimulationTimeStatisticViewModel) e
 
   private val tickLabel =
     new Label():
-      styleClass += "title"
+      styleClass += "bold"
+      styleClass += "statistic"
       text <== viewModel.tickText
 
   private val initialTimeLabel =
     new Label():
+      styleClass += "statistic"
       text <== viewModel.initialTimeText
 
   private val elapsedTimeLabel =
     new Label():
+      styleClass += "statistic"
       text <== viewModel.elapsedTimeText
 
   children = Seq(

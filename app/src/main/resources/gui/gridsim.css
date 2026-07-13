@@ -3,10 +3,24 @@
   -fx-font-family: "Segoe UI", Arial, sans-serif;
 }
 
+.sym-split > .split-pane-divider {
+    -fx-background-color: #2563eb;
+    -fx-padding: 3px;
+}
+
 .title {
   -fx-font-size: 24px;
   -fx-font-weight: bold;
   -fx-text-fill: #172033;
+}
+
+.main-title {
+    -fx-text-fill: #2563eb;
+    -fx-font-weight: bolder;
+}
+
+.bold {
+    -fx-font-weight: bold;
 }
 
 .subtitle {
@@ -26,12 +40,17 @@
   -fx-border-radius: 4px;
 }
 
-.statistics {
+.summary {
   -fx-padding: 10px;
 }
 
 .statistics {
   -fx-spacing: 5px;
+  -fx-padding: 5px;
+}
+
+.statistic {
+  -fx-text-fill: black;
 }
 
 .flow-chart {
@@ -271,6 +290,18 @@
 .exit-btn:disabled {
   -fx-background-color: #d1d5db;
   -fx-text-fill: #f3f4f6;
+}
+
+.sym-layout-btn {
+    -fx-background-color: #cb84e1;
+    -fx-text-fill: white;
+}
+.sym-layout-btn:hover {
+    -fx-background-color: #883a9f;
+}
+.sym-layout-btn:disabled {
+    -fx-background-color: #ddb1e1;
+    -fx-text-fill: #f3f4f6;
 }
 
 .status-badge {
