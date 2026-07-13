@@ -23,7 +23,7 @@ object GuiApp extends JFXApp3:
 
     stage = new JFXApp3.PrimaryStage:
       title = "GridSim"
-      scene = new Scene(900, 600):
+      scene = new Scene(1300, 700):
         stylesheets.add(getClass.getResource("/gui/gridsim.css").toExternalForm)
         root = router.root
       onCloseRequest = _ => router.stopActiveSimulation()

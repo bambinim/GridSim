@@ -8,7 +8,7 @@ import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
 import scalafx.scene.control.{Button, ComboBox, DatePicker, Label, ListView, TextField}
 import scalafx.scene.control.ControlIncludes.jfxMultipleSelectionModel2sfx
-import scalafx.scene.layout.{HBox, Priority, VBox}
+import scalafx.scene.layout.{HBox, Priority, Region, VBox}
 import scalafx.util.StringConverter
 
 import java.time.LocalDate
@@ -103,6 +103,9 @@ class ScenarioSelectionView[A](
     wrapText = true
     styleClass += "muted-text"
 
+  private val spacer = new Region:
+    VBox.setVgrow(this, Priority.Always)
+
   children = Seq(
     titleLabel,
     subtitleLabel,
@@ -110,7 +113,7 @@ class ScenarioSelectionView[A](
       alignment = Pos.TopLeft
       children = Seq(
         new VBox(8):
-          prefWidth = 220
+          prefWidth = 350
           children = Seq(
             sectionLabel("Available scenarios"),
             scenariosList
@@ -145,6 +148,7 @@ class ScenarioSelectionView[A](
         new Label("s"),
       ),
     messageLabel,
+    spacer,
     new HBox:
       alignment = Pos.CenterRight
       children = Seq(startButton),
