@@ -1,21 +1,7 @@
 package org.gridsim.gui.model
 
 import org.gridsim.core.model.GridEntity
-import org.gridsim.core.model.network.Cable
-import org.gridsim.core.simulation.SimulationControllerState
 import org.gridsim.core.model.network.CableConnections
-
-/** Represents the direction and status of energy flow for a node or system.
-  */
-enum FlowDirection:
-  /** Consuming more energy than producing. */
-  case Importing
-
-  /** Producing more energy than consuming. */
-  case Exporting
-
-  /** Net energy flow is balanced (near zero). */
-  case Balanced
 
 /** Represents the interactive selection in the graphical simulation viewport.
   */
@@ -58,31 +44,3 @@ final case class DetailsEntity(
 sealed trait DetailItem
 final case class DetailField(field: String, value: String) extends DetailItem
 case object DetailSeparator extends DetailItem
-
-/** Aggregate summary metrics of the current simulation run ready for GUI
-  * binding.
-  *
-  * @param controllerState
-  *   the operational state of the runner (RUNNING, PAUSED, etc.)
-  * @param simulatedMinutes
-  *   total simulation minutes elapsed
-  * @param hourOfDay
-  *   current time of day in the simulation environment
-  * @param netFlowKwh
-  *   numerical value of net energy flow
-  * @param netFlowKind
-  *   category classification of flow (Importing, Exporting, Balanced)
-  * @param entityCount
-  *   total active grid nodes
-  * @param cableCount
-  *   total transmission lines
-  */
-final case class SummaryViewState(
-    controllerState: SimulationControllerState,
-    simulatedMinutes: Long,
-    hourOfDay: Int,
-    netFlowKwh: Double,
-    netFlowKind: FlowDirection,
-    entityCount: Int,
-    cableCount: Int
-)

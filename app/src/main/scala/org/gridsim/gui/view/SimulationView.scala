@@ -8,9 +8,8 @@ import scalafx.scene.layout.{BorderPane, Priority, VBox}
 /**
  * Main view layout for the active simulation screen.
  *
- * This composite view organizes the simulation summary, the grid visualization
- * graph placeholder, the selected entity details panel, and the simulation
- * controls bar.
+ * This composite view organizes the scenario title, grid visualization,
+ * selected entity details, statistics, and simulation controls.
  *
  * @param coordinator
  *   the coordinator that manages state orchestration across the view
@@ -21,7 +20,9 @@ class SimulationView(val coordinator: SimulationCoordinator)
     with ViewFX:
   override def root: Parent = this
 
-  private val summaryView = new SimulationSummaryView(coordinator.scenarioName, coordinator.summaryViewModel)
+  private val scenarioTitle = new Label(coordinator.scenarioName):
+    styleClass ++= Seq("title", "simulation-title")
+
   private val entityDetailsView = new EntityDetailsView(coordinator.entityDetailsViewModel)
   private val flowStatView = new FlowStatisticView(coordinator.flowStatisticViewModel)
   private val batteryChargeStatView = new BatteriesChargeStatisticView(coordinator.batteryChargeStatisticViewModel)
@@ -78,6 +79,6 @@ class SimulationView(val coordinator: SimulationCoordinator)
   VBox.setVgrow(detailsTabs, Priority.Always)
 
   center = new VBox:
-    children = Seq(summaryView, detailsTabs, controlView)
+    children = Seq(scenarioTitle, detailsTabs, controlView)
 
   coordinator.renderCurrent()

@@ -26,7 +26,6 @@
   -fx-border-radius: 4px;
 }
 
-.summary,
 .statistics {
   -fx-padding: 10px;
 }
@@ -51,6 +50,10 @@
   -fx-font-size: 14px;
   -fx-font-weight: bold;
   -fx-text-fill: #172033;
+}
+
+.simulation-title {
+  -fx-padding: 12px 16px 10px 16px;
 }
 
 .muted-text {

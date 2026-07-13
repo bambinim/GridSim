@@ -33,9 +33,6 @@ class SimulationCoordinator(
   /** Property tracking the currently selected entity in the GUI. */
   val selectedEntity: ObjectProperty[Selection] = ObjectProperty(Selection.NoSelection)
 
-  /** ViewModel managing the overall simulation status and metric summary. */
-  val summaryViewModel = SimulationSummaryViewModel(running.model)
-
   /** ViewModel managing the detailed properties and components of the selected entity. */
   val entityDetailsViewModel = EntityDetailsViewModel(running.model, selectedEntity, () => running.controller.configuration.delta)
 
@@ -106,7 +103,6 @@ class SimulationCoordinator(
       cableLoads: Map[Cable, Energy]
   ): Unit =
     val controllerState = running.controller.simulationControllerState
-    summaryViewModel.update(controllerState)
     entityDetailsViewModel.update(entityStates, entityFlows, cableLoads, environment)
     controlViewModel.update(controllerState)
     graphViewModel.update(entityFlows, cableLoads)
