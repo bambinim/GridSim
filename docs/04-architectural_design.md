@@ -59,6 +59,11 @@ flowchart LR
         Solver[Calcolo flussi energetici]
     end
 
+    subgraph Statistics[Statistiche]
+        StatisticsEngine[Statistics Engine]
+        StatisticsRepository[Storico metriche]
+    end
+
     User -->|seleziona scenario e comandi| GUI
     GUI --> Navigation
     Navigation --> ScenarioLoader
@@ -68,13 +73,18 @@ flowchart LR
     GUI -->|comandi ciclo di vita| Controller
     Controller --> Scheduler
     Controller -->|stato corrente| Engine
+
     Engine --> Model
     Engine --> Evolution
     Engine --> Solver
     Engine -->|nuovo stato| Controller
 
-    Controller -->|dati simulazione| Dispatcher
-    Dispatcher -->|dati simulazione| GUI
+    Controller -->|snapshot simulazione| Dispatcher
+
+    Dispatcher -->|snapshot| GUI
+    Dispatcher -->|snapshot| StatisticsEngine
+    StatisticsEngine --> StatisticsRepository
+    GUI -->|richiesta metriche| StatisticsRepository
 ```
 
 ---
@@ -83,15 +93,17 @@ flowchart LR
 
 La seguente tabella riassume in maniera generica le responsabilità dei blocchi illustrati nel diagramma di contesto:
 
-| Componente                | Responsabilità architetturale                        | Dati in ingresso                     | Dati prodotti                                   |
-|---------------------------|------------------------------------------------------|--------------------------------------|-------------------------------------------------|
-| **Motore di simulazione** | Esegue transizione da stato a stato.                 | Stato, modello e strategie.          | Nuovo stato immutabile.                         |
-| **Evoluzione entità**     | Risolve comportamento di case, accumulatori, ecc.    | Stato dell'entità locale, ambiente.  | Stato dell'entità e flusso di energia netto.    |
-| **Power-flow solver**     | Determina il carico sui cavi dalla rete elettrica.   | Flussi energetici dei nodi e grafo.  | Carichi sui cavi.                               |
-| **Observability**         | Disaccoppia l'esecuzione dai consumatori.            | Nuovi dati simulazione.              | Eventi/Snapshot verso GUI.                      |
-| **Configurazione / DSL**  | Espone scenari e costruisce la simulazione iniziale. | Identificativo preset e durata tick. | Configurazione iniziale: griglia e durata tick. |
-| **Runtime e controller**  | Gestisce il ciclo di vita (avvio, pausa, step).      | Comandi GUI e stato corrente.        | Invocazione motore e pubblicazione stato.       |
-| **GUI**                   | Traduce dominio in stato di presentazione.           | Snapshot e controller.               | Proprietà osservabili.                          |
+| Componente                   | Responsabilità architetturale                        | Dati in ingresso                     | Dati prodotti                                   |
+|------------------------------|------------------------------------------------------|--------------------------------------|-------------------------------------------------|
+| **Motore di simulazione**    | Esegue transizione da stato a stato.                 | Stato, modello e strategie.          | Nuovo stato immutabile.                         |
+| **Evoluzione entità**        | Risolve comportamento di case, accumulatori, ecc.    | Stato dell'entità locale, ambiente.  | Stato dell'entità e flusso di energia netto.    |
+| **Power-flow solver**        | Determina il carico sui cavi dalla rete elettrica.   | Flussi energetici dei nodi e grafo.  | Carichi sui cavi.                               |
+| **Observability**            | Disaccoppia l'esecuzione dai consumatori.            | Nuovi dati simulazione.              | Eventi/Snapshot verso GUI.                      |
+| **Dispatcher Observability** | Pubblica snapshot della simulazione ai consumatori.  | Snapshot simulazione.                | Eventi verso GUI e Statistics.                  |
+| **Statistics Engine**        | Calcola statistiche e metriche da snapshot.          | Snapshot simulazione.                | Metriche aggregate e serie temporali.           |
+| **Configurazione / DSL**     | Espone scenari e costruisce la simulazione iniziale. | Identificativo preset e durata tick. | Configurazione iniziale: griglia e durata tick. |
+| **Runtime e controller**     | Gestisce il ciclo di vita (avvio, pausa, step).      | Comandi GUI e stato corrente.        | Invocazione motore e pubblicazione stato.       |
+| **GUI**                      | Traduce dominio in stato di presentazione.           | Snapshot e controller.               | Proprietà osservabili.                          |
 
 ---
 
