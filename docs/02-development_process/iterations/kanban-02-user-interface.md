@@ -8,11 +8,11 @@ Il periodo non costituisce uno sprint. Le attività sono state prese in carico p
 
 ## Work package completati
 
-| ID | Tipo | Work package | Assegnatario |
-|---|---|---|---|
-| #445 | Task | Observability simulazione | Matteo Bambini |
+| ID   | Tipo | Work package                                            | Assegnatario    |
+|------|------|---------------------------------------------------------|-----------------|
+| #445 | Task | Observability simulazione                               | Matteo Bambini  |
 | #457 | Task | Interfaccia di configurazione e avvio della simulazione | Michele Nardini |
-| #462 | Task | Toolbar controllo simulazione | Michele Nardini |
+| #462 | Task | Toolbar controllo simulazione                           | Michele Nardini |
 
 Tutti i work package elencati risultano chiusi e avevano priorità normale.
 

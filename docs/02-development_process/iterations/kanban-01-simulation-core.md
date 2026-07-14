@@ -8,13 +8,13 @@ I work package già inclusi nello Sprint 1 non vengono ripetuti. Il documento pa
 
 ## Work package completati
 
-| ID | Tipo | Work package | Assegnatario    |
-|---|---|---|-----------------|
-| #438 | Task | DSL | Matteo Bambini  |
-| #439 | Feature | Simulation Runner | Michele Nardini |
-| #450 | Task | Simulation State | Michele Nardini |
-| #451 | Task | Simulation Model | Michele Nardini |
-| #452 | Task | Simulation execution trait and implementation(s) | Michele Nardini |
+| ID   | Tipo    | Work package                                     | Assegnatario    |
+|------|---------|--------------------------------------------------|-----------------|
+| #438 | Task    | DSL                                              | Matteo Bambini  |
+| #439 | Feature | Simulation Runner                                | Michele Nardini |
+| #450 | Task    | Simulation State                                 | Michele Nardini |
+| #451 | Task    | Simulation Model                                 | Michele Nardini |
+| #452 | Task    | Simulation execution trait and implementation(s) | Michele Nardini |
 
 Tutti i work package elencati risultano chiusi e avevano priorità normale. La feature `Simulation Runner` aggregava attività più specifiche gestite attraverso i relativi task.
 

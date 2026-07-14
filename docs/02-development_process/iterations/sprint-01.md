@@ -11,17 +11,17 @@ La durata eccezionale di questo Sprint è di quasi due settimane, poiché includ
 
 ## Sprint backlog
 
-| ID | Tipo | Attività | Parent | Owner             |
-|---|---|---|---|-------------------|
-| #433 | Task | Modellazione ambiente | Modellazione del dominio | Enrico Marchionni |
-| #435 | Task | Modellazione casa | Modellazione "entità" grid | Michele Nardini   |
-| #436 | Task | Modellazione impianto fotovoltaico | Modellazione "entità" grid | Enrico Marchionni |
-| #437 | Task | Modellazione batteria | Modellazione "entità" grid | Michele Nardini   |
-| #441 | Task | Modellazione dei profili di consumo | Modellazione casa | Michele Nardini   |
-| #442 | Task | Modellazione cavi | Modellazione topologia grid | Matteo Bambini    |
-| #447 | Task | Modellazione topologia grid | — | Matteo Bambini    |
-| #449 | Task | Calcolo flussi di potenza sui cavi | Modellazione topologia grid | Matteo Bambini    |
-| #455 | Task | Unificare "locale" per stampa stringhe | — | Enrico Marchionni |
+| ID   | Tipo | Attività                               | Parent                       | Owner              |
+|------|------|----------------------------------------|------------------------------|--------------------|
+| #433 | Task | Modellazione ambiente                  | Modellazione del dominio     | Enrico Marchionni  |
+| #435 | Task | Modellazione casa                      | Modellazione "entità" grid   | Michele Nardini    |
+| #436 | Task | Modellazione impianto fotovoltaico     | Modellazione "entità" grid   | Enrico Marchionni  |
+| #437 | Task | Modellazione batteria                  | Modellazione "entità" grid   | Michele Nardini    |
+| #441 | Task | Modellazione dei profili di consumo    | Modellazione casa            | Michele Nardini    |
+| #442 | Task | Modellazione cavi                      | Modellazione topologia grid  | Matteo Bambini     |
+| #447 | Task | Modellazione topologia grid            | —                            | Matteo Bambini     |
+| #449 | Task | Calcolo flussi di potenza sui cavi     | Modellazione topologia grid  | Matteo Bambini     |
+| #455 | Task | Unificare "locale" per stampa stringhe | —                            | Enrico Marchionni  |
 
 
 ## Risultati dello sprint

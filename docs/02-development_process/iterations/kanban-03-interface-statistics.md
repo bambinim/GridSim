@@ -8,8 +8,8 @@ Le attività sono state completate e revisionate progressivamente, mentre la lav
 
 ## Work package completati
 
-| ID | Tipo | Work package                                              | Assegnatario      |
-|---|---|-----------------------------------------------------------|-------------------|
+| ID   | Tipo | Work package                                              | Assegnatario      |
+|------|------|-----------------------------------------------------------|-------------------|
 | #461 | Task | Pannello informazioni dettagliate su nodi e archi         | Michele Nardini   |
 | #460 | Task | Pannello grafo simulazione                                | Matteo Bambini    |
 | #465 | Task | Pannello visualizzazione statistiche                      | Enrico Marchionni |
