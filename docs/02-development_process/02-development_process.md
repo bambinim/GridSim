@@ -54,13 +54,13 @@ Sono invece cambiati:
 
 In questo senso Kanban ha reso esplicito il processo che meglio rispondeva alle condizioni del gruppo: pianificazione continua, responsabilità sul task preso in carico, integrazione frequente e adattamento delle priorità.
 
-Per documentare l'avanzamento senza trasformare retroattivamente il periodo Kanban in una successione di sprint, il lavoro successivo è stato organizzato in tre finestre descrittive basate sulle date di aggiornamento dei work package:
+Per documentare l'avanzamento senza trasformare retroattivamente il periodo Kanban in una successione di sprint, il lavoro successivo è stato organizzato in tre finestre descrittive basate sulle dipendenze e sul contributo funzionale dei work package:
 
 - [nucleo della simulazione](iterations/kanban-01-simulation-core.md), dedicato a DSL, model, state ed esecuzione;
-- [osservabilità e accesso alla simulazione](iterations/kanban-02-user-interface.md), dedicato alla distribuzione degli aggiornamenti, all'avvio, al grafo e alla configurazione temporale;
-- [interfaccia, controllo e statistiche](iterations/kanban-03-interface-statistics.md), dedicato al completamento dell'esperienza utente e alla presentazione dei risultati.
+- [osservabilità e controllo della simulazione](iterations/kanban-02-user-interface.md), dedicato alla distribuzione degli aggiornamenti, alla configurazione, all'avvio e ai comandi di esecuzione;
+- [visualizzazione e statistiche](iterations/kanban-03-interface-statistics.md), dedicato al grafo, ai dettagli delle entità, alla configurazione temporale e alla presentazione dei risultati.
 
-Questi raggruppamenti hanno esclusivamente una funzione documentale: descrivono l'evoluzione funzionale del prodotto mantenendo l'ordine generale degli aggiornamenti osservati in OpenProject, senza introdurre deadline o backlog chiusi propri di Scrum.
+Questi raggruppamenti hanno esclusivamente una funzione documentale: descrivono l'evoluzione funzionale del prodotto e le dipendenze osservate tra le attività, senza introdurre deadline o backlog chiusi propri di Scrum.
 
 ## Organizzazione e divisione dei task
 
