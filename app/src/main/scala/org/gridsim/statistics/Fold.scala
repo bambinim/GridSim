@@ -32,8 +32,11 @@ object Fold:
       def extract(s: A): A = s
 
   def unfold[In, S](init: S)(stepFunction: (S, In) => S): Fold[In, S] =
-    new Fold[In, S]:
+    unfold(init)(stepFunction)(identity)
+
+  def unfold[In, S, Out](init: S)(stepFunction: (S, In) => S)(extractFunction: S => Out): Fold[In, Out] =
+    new Fold[In, Out]:
       type State = S
       def initial: S = init
       def step(s: S, in: In): S = stepFunction(s, in)
-      def extract(s: S): S = s
+      def extract(s: S): Out = extractFunction(s)

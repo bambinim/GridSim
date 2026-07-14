@@ -32,8 +32,10 @@ class FoldSpec extends AnyFlatSpec with Matchers:
     runFold(doubleSumFold, List(1, 2, 3)) shouldBe 12
 
   "Fold.unfold" should "thread arbitrary, non-monoidal state through step" in:
-    val lastSeenFold = Fold.unfold[Int, Option[Int], Option[Int]](None)((_, in) => Some(in))(identity)
-    runFold(lastSeenFold, List(1, 2, 3)) shouldBe Some(3)
+    val lastSeenFold1 = Fold.unfold[Int, Option[Int], Option[Int]](None)((_, in) => Some(in))(identity)
+    val lastSeenFold2 = Fold.unfold[Int, Option[Int]](None)((_, in) => Some(in))
+    runFold(lastSeenFold1, List(1, 2, 3)) shouldBe Some(3)
+    runFold(lastSeenFold2, List(1, 2, 3)) shouldBe Some(3)
 
   it should "start at the given initial state when no input has arrived" in:
     val lastSeenFold = Fold.unfold[Int, Option[Int], Option[Int]](None)((_, in) => Some(in))(identity)
