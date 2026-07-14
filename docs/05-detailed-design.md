@@ -165,53 +165,80 @@ La costruzione degli scenari (entità, topologia e regole) sfrutta la **Scala 3 
 
 ## Modulo di Statistiche (Statistics Engine)
 
-Il modulo `Statistics` traduce a livello di codice la separazione architetturale già descritta: è isolato dal Core e
-riceve in ingresso i medesimi `SimulationSnapshot` pubblicati dal Dispatcher di Observability, senza alcuna
-conoscenza della loro origine.
+Il modulo `Statistics` costituisce un sottosistema indipendente incaricato di elaborare in tempo reale gli indicatori
+della simulazione.
+Analogamente alla `GUI`, esso non interagisce direttamente con il motore di simulazione, ma riceve esclusivamente gli
+oggetti `SimulationSnapshot` pubblicati dal sistema di `Observability` al termine di ogni tick.
 
-### Fold: Accumulatore Puro a Passo Singolo
+Questa scelta mantiene il modulo completamente disaccoppiato dal `Core`: il motore della simulazione rimane responsabile
+unicamente dell'evoluzione dello stato, mentre l'analisi statistica è demandata ad un componente separato, facilmente
+estendibile e sostituibile.
 
-L'astrazione centrale è `Fold[In, Out]`, una macchina di Moore funzionale: uno stato interno opaco (`type State`),
-una funzione di transizione pura (`step`) e una proiezione finale (`extract`). Ogni statistica è modellata come
-un'istanza di `Fold`, indipendentemente da come accumula i propri dati internamente.
+### Architettura Pipeline
+
+L'elaborazione delle statistiche segue una pipeline composta da tre livelli:
+1. Sampling: ogni snapshot viene trasformato nei dati significativi per una determinata statistica (ad esempio flussi
+   energetici, stato delle batterie o sovraccarico dei cavi).
+2. Accumulo: ogni statistica mantiene il proprio stato interno, aggiornandolo ad ogni tick senza modificare gli snapshot
+   originali.
+3. Esposizione dei risultati: al termine dell'elaborazione, tutte le statistiche vengono raccolte in un unico
+   contenitore (`StatsBoard`) che rappresenta lo stato corrente dell'intero motore statistico.
+
+In questo modo ogni statistica evolve indipendentemente dalle altre, mentre il sistema espone una vista unificata dei
+risultati verso i componenti che ne fanno uso (principalmente la `GUI`).
 
 ```mermaid
-classDiagram
-    class Fold~In,Out~ {
-        <<trait>>
-        type State
-        +initial: State
-        +step(state: State, in: In): State
-        +extract(state: State): Out
-        +map(f: Out => B): Fold~In,B~
-        +contramap(f: NewIn => In): Fold~NewIn,Out~
-    }
+flowchart LR
+    Snapshot[SimulationSnapshot]
+    Snapshot --> Engine[Statistics Engine]
+
+    Engine --> Flow[Flow Statistic]
+    Engine --> Battery[Battery Statistic]
+    Engine --> Cable[Cable Statistic]
+    Engine --> History[Flow History Statistic]
+    Engine --> Time[Time Statistic]
+
+    Flow --> Board[StatsBoard]
+    Battery --> Board
+    Cable --> Board
+    History --> Board
+    Time --> Board
+
+    Board --> GUI
 ```
 
-Questa scelta consente due strategie di implementazione alternative, entrambe esposte come *smart constructor* sul
-companion object:
-- `Fold.monoidal`: per statistiche il cui accumulo è associativo e neutro rispetto a un elemento vuoto (es. somme,
-  massimi, conteggi). Lo stato interno è semplicemente il `Monoid[A]` fornito da Cats, ricavando l'intera macchina "a
-  costo zero" dalla sola funzione di campionamento.
-- `Fold.unfold`: per il caso generale, dove l'accumulo non è esprimibile come combinazione associativa (es. una
-  cronologia FIFO a finestra mobile, o un contatore di tick con timestamp di calendario).
+### Composizione delle statistiche
 
-### Composizione a passo singolo (StatisticsEngine)
+`StatisticsEngine` non contiene logica specifica delle singole statistiche.
 
-Le singole statistiche vengono composte in un'unica pipeline tramite `StatisticsEngine.build`, che unisce N fold
-indipendenti in un singolo `Fold[In, StatsBoard]`: ad ogni tick, ogni snapshot della simulazione viene attraversato
-una sola volta, aggiornando in parallelo logico tutti gli accumulatori registrati, anziché eseguire N passate
-separate sullo stream.
+Ogni statistica è registrata attraverso una descrizione composta da:
+- una chiave identificativa (`StatKey`);
+- un accumulatore personalizzato;
+- il tipo del risultato prodotto.
 
-### Registro tipizzato ed eterogeneo (StatKey / StatsBoard)
+Durante ogni tick lo `StatisticsEngine` attraversa una sola volta lo snapshot ricevuto e aggiorna tutti gli accumulatori
+registrati.
+Questo approccio evita elaborazioni multiple sugli stessi dati e permette di aggiungere nuove statistiche senza
+modificare il funzionamento del motore.
 
-Per evitare una dipendenza rigida tra motore e statistiche concrete, la corrispondenza tra chiave e tipo di
-risultato è espressa da un enum `StatKey[A]`, mentre il risultato aggregato è incapsulato in `StatsBoard`,
-un *opaque type* su `Map[StatKey[?], Any]`.
+L'estensione del sistema richiede infatti solamente:
+- la definizione della nuova statistica;
+- la relativa registrazione nel `StatisticsRegistry`.
 
-Questo pattern (Registry + typed heterogeneous container) rende il modulo aperto all'estensione: aggiungere una
-nuova statistica richiede unicamente un nuovo caso in `StatKey`, un nuovo `Fold` e una riga in
-`StatisticsRegistry.allStatistics`, senza toccare `StatisticsEngine` né il codice che consuma `StatsBoard`.
+`StatisticsEngine` rimane quindi chiuso alle modifiche ma aperto all'estensione, seguendo il principio Open/Closed.
+
+### Accumulatori funzionali
+
+Per rappresentare l'evoluzione delle statistiche è stata introdotta l'astrazione `Fold`, che modella un accumulatore
+puro capace di aggiornare il proprio stato ad ogni Snapshot e produrre il valore statistico corrente.
+
+Questa astrazione consente di implementare statistiche molto diverse tra loro mantenendo la stessa interfaccia:
+- statistiche cumulative, come somme, medie o conteggi;
+- statistiche che mantengono una cronologia limitata dei dati;
+- statistiche che richiedono uno stato interno più articolato.
+
+Dal punto di vista architetturale, `Fold` rappresenta quindi il contratto comune seguito da tutte le statistiche, mentre
+i dettagli dell'accumulazione rimangono completamente nascosti allo `StatisticsEngine`.
 
 ---
 
