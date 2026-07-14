@@ -18,7 +18,7 @@ Nella fase iniziale GridSim è stato gestito secondo il tipico ciclo iterativo d
 
 Il backlog, i risultati e la valutazione di questa prima iterazione sono descritti nel documento dedicato allo [Sprint 1](iterations/sprint-01.md).
 
-Al termine del primo sprint è tuttavia emersa una difficoltà organizzativa. Scrum presuppone sprint di durata stabile, un impegno relativamente prevedibile e momenti di sincronizzazione ricorrenti. Nel caso del gruppo, gli impegni lavorativi e personali rendevano la disponibilità disomogenea sia tra i membri sia tra una settimana e l'altra. Di conseguenza, una quantità di lavoro realistica all'inizio di uno sprint poteva non esserlo più durante il suo svolgimento.
+Al termine del primo sprint è tuttavia emersa una duplice difficoltà: organizzativa e di stima. Scrum presuppone sprint di durata stabile, un impegno relativamente prevedibile, una chiara calibrazione dell'effort dei task e momenti di sincronizzazione ricorrenti. All'avvio del progetto, è stato inizialmente complesso stimare accuratamente l'effort richiesto da ogni task, non avendo ancora un punto di riferimento preciso per lo sviluppo dei componenti e le loro integrazioni. Inoltre, nel caso del gruppo, gli impegni lavorativi e personali rendevano la disponibilità disomogenea sia tra i membri sia tra una settimana e l'altra. Di conseguenza, una quantità di lavoro stimata come realistica all'inizio di uno sprint poteva rivelarsi notevolmente sottostimata o non più fattibile durante il suo svolgimento.
 
 Mantenere formalmente gli sprint in queste condizioni avrebbe prodotto una pianificazione solo apparente: task completati in anticipo da alcuni membri, attività trascinate allo sprint successivo e meeting fissati in momenti poco compatibili con le disponibilità effettive. Il problema non riguardava quindi gli obiettivi di qualità o collaborazione promossi da Scrum, ma la sua cadenza temporale rispetto al contesto concreto del team.
 
@@ -126,7 +126,7 @@ Il workflow viene eseguito automaticamente in seguito ad aggiornamenti del repos
 
 ### Processo di versionamento e collaborazione
 
-Per la gestione del codice sorgente è stato adottato Git con repository ospitato su GitHub. Il flusso di lavoro segue un’impostazione ispirata a GitFlow, distinguendo un ramo stabile, destinato al codice pronto al rilascio, e un ramo di sviluppo, utilizzato per integrare le funzionalità completate. Le nuove funzionalità vengono sviluppate su branch dedicati e successivamente integrate tramite pull request.
+Per la gestione del codice sorgente è stato adottato Git con repository ospitato su GitHub. Il flusso di lavoro segue un’impostazione ispirata a GitFlow, distinguendo un ramo stabile, destinato al codice pronto al rilascio, e un ramo di sviluppo, utilizzato per integrare le funzionalità completate. Le nuove funzionalità vengono sviluppate su branch dedicati e successivamente integrate tramite semplici operazioni di merge.
 
 Per rendere più leggibile e tracciabile la cronologia del progetto, il team ha inoltre adottato la convenzione Conventional Commits, che consente di classificare le modifiche in base alla loro natura, ad esempio nuove funzionalità, correzioni, refactoring, modifiche alla documentazione o aggiornamenti alla configurazione di build e CI.
 
