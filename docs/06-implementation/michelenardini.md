@@ -1,25 +1,30 @@
 # Relazione sull'Implementazione - Michele Nardini
 
-Il presente capitolo descrive in dettaglio le scelte progettuali, i pattern funzionali e le componenti chiave del simulatore **GridSim** sviluppate da Michele Nardini. L'esposizione adotta un rigore accademico e formale, supportato da frammenti di codice esplicativi che documentano l'adozione dell'immutabilità dello stato, del determinismo simulativo e della robustezza formale dei modelli di dominio.
+Il presente capitolo descrive in dettaglio le scelte progettuali, i pattern funzionali e le componenti chiave del simulatore **GridSim** sviluppate da Michele Nardini. L'esposizione adotta un rigore accademico e formale, supportato da frammenti di codice esplicativi che documentano l'adozione dell'immutabilità dello stato, del determinismo simulativo, dell'estensibilità tramite dispatching dinamico e della robustezza dell'infrastruttura di visualizzazione e controllo (GUI).
 
 ---
 
 ## 1. Quadro Generale dei Contributi Sviluppati
 
-Nel contesto del progetto **GridSim**, Michele Nardini ha progettato e sviluppato i seguenti componenti e moduli logici del core e del simulatore:
+Nel contesto del progetto **GridSim**, Michele Nardini ha progettato e sviluppato i seguenti moduli logici:
 
 * **Modellazione del Dominio e Unità di Misura (Core Models)**:
-  * Definizione delle entità statiche e dinamiche della rete: [House](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/house/House.scala), [HouseState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/house/HouseState.scala), [Battery](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/storage/battery/Battery.scala) e [BatteryState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/storage/battery/BatteryState.scala).
-  * Modellazione algebrica delle unità di misura fisiche e dei flussi: [Power](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/common/Power.scala), [Energy](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/common/Energy.scala) e [Flow](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/common/Flow.scala) nel package `org.gridsim.core.common`.
-* **Motore di Simulazione e Concorrenza (Simulator Engine)**:
-  * Sviluppo del ciclo di evoluzione discreto basato su pipeline monadiche: [DefaultSimulationEngine](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/DefaultSimulationEngine.scala).
-  * Controllo concorrente e thread-safe del ciclo di vita della simulazione: [DefaultSimulationController](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/DefaultSimulationController.scala).
-* **Evoluzione Temporale e Scambio Energetico (Grid Evolution)**:
-  * Sviluppo delle type class per l'avanzamento dei nodi: [GridEvolution](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/GridEvolution.scala), [HouseEvolution](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/house/HouseEvolution.scala) e [StorageEnergyExchanger](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/storage/StorageEnergyExchanger.scala).
-  * Logiche e strategie di carica/scarica delle batterie: [BatteryEnergyExchange](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/storage/battery/BatteryEnergyExchange.scala), `BatteryStrategy` e `StandardBatteryStrategy`.
+  * Definizione delle entità fisiche e dei loro stati dinamici: [House](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/house/House.scala), [HouseState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/house/HouseState.scala), [Battery](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/storage/battery/Battery.scala) e [BatteryState](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/model/storage/battery/BatteryState.scala).
+  * Modellazione algebrica delle grandezze fisiche a costo zero tramite opaque types: [Power](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/common/Power.scala) ed [Energy](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/common/Energy.scala).
+  * Rappresentazione algebrica dei flussi bidirezionali: [Flow](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/common/Flow.scala).
+* **Motore di Simulazione e Concorrenza (Simulator Engine & Controller)**:
+  * Ciclo di evoluzione discreto basato su pipeline monadiche pure: [DefaultSimulationEngine](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/DefaultSimulationEngine.scala).
+  * Esecuzione periodica concorrente, thread-safe e configurabile in tempo reale: [DefaultSimulationController](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/simulation/DefaultSimulationController.scala).
+* **Evoluzione Temporale e Dispatching Polimorfo (Grid Evolution & Dispatching)**:
+  * Architettura basata su registri ed estendibile per l'avanzamento dei nodi: [EntityEvolutionDispatcher](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/EntityEvolutionDispatcher.scala), [EntityEvolutionHandler](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/EntityEvolutionHandler.scala).
+  * Gestione del bilancio energetico domestico sequenziale in due fasi: [HouseEvolution](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/house/HouseEvolution.scala).
+  * Strategie reattive di carica/scarica delle batterie: [StorageEnergyExchanger](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/storage/StorageEnergyExchanger.scala), [BatteryEnergyExchange](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/storage/battery/BatteryEnergyExchange.scala).
 * **Infrastruttura di Validazione Semantica (Validator)**:
-  * Progettazione dell'algebra di validazione e accumulo errori: [Validator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/Validator.scala).
-  * Validatori specifici e di coerenza: [BatteryValidator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/BatteryValidator.scala), [HouseValidator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/HouseValidator.scala), [HouseComponentValidator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/HouseComponentValidator.scala) e [SimulationValidator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/SimulationValidator.scala).
+  * Progettazione dell'algebra di validazione e accumulazione non degli errori: [Validator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/Validator.scala).
+  * Validatori specifici e di coerenza topologica globale: [BatteryValidator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/BatteryValidator.scala), [HouseValidator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/HouseValidator.scala) e [SimulationValidator](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/SimulationValidator.scala).
+* **Interfaccia Grafica e Presentazione (GUI - MVVM & Ports)**:
+  * Architettura Model-View-ViewModel (MVVM) con bindings reattivi: [ScenarioSelectionView](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/view/ScenarioSelectionView.scala) e [ScenarioSelectionViewModel](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/viewmodel/ScenarioSelectionViewModel.scala).
+  * Visualizzazione dettagli delle entità: [EntityDetailsView](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/view/EntityDetailsView.scala)
 
 ---
 
@@ -40,7 +45,7 @@ object Power:
   extension (p: Power)
     def toDouble: Double = p
     @targetName("powerPlus") def +(o: Power): Power = p + o
-    // ... metodi di estensione algebrici
+    // ... altri operatori algebrici
 
 // In org.gridsim.core.common.Energy
 opaque type Energy = Double
@@ -48,17 +53,8 @@ opaque type Energy = Double
 object Energy:
   def apply(v: Double): Energy = v
 ```
-* **Analisi dei Vantaggi**:
+* **Vantaggi principali**:
   * **Type Safety a tempo di compilazione**: Il compilatore tratta `Power` ed `Energy` come tipi disgiunti. Qualsiasi tentativo di sommare potenza ed energia o di passare un valore di potenza dove è atteso un valore di energia genera un errore di compilazione statico.
-  * **Zero Runtime Overhead**: A tempo di esecuzione, il compilatore cancella l'astrazione e compila i tipi opachi direttamente come tipi primitivi `Double`. Ciò evita l'allocazione di oggetti heap e l'indirezione tipica dei tradizionali wrapper, garantendo performance ottimali.
-  * **Sintassi Espressiva (DSL)**: Tramite appositi metodi di estensione, è possibile definire le grandezze in modo leggibile ed elegante:
-    ```scala
-    extension (d: Double) infix def kwh: Energy = Energy(d)
-    extension (d: Double) def kw: Power = Power(d)
-    
-    val cap: Energy = 10.kwh
-    val load: Power = 5.kw
-    ```
 
 ### 2.2 Rappresentazione Semantica dei Flussi (Flow ADT)
 Lo scambio bidirezionale di energia nella micro-grid (surplus, deficit o bilanciamento) è modellato come un tipo algebrico di dati somma (ADT) tramite un `enum` parametrizzato:
@@ -88,9 +84,6 @@ extension (f: Flow[Energy])
   def +(o: Flow[Energy]): Flow[Energy] =
     (f.value + o.value).kwh.toFlow
 ```
-* **Analisi**:
-  * La proiezione sul segno algebrico è centralizzata nel metodo `value`.
-  * La somma di due flussi delegata a `+` risolve l'operazione sui valori numerici reali per poi riconvertire il risultato nell'ADT appropriato. Questo incapsula la logica dei segni matematici all'interno del sistema di tipi, aumentando la robustezza semantica del dominio.
 
 ---
 
@@ -102,60 +95,39 @@ La transizione di stato tra i singoli passi discreti della simulazione deve avve
 Il ciclo di evoluzione temporale ad ogni passo (tick) è strutturato come una *for-comprehension* che compone sequenzialmente le transizioni di stato:
 
 ```scala
-override def step(state: SimulationState): SimulationState =
-  simulationPipeline.run(state).value._1
+override def step(state: SimulationState, delta: FiniteDuration): SimulationState =
+  simulationPipeline(delta).run(state).value._1
 
-private def simulationPipeline: State[SimulationState, Unit] =
+private def simulationPipeline(delta: FiniteDuration): State[SimulationState, Unit] =
   for {
-    _ <- advanceEnvironment
-    _ <- evolveEntities
+    _ <- advanceEnvironment(delta)
+    _ <- evolveEntities(delta)
     _ <- calculateCableLoads
   } yield()
 ```
-* **Spiegazione Ingegneristica**:
+* **Funzionamento**:
   - `step` accetta uno snapshot immutabile `SimulationState` e avvia la computazione monadica mediante `.run(state)`. Il valore ritornato corrisponde al nuovo stato immutabile consolidato.
   - La *for-comprehension* incapsula tre transizioni di stato distinte:
     1. **`advanceEnvironment`**: Incrementa il contatore temporale e aggiorna le condizioni meteorologiche.
     2. **`evolveEntities`**: Calcola l'evoluzione interna di ciascun nodo ricavando i flussi residui.
     3. **`calculateCableLoads`**: Esegue l'algoritmo di risoluzione dei flussi elettrici sui cavi di collegamento.
 
-### 3.2 Isolamento delle Modifiche
-Ogni fase aggiorna lo stato globale mediante la primitiva `State.modify`:
-
-```scala
-private def advanceEnvironment: State[SimulationState, Unit] = State.modify {
-  s => s.copy(environment = s.environment.advance(model.delta))
-}
-
-private def calculateCableLoads: State[SimulationState, Unit] = State.modify {
-  s => s.copy(cableLoads = flowSolver.solve(s.entityFlows).toMap)
-}
-```
-* **Valutazione Architetturale**: La monade `State` funge da barriera contro gli effetti collaterali, assicurando che lo stato aggiornato in una fase venga passato implicitamente e in modo thread-safe alla successiva. Questo previene bug derivanti dall'accesso a snapshot obsoleti o parzialmente modificati.
+Ogni fase aggiorna lo stato globale in modo sicuro mediante la primitiva `State.modify`.
 
 ---
 
-## 4. Infrastruttura di Validazione Funzionale (Accumulo degli Errori)
+## 4. Infrastruttura di Validazione Semantica (Accumulo degli Errori)
 
-La corretta inizializzazione del sistema richiede la validazione dei vincoli fisici e topologici delle componenti. Per massimizzare la diagnostica e prevenire l'approccio *fail-fast* (interruzione al primo errore riscontrato), è stata implementata un'infrastruttura di validazione basata su functori applicativi e sul tipo `ValidatedNec` di **Cats**.
+La corretta inizializzazione del sistema richiede la validazione dei vincoli fisici e topologici delle componenti. Per massimizzare la diagnostica e prevenire l'interruzione al primo errore riscontrato è stata implementata un'infrastruttura di validazione basata su funtori applicativi e sul tipo `ValidatedNec` di **Cats**.
 
 ### 4.1 La Type Class `Validator` e la Composizione Applicativa
-L'astrazione di validazione è definita tramite la type class `Validator`:
+L'astrazione di validazione è definita tramite la type class `Validator` in [Validator.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/Validator.scala):
 
 ```scala
 trait Validator[E]:
   def validate(a: E): ValidatedNec[DomainError, E]
 ```
-Utilizzando `ValidatedNec` (dove `Nec` rappresenta una `NonEmptyChain`), le violazioni non interrompono il flusso, ma vengono accumulate in una struttura dati non vuota ad alte performance. Le estensioni su tipi numerici consentono di definire regole formali atomiche e riutilizzabili:
-
-```scala
-extension (value: Double)
-  def mustBePositive(field: String): ValidatedNec[DomainError, Double] =
-    Validated.condNec(value > 0, value, ValueMustBePositive(field, value))
-
-  def mustBeInRange(field: String, min: Double, max: Double): ValidatedNec[DomainError, Double] =
-    Validated.condNec(value >= min && value <= max, value, OutOfRange(field, value, min, max))
-```
+Utilizzando `ValidatedNec` (dove `Nec` rappresenta una `NonEmptyChain`), le violazioni non interrompono il flusso, ma vengono accumulate in una struttura dati non vuota. Le estensioni su tipi numerici consentono di definire regole formali atomiche e riutilizzabili (es. `mustBePositive`, `mustBeInRange`).
 
 ### 4.2 Validazione della Batteria (BatteryValidator)
 Il validatore della batteria verifica contemporaneamente i parametri statici dell'entità e la coerenza dello stato di carica dinamico:
@@ -169,31 +141,101 @@ given Validator[(Battery, BatteryState)] with
       validateBatteryEntity(entity),
       validateBatteryState(entity, state)
     ).mapN((_, _, _) => pair)
-
-  private def validateBatteryEntity(b: Battery): ValidatedNec[DomainError, Battery] =
-    (
-      b.maxCapacity.toDouble.mustBePositive("Capacity"),
-      b.maxPowerCharge.toDouble.mustBePositive("Max Power Charge"),
-      b.maxPowerDischarge.toDouble.mustBePositive("Max Power Discharge"),
-      b.minSoC.mustBeInRange("Min SoC", 0.0, 1.0)
-    ).mapN((_, _, _, _) => b)
 ```
-* **Spiegazione**:
-  - `validate` compone tre funzioni di verifica. Grazie al metodo `.mapN` del funtore applicativo, se una o più verifiche falliscono, i relativi `DomainError` vengono combinati ed accumulati nella catena risultante.
-  - `validateBatteryEntity` garantisce che le potenze massime e la capacità siano positive, e che la percentuale del SoC minimo sia inclusa nell'intervallo chiuso $[0, 1]$.
+
+### 4.3 Validazione di Coerenza Globale (SimulationValidator)
+Durante l'assemblaggio di componenti validi all'interno di una simulazione eseguibile, sorgono vincoli di coerenza globali tra la topologia statica e lo stato dinamico iniziale. Questi requisiti sono formalizzati in [SimulationValidator.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/validation/SimulationValidator.scala):
+
+```scala
+private def validateStateAndModelCoherence(state: SimulationState, model: SimulationModel): ValidatedNec[DomainError, Unit] =
+  val nodeIds = model.grid.nodes.map(_.id).toSet
+  val cables = model.grid.cables.toSet
+  (
+    validateEntityStatesMatchModelEntity(state, nodeIds),
+    validateEntityFlows(state, nodeIds),
+    validateCableLoads(state, cables)
+  ).mapN((_, _, _) => ())
+```
+Il validatore garantisce l'allineamento degli ID e delle connessioni, accumulando tutti gli errori in caso di scenario mal configurato.
 
 ---
 
-## 5. Evoluzione Temporale del Nodo Casa (GridEvolution)
+## 5. Evoluzione Temporale e Dispatching Polimorfo (Dispatcher & Handlers)
 
-L'avanzamento discreto dello stato di un'abitazione e delle sue componenti annidate implementa la type class polimorfa [GridEvolution](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/GridEvolution.scala).
+Al fine di garantire l'estendibilità del simulatore secondo l'**Open-Closed Principle**, il motore di simulazione è stato completamente disaccoppiato dalle famiglie concrete di entità. L'evoluzione di ciascun nodo della micro-grid è gestita da un'architettura basata sul *Registry Pattern* implementata in [EntityEvolutionDispatcher.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/EntityEvolutionDispatcher.scala) ed [EntityEvolutionHandler.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/EntityEvolutionHandler.scala).
 
-### 5.1 Risoluzione del Bilancio Energetico Domestico
+```mermaid
+classDiagram
+    direction LR
+    class EntityEvolutionDispatcher {
+        <<interface>>
+        +evolve(request: EvolutionRequest) GridEntityState, Flow
+    }
+    class DefaultEntityEvolutionDispatcher {
+        -handlers: Iterable[EntityEvolutionHandler]
+        +evolve(request: EvolutionRequest) GridEntityState, Flow
+    }
+    class EntityEvolutionHandler {
+        <<interface>>
+        +supports(request: EvolutionRequest) Boolean
+        +evolve(request: EvolutionRequest) GridEntityState, Flow
+    }
+    class HouseEvolutionHandler {
+        -dependencies: HouseEvolutionDependencies
+        +supports(request: EvolutionRequest) Boolean
+        +evolve(request: EvolutionRequest) GridEntityState, Flow
+    }
+    class SolarPanelEvolutionHandler {
+        +supports(request: EvolutionRequest) Boolean
+        +evolve(request: EvolutionRequest) GridEntityState, Flow
+    }
+
+    EntityEvolutionDispatcher <|.. DefaultEntityEvolutionDispatcher
+    EntityEvolutionHandler <|.. HouseEvolutionHandler
+    EntityEvolutionHandler <|.. SolarPanelEvolutionHandler
+    DefaultEntityEvolutionDispatcher --> EntityEvolutionHandler : delegates to
+```
+
+### 5.1 Astrazione del Tick Evolutivo (`EvolutionRequest`)
+Ogni singola computazione evolutiva è incapsulata in una struttura dati immutabile denominata `EvolutionRequest`:
+```scala
+final case class EvolutionRequest(
+  entity: GridEntity,
+  state: GridEntityState,
+  env: Environment,
+  delta: FiniteDuration
+)
+```
+
+### 5.2 Il Registro di Dispatching (`EntityEvolutionDispatcher`)
+L'interfaccia `EntityEvolutionDispatcher` espone una singola operazione di evoluzione. La sua implementazione di default (`DefaultEntityEvolutionDispatcher`) delega l'operazione a una collezione di handler registrati:
+
+```scala
+override def evolve(
+  request: EvolutionRequest
+): (GridEntityState, Flow[Energy]) =
+  handlers.filter(_.supports(request)) match
+    case handler :: Nil =>
+      val (newState, flow) = handler.evolve(request)
+      newState -> flow
+    case Nil =>
+      throw IllegalArgumentException(
+        s"No evolution handler supports state " +
+          s"'${request.state.getClass.getSimpleName}' and entity " +
+          s"'${request.entity.getClass.getSimpleName}'"
+      )
+```
+* **Estendibilità**: Ciascun `EntityEvolutionHandler` dichiara se è in grado di processare una richiesta tramite il predicato `supports(request)`. Ciò permette di integrare nuove entità semplicemente registrando un nuovo handler, senza modificare il nucleo del ciclo di simulazione.
+
+---
+
+## 6. Evoluzione Temporale e Reattività dei Nodi
+
+### 6.1 Risoluzione del Bilancio Energetico Domestico (HouseEvolution)
 Il comportamento di evoluzione dell'abitazione in [HouseEvolution.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/house/HouseEvolution.scala) coordina la logica di consumo e l'interazione con i dispositivi ad essa collegati:
 
 ```scala
 object HouseEvolution extends GridEvolution[HouseState, House, EvolutionContext[HouseEvolutionDependencies]]:
-
   extension (state: HouseState)
     def evolve(house: House, environment: Environment)(
       using context: EvolutionContext[HouseEvolutionDependencies]
@@ -211,47 +253,10 @@ object HouseEvolution extends GridEvolution[HouseState, House, EvolutionContext[
 
       (state.copy(componentStates = result.states), result.flow)
 ```
-* **Analisi del Flusso**:
-  1. Il consumo basale viene calcolato in base al profilo giornaliero configurato per la casa (`initialFlow`).
-  2. Gli elementi fisici interni all'abitazione vengono indicizzati in base all'identificativo statico (`componentsById`).
-  3. Il metodo `HouseComponentEvolution.evolveAll` esegue la computazione sequenziale dei componenti, calcolando l'evoluzione dei produttori e dei dispositivi di accumulo.
-  4. Viene generata una nuova istanza di `HouseState` contenente la lista degli stati aggiornati dei componenti insieme al flusso residuo finale.
+Il bilancio elettrico domestico segue una rigida precedenza fisica calcolata sequenzialmente tramite `evolveAll` (prima i generatori solari per soddisfare il fabbisogno locale, e successivamente gli accumulatori).
 
-### 5.2 Evoluzione Sequenziale in Due Fasi (`evolveAll`)
-Per riprodurre in modo realistico il bilancio elettrico domestico, i componenti interni non vengono evoluti in parallelo, ma secondo una rigida precedenza fisica: prima i generatori (fotovoltaico) per soddisfare il fabbisogno locale, e successivamente gli accumulatori (batterie) per caricarsi con il surplus o sopperire al deficit.
-
-```scala
-def evolveAll(
-  states: Iterable[GridEntityState],
-  componentsById: Map[String, GridEntity],
-  initialFlow: Flow[Energy],
-  environment: Environment
-)(using delta: FiniteDuration): ComponentEvolutionResult =
-  val producerResult =
-    evolvePhase(
-      states,
-      componentsById,
-      initialFlow,
-      environment
-    )(evolveProducer)
-
-  evolvePhase(
-    producerResult.states,
-    componentsById,
-    producerResult.flow,
-    environment
-  )(evolveStorage)
-```
-* **Spiegazione**:
-  * **Fase 1 (Produttori)**: Il consumo iniziale (`initialFlow`) viene modificato da `evolveProducer` aggiungendo l'energia prodotta dai pannelli solari.
-  * **Fase 2 (Accumulatori)**: Il flusso risultante (`producerResult.flow`) viene passato a `evolveStorage` per determinare la carica o scarica delle batterie.
-  * **Purezza e Determismo**: L'ordine è preservato funzionalmente tramite l'algoritmo di piegatura (`foldLeft`) all'interno di `evolvePhase`, garantendo che lo stato dinamico venga aggiornato in modo referenzialmente trasparente.
-
----
-
-## 6. Reattività dei Sistemi di Accumulo (StorageEnergyExchanger)
-
-A differenza dei produttori o dei carichi attivi, i sistemi di accumulo (es. batterie) non possiedono un'evoluzione temporale autonoma, ma operano in modo **reattivo** rispetto a flussi preesistenti nella rete. Per formalizzare questa distinzione semantica ed evitare accoppiamenti con l'avanzamento temporale standard (`GridEvolution`), è stata introdotta la type class [StorageEnergyExchanger](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/storage/StorageEnergyExchanger.scala):
+### 6.2 Reattività dei Sistemi di Accumulo (StorageEnergyExchanger)
+I sistemi di accumulo non possiedono un'evoluzione temporale autonoma, ma operano in modo **reattivo** rispetto a flussi preesistenti nella rete. Per formalizzare questa distinzione semantica è stata introdotta la type class [StorageEnergyExchanger](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/storage/StorageEnergyExchanger.scala):
 
 ```scala
 trait StorageEnergyExchanger[S <: StorageState, E <: Storage]:
@@ -262,33 +267,61 @@ trait StorageEnergyExchanger[S <: StorageState, E <: Storage]:
     env: Environment
   )(using delta: FiniteDuration): (S, Flow[Energy])
 ```
-Questa astrazione consente di definire come un dispositivo di accumulo reagisce ad uno squilibrio energetico (surplus o deficit) calcolando lo stato finale e restituendo l'energia residua non scambiata.
+L'adattatore concreto per le batterie ([BatteryEnergyExchange.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/core/behaviour/storage/battery/BatteryEnergyExchange.scala)) implementa questa type class eseguendo il dispatching in base al tipo di flusso energetico rilevato (`Surplus` -> carica, `Deficit` -> scarica).
 
-### 6.1 Instradamento Polimorfo dello Scambio (BatteryEnergyExchange)
-L'adattatore concreto per le batterie implementa la type class eseguendo il dispatching in base al tipo di flusso energetico rilevato:
+---
+
+## 7. Architettura GUI ed Infrastruttura di Presentazione (MVVM & Ports)
+
+Per l'interfaccia utente grafica è stata progettata un'architettura robusta e disaccoppiata basata sul pattern **Model-View-ViewModel (MVVM)**, integrando un meccanismo di binding reattivo e porte di astrazione per l'estrazione dati e il controllo del ciclo di vita.
+
+### 7.1 Pattern MVVM e Data Binding (ScalaFX)
+La GUI separa nettamente la dichiarazione degli elementi visivi (la View) dalla logica e dallo stato della presentazione (il ViewModel). Le componenti interagiscono per mezzo del data binding reattivo nativo di ScalaFX.
+
+Ad esempio, in [ScenarioSelectionView.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/view/ScenarioSelectionView.scala) e [ScenarioSelectionViewModel.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/viewmodel/ScenarioSelectionViewModel.scala), i campi di configurazione temporale e di stato sono legati in modo bidirezionale (`<==>`) o monodirezionale (`<==`):
 
 ```scala
-object BatteryEnergyExchange:
-  given StorageEnergyExchanger[BatteryState, Battery] with
-    def exchange(
-      state: BatteryState,
-      b: Battery,
-      flow: Flow[Energy],
-      env: Environment
-    )(using delta: FiniteDuration): (BatteryState, Flow[Energy]) =
-      val strategy = BatteryStrategy.forModel(b.model)
+// Nella View (ScenarioSelectionView)
+private val tickAmountField = new TextField:
+  text <==> viewModel.tickAmountText
 
-      flow match
-        case Surplus(e) => strategy.charge(state)(e, b)
-        case Deficit(e) => strategy.discharge(state)(e, b)
-        case _          => (state, Balanced)
+private val startButton = new Button("Start"):
+  disable <== viewModel.isStartDisabled
+  onAction = _ => viewModel.startScenario().foreach(onScenarioLoaded)
 ```
-* **Spiegazione del Codice**:
-  - `exchange` seleziona la strategia fisica specifica in base al modello costruttivo della batteria (`BatteryStrategy.forModel`).
-  - Utilizzando il pattern matching sull'ADT del flusso energetico residuo `flow`:
-    - In caso di **`Surplus`** (energia in eccesso post-consumo domestico), invoca l'operazione di carica (`charge`).
-    - In caso di **`Deficit`** (energia mancante per soddisfare i carichi locali), invoca l'operazione di scarica (`discharge`).
-    - In assenza di flussi attivi, lo stato della batteria non viene modificato.
+
+```scala
+// Nel ViewModel (ScenarioSelectionViewModel)
+val tickAmountText = StringProperty("15")
+val isStartDisabled = BooleanProperty(scenarios.isEmpty)
+```
+Questo approccio garantisce che la View rimanga una componente puramente dichiarativa e facilmente sostituibile o testabile, mentre la logica di validazione e di trasformazione dell'input dell'utente rimanga confinata all'interno del ViewModel.
+
+### 7.2 Estrazione e Formattazione dei Dati (`DetailExtractor` & `DetailDispatcher`)
+La GUI deve rappresentare le entità del dominio fisico mostrando informazioni dettagliate e aggiornate ad ogni tick. Per evitare l'accoppiamento tra la visualizzazione e il modello interno del simulatore, è stata creata la type class polimorfa `DetailExtractor` in [DetailExtractor.scala](file:///home/michelenardini/GridSim/app/src/main/scala/org/gridsim/gui/ports/DetailExtractor.scala):
+
+```scala
+trait DetailExtractor[E <: GridEntity, S <: GridEntityState]:
+  def extract(entity: E, state: S, env: Environment): ExtractedEntityDetails
+```
+Attraverso istanze concrete `given` (es. `DetailExtractor[Battery, BatteryState]`), le specifiche del modello e dello stato vengono estratte in un formato standard `ExtractedEntityDetails` (composto da coppie chiave-valore di stringhe e sub-componenti installate).
+
+Il `DetailDispatcher` centralizza la risoluzione di nodi, cavi e stati attivi tramite pattern matching:
+```scala
+def resolveEntity(
+    entity: GridEntity,
+    state: GridEntityState,
+    env: Environment
+): ExtractedEntityDetails =
+  (entity, state) match
+    case (b: Battery, s: BatteryState) =>
+      summon[DetailExtractor[Battery, BatteryState]].extract(b, s, env)
+    case (p: SolarPanel, s: SolarPanelState) =>
+      summon[DetailExtractor[SolarPanel, SolarPanelState]].extract(p, s, env)
+    case (h: House, s: HouseState) =>
+      summon[DetailExtractor[House, HouseState]].extract(h, s, env)
+    case _ => ExtractedEntityDetails(Seq(DetailField("Info", "No field available")))
+```
 
 ---
 
