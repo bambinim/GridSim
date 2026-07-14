@@ -9,12 +9,13 @@ import org.gridsim.core.model.network.Cable
 import org.gridsim.core.model.{GridEntity, GridEntityState}
 import org.gridsim.dsl.grid.TopologyBuilderContext
 import org.gridsim.dsl.grid.entities.{HouseBuilder, SolarArrayBuilder}
-
+import org.gridsim.core.validation.SimulationValidator.given
 import cats.syntax.all.*
 import org.gridsim.core.model.network.{ExternalGrid, GridGraph}
 import org.gridsim.core.model.Environment
 import scala.concurrent.duration.*
 import org.gridsim.dsl.DSLBuilderError
+import org.gridsim.core.simulation.SimulationSetup
 
 case class SimulationBuilder(
     entitiesBuilders: List[GridEntityBuilder[GridEntity, GridEntityState]],
@@ -24,7 +25,8 @@ case class SimulationBuilder(
     tickDelta: Option[FiniteDuration]
 ) extends Builder[(SimulationModel, SimulationState)]:
 
-  override def build(): ValidatedNec[DSLError, (SimulationModel, SimulationState)] =
+  override def build()
+      : ValidatedNec[DSLError, (SimulationModel, SimulationState)] =
     val entities = entitiesBuilders.traverse(_.build())
     val topBlk =
       topologyBlock.toValidNec(DSLBuilderError.MissingBlock("topology"))
@@ -40,9 +42,14 @@ case class SimulationBuilder(
       )
       val state = SimulationState(
         Environment(0.seconds),
-        ent.map(e => e._1.id -> e._2).toMap,
+        ent.map(e => e._1.id -> e._2).toMap
       )
-      (model, state).validNec
+      SimulationSetup
+        .make(state, model)
+        .bimap(
+          _.map(e => e: DSLError),
+          { case (s, m) => (m, s) }
+        )
     }
 
 private[dsl] class SimulationBuilderContext:
