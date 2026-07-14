@@ -129,19 +129,6 @@ Il workflow viene eseguito automaticamente in seguito ad aggiornamenti del repos
 Per la gestione del codice sorgente è stato adottato Git con repository ospitato su GitHub. Il flusso di lavoro segue un’impostazione ispirata a GitFlow, distinguendo un ramo stabile, destinato al codice pronto al rilascio, e un ramo di sviluppo, utilizzato per integrare le funzionalità completate. Le nuove funzionalità vengono sviluppate su branch dedicati e successivamente integrate tramite pull request.
 
 Per rendere più leggibile e tracciabile la cronologia del progetto, il team ha inoltre adottato la convenzione Conventional Commits, che consente di classificare le modifiche in base alla loro natura, ad esempio nuove funzionalità, correzioni, refactoring, modifiche alla documentazione o aggiornamenti alla configurazione di build e CI.
-## Informazioni da raccogliere prima della versione finale
-
-Prima di considerare concluso il capitolo, il gruppo dovrebbe concordare e inserire:
-
-- eventuali ulteriori responsabilità prevalenti degli altri membri;
-- eventuali limiti espliciti al numero di task contemporaneamente in corso;
-- durata media e partecipanti abituali dei meeting su Microsoft Teams;
-- canali per le interazioni non pianificate;
-- politica effettiva di code review e approvazione delle PR;
-- approccio adottato nella scrittura dei test;
-- eventuali test manuali della GUI;
-- eventuali strumenti non presenti nel repository;
-- criticità incontrate nel processo e miglioramenti introdotti durante il progetto.
 
 ---
 
