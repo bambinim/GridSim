@@ -16,6 +16,8 @@ Le sezioni seguenti descrivono il processo ricostruibile dallo stato attuale del
 
 Nella fase iniziale GridSim è stato gestito secondo il tipico ciclo iterativo di Scrum. Il lavoro previsto per il primo sprint è stato selezionato e pianificato in anticipo, con l'obiettivo di produrre un incremento verificabile entro una finestra temporale condivisa. Questa impostazione è stata utile soprattutto all'avvio del progetto: ha favorito una prima definizione delle priorità, la scomposizione del problema e la creazione di un obiettivo comune per il gruppo.
 
+Il backlog, i risultati e la valutazione di questa prima iterazione sono descritti nel documento dedicato allo [Sprint 1](iterations/sprint-01.md).
+
 Al termine del primo sprint è tuttavia emersa una difficoltà organizzativa. Scrum presuppone sprint di durata stabile, un impegno relativamente prevedibile e momenti di sincronizzazione ricorrenti. Nel caso del gruppo, gli impegni lavorativi e personali rendevano la disponibilità disomogenea sia tra i membri sia tra una settimana e l'altra. Di conseguenza, una quantità di lavoro realistica all'inizio di uno sprint poteva non esserlo più durante il suo svolgimento.
 
 Mantenere formalmente gli sprint in queste condizioni avrebbe prodotto una pianificazione solo apparente: task completati in anticipo da alcuni membri, attività trascinate allo sprint successivo e meeting fissati in momenti poco compatibili con le disponibilità effettive. Il problema non riguardava quindi gli obiettivi di qualità o collaborazione promossi da Scrum, ma la sua cadenza temporale rispetto al contesto concreto del team.
@@ -51,6 +53,14 @@ Sono invece cambiati:
 - la sincronizzazione, maggiormente asincrona e affiancata da incontri organizzati quando richiesti da decisioni, dipendenze o blocchi.
 
 In questo senso Kanban ha reso esplicito il processo che meglio rispondeva alle condizioni del gruppo: pianificazione continua, responsabilità sul task preso in carico, integrazione frequente e adattamento delle priorità.
+
+Per documentare l'avanzamento senza trasformare retroattivamente il periodo Kanban in una successione di sprint, il lavoro successivo è stato organizzato in tre finestre descrittive basate sulle date di aggiornamento dei work package:
+
+- [nucleo della simulazione](iterations/kanban-01-simulation-core.md), dedicato a DSL, model, state ed esecuzione;
+- [osservabilità e accesso alla simulazione](iterations/kanban-02-user-interface.md), dedicato alla distribuzione degli aggiornamenti, all'avvio, al grafo e alla configurazione temporale;
+- [interfaccia, controllo e statistiche](iterations/kanban-03-interface-statistics.md), dedicato al completamento dell'esperienza utente e alla presentazione dei risultati.
+
+Questi raggruppamenti hanno esclusivamente una funzione documentale: descrivono l'evoluzione funzionale del prodotto mantenendo l'ordine generale degli aggiornamenti osservati in OpenProject, senza introdurre deadline o backlog chiusi propri di Scrum.
 
 ## Organizzazione e divisione dei task
 
