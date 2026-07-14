@@ -4,19 +4,20 @@ import org.gridsim.core.model.network.GridGraph
 import scalafx.beans.property.ObjectProperty
 import org.gridsim.gui.model.Selection
 import org.gridsim.core.common.Flow
-import org.gridsim.core.common.{Power, Energy}
+import org.gridsim.core.common.{Energy, Power}
 import com.brunomnsilva.smartgraph.graph.Graph
 import com.brunomnsilva.smartgraph.graph.GraphEdgeList
-import org.gridsim.core.model.network.{CableConnections, Cable}
-import scala.concurrent.duration.FiniteDuration
+import org.gridsim.core.model.network.{Cable, CableConnections}
+
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 class GridGraphViewModel(
-    tickDelta: FiniteDuration,
     graph: GridGraph,
     selection: ObjectProperty[Selection]
 ):
   private var cableLoads: Map[Cable, Energy] = Map.empty
   private var entityFlows: Map[String, Flow[Energy]] = Map.empty
+  private var tickDelta: FiniteDuration = 0.seconds
   private[gui] val uiGraph: Graph[String, String] = graph
 
   def nodeClicked(entityId: String): Unit =
@@ -37,10 +38,12 @@ class GridGraphViewModel(
 
   def update(
       entityFlows: Map[String, Flow[Energy]],
-      cableLoads: Map[Cable, Energy]
+      cableLoads: Map[Cable, Energy],
+      tickDelta: FiniteDuration
   ): Unit =
     this.entityFlows = entityFlows
     this.cableLoads = cableLoads
+    this.tickDelta = tickDelta
     onUpdate()
 
   def overloadedConnections(): Iterable[CableConnections] =

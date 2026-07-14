@@ -12,8 +12,9 @@ import com.brunomnsilva.smartgraph.graphview.SmartGraphVertexNode
 import javafx.beans.binding.Bindings
 import javafx.scene.text.Text
 import scalafx.scene.Parent
-
+import org.gridsim.core.common.Flow
 import java.net.URL
+import scalafx.scene.input.MouseEvent
 
 /** Mock UI view for displaying the Grid graph. Uses JavaFXSmartGraph to
   * visualize GridEntity nodes and Cable edges.
@@ -96,7 +97,6 @@ class GridGraphView(viewModel: GridGraphViewModel)
 
           viewModel.onUpdate = () =>
             Platform.runLater {
-              import org.gridsim.core.common.Flow
               viewModel.uiGraph.vertices().forEach { v =>
                 val stylableNode = graphView.getStylableVertex(v)
                 viewModel.entityFlow(v.element()) match
@@ -159,7 +159,6 @@ class GridGraphView(viewModel: GridGraphViewModel)
     })
 
   // Prevent user from dragging nodes by consuming mouse dragged events
-  import scalafx.scene.input.MouseEvent
   graphView.addEventFilter(
     MouseEvent.MouseDragged,
     (e: MouseEvent) => e.consume()

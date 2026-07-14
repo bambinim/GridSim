@@ -85,10 +85,9 @@ class SimulationControlViewModel(
   val detailsLayout = ObjectProperty(SimulationViewLayout.Tabs)
 
   def toggleLayout(): Unit =
-    detailsLayout.value =
-      if detailsLayout.value == SimulationViewLayout.Tabs
-      then SimulationViewLayout.Split
-      else SimulationViewLayout.Tabs
+    detailsLayout.value = detailsLayout.value match
+      case SimulationViewLayout.Tabs => SimulationViewLayout.Split
+      case _ => SimulationViewLayout.Tabs
 
   /**
    * Updates the states of the bindable properties based on the simulation controller's state.
