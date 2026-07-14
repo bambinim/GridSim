@@ -16,9 +16,8 @@ object StatisticsRegistry:
       .contramap(snapshot => EntityFlowsData(snapshot.entityFlows))
 
   private val netFlowHistoryStatisticFold: Fold[SimulationSnapshot, NetFlowHistoryStatistic] =
-    Fold.unfold[SimulationSnapshot, NetFlowHistoryStatistic, NetFlowHistoryStatistic](NetFlowHistoryStatistic.empty(capacity = 200))(
-      (history, snapshot) => history.record(NetFlowSampler.sample(snapshot))
-    )(identity)
+    Fold.unfold(NetFlowHistoryStatistic.empty(capacity = 200))
+      ((history, snapshot) => history.record(NetFlowSampler.sample(snapshot)))
 
   private val batteryChargeFold: Fold[SimulationSnapshot, BatteriesChargeStatistic] =
     Fold.monoidal(BatteriesChargeSampler.sample)

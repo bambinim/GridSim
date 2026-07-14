@@ -15,16 +15,15 @@ trait Fold[-In, +Out]:
       def step(s: State, in: In): self.State = self.step(s, in)
       def extract(s: State): NewOut = mapper(self.extract(s))
 
-  final def contramap[newIn](mapper: newIn => In): Fold[newIn, Out] =
+  final def contramap[OldIn](mapper: OldIn => In): Fold[OldIn, Out] =
     val self = this
-    new Fold[newIn, Out]:
+    new Fold[OldIn, Out]:
       type State = self.State
       def initial: self.State = self.initial
-      def step(s: State, in2: newIn): self.State = self.step(s, mapper(in2))
+      def step(s: State, in2: OldIn): self.State = self.step(s, mapper(in2))
       def extract(s: State): Out = self.extract(s)
 
 object Fold:
-  /** Any Monoid-based accumulator, it is a fold for free. */
   def monoidal[In, A](sample: In => A)(using monoid: cats.kernel.Monoid[A]): Fold[In, A] =
     new Fold[In, A]:
       type State = A
@@ -32,10 +31,9 @@ object Fold:
       def step(s: A, in: In): A = monoid.combine(s, sample(in))
       def extract(s: A): A = s
 
-  /** General case, covers for example NetFlowHistory, running stats, anything with non monoidal state. */
-  def unfold[In, S, Out](init: S)(stepFunction: (S, In) => S)(extractFunction: S => Out): Fold[In, Out] =
-    new Fold[In, Out]:
+  def unfold[In, S](init: S)(stepFunction: (S, In) => S): Fold[In, S] =
+    new Fold[In, S]:
       type State = S
       def initial: S = init
       def step(s: S, in: In): S = stepFunction(s, in)
-      def extract(s: S): Out = extractFunction(s)
+      def extract(s: S): S = s

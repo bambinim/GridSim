@@ -16,10 +16,10 @@ object SimulationTimeStatistic:
   val empty: SimulationTimeStatistic = SimulationTimeStatistic(None, None, 0L, 0.seconds)
 
   val fold: Fold[SimulationSnapshot, SimulationTimeStatistic] =
-    Fold.unfold[SimulationSnapshot, SimulationTimeStatistic, SimulationTimeStatistic](empty)(
+    Fold.unfold(empty)(
       (acc, snapshot) => SimulationTimeStatistic(
         Some(snapshot.environment.startDateTime),
         Some(snapshot.environment.currentDateTime),
         acc.tick + 1,
         acc.elapsed + snapshot.delta)
-    )(identity)
+    )

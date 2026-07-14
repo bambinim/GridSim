@@ -54,12 +54,12 @@ object Fold:
       def step(s: A, in: In): A = monoid.combine(s, sample(in))
       def extract(s: A): A = s
 
-  def unfold[In, S, Out](init: S)(stepFunction: (S, In) => S)(extractFunction: S => Out): Fold[In, Out] =
-    new Fold[In, Out]:
+  def unfold[In, S](init: S)(stepFunction: (S, In) => S): Fold[In, S] =
+    new Fold[In, S]:
       type State = S
       def initial: S = init
       def step(s: S, in: In): S = stepFunction(s, in)
-      def extract(s: S): Out = extractFunction(s)
+      def extract(s: S): S = s
 ```
 
 `Fold.monoidal`: sfrutta la type class `Monoid[A]` di Cats per ottenere "gratuitamente" un intero `Fold` a
