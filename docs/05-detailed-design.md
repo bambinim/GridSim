@@ -5,7 +5,7 @@ interna del codice per i vari moduli descritti nel Design Architetturale.
 
 ## Pattern di Progettazione nel Core (Domain e Simulation)
 
-Il design dell'Engine segue rigidamente i principi della programmazione funzionale, separando i puri dati dalla logica
+Il design del core segue rigidamente i principi della programmazione funzionale, separando i puri dati dalla logica
 di dominio.
 
 ### Functional Core, Imperative Shell
@@ -28,9 +28,8 @@ aggiornamenti di stato in uscita, richiamando ciclicamente la funzione pura del 
 
 Per supportare questa separazione, il sistema disaccoppia i macro-componenti basando la comunicazione interna su tre
 oggetti dati immutabili e fondamentali:
-- **`SimulationModel`**: Descrive la configurazione statica e invariante della rete costruita dalla DSL all'avvio (la
-  struttura del grafo della micro-grid, i componenti fisici presenti, le loro capacità e la durata temporale fissa di un
-  tick).
+- **`SimulationModel`**: Descrive la configurazione statica e invariante della rete costruita dal DSL all'avvio (la
+  struttura del grafo della micro-grid, i componenti fisici presenti e le loro capacità).
 - **`SimulationState`**: Descrive lo stato dinamico e mutevole della rete al momento corrente (l'orario, l'ambiente,
   l'energia istantanea delle batterie, i flussi netti, i carichi di energia che passano sui cavi). Rappresenta lo stato
   che evolve ad ogni transizione.
@@ -46,7 +45,7 @@ oggetti dati immutabili e fondamentali:
 - **Astrazione Unificata:** Tutti gli elementi implementano astrazioni comuni (`GridEntity`, `GridEntityState`),
   permettendo al motore di trattarli uniformemente in collezioni.
 
-### Logica di Dominio (Pattern e Funzionalità Scala 3)
+### Logica di Dominio
 
 Le operazioni matematiche e le logiche evolutive sono isolate e fortemente polimorfiche, sfruttando diverse feature
 tipiche di Scala:
@@ -54,10 +53,9 @@ tipiche di Scala:
   `ConsumptionStrategy`, `StorageStrategy`) e per scambiare facilmente gli algoritmi del `PowerFlowSolver` (es.
   `KirchhoffPowerFlowSolver` o una strategia radiale semplificata).
 - **Type Classes e Context Parameters:** Costrutti nativi (`given` e `using`) sono usati estensivamente per la
-  dependency injection a compile-time (es. `EvolutionContext`, `ConsumptionResolver`), evitando di inquinare i
-  costruttori.
+  dependency injection a compile-time (es. `EvolutionContext`, `ConsumptionResolver`).
 - **Extension Methods:** Impiegati per arricchire i record di stato puri con le capacità evolutive tramite il pattern
-  type class `GridEvolution` (es. `def evolve(...)`), estraendo i comportamenti in oggetti separati.
+  type class, estraendo i comportamenti in oggetti separati (es. `GridEvolution`).
 
 ### Orchestrazione (State Monad)
 
@@ -70,18 +68,18 @@ funzionale.
 classDiagram
     class SimulationEngine {
         <<trait>>
-        +step(model: SimulationModel, state: SimulationState): SimulationState
+        +step(state: SimulationState, delta: FiniteDuration): SimulationState
     }
     class DefaultSimulationEngine {
-        +step(model: SimulationModel, state: SimulationState): SimulationState
+        +step(state: SimulationState, delta: FiniteDuration): SimulationState
     }
     class EntityEvolutionDispatcher {
         <<trait>>
-        +dispatch(entity: GridEntity, state: GridEntityState): GridEntityState
+        +evolve(request: EvolutionRequest): (GridEntityState, Flow~Energy~)
     }
     class PowerFlowSolver {
         <<trait>>
-        +solve(network: GridNetwork, states: Seq[GridEntityState]): Map[Cable, Power]
+        +solve(entityFlowMap: Map~String, Flow~Energy~~): Map~Cable, Energy~
     }
     
     SimulationEngine <|-- DefaultSimulationEngine
@@ -93,7 +91,7 @@ classDiagram
 
 La simulazione evolve attraverso transizioni pure orchestrate da un loop esterno.
 
-### La Singola Transizione di Stato (Il Tick)
+### La Singola Transizione di Stato (il Tick)
 
 La transizione calcolata dall'engine segue uno stretto ordine logico:
 1. **Aggiornamento dell'Ambiente:** Modifica dell'ora solare, temperatura e radianza.
@@ -113,6 +111,7 @@ sequenceDiagram
     participant R as Controller runtime
     participant E as Motore di simulazione
     participant O as Observability
+    participant S as Statistiche
 
     U->>V: seleziona preset
     V->>C: richiesta caricamento
@@ -126,6 +125,10 @@ sequenceDiagram
         E-->>R: nuovo stato immutabile
         R->>O: pubblica aggiornamento
         O-->>V: dati simulazione
+        O-->>S: dati simulazione
+        S->>S: calcola e salva metriche
+        V->>S: richiesta metriche
+        S-->>V: storico metriche aggregate
         V->>V: aggiorna vista
     end
 ```
@@ -134,9 +137,9 @@ sequenceDiagram
 
 Al termine di ogni tick, l'engine non effettua alcun push di dati. I nuovi stati `SimulationState` prodotti vengono
 presi in carico dal lato runtime e incanalati in flussi asincroni continui. Un **Dispatcher** smista sezioni dello stato
-su canali reattivi, agendo da fulcro per un pattern **Event-driven Publish-Subscribe** (o Observer).
+su canali reattivi, agendo da fulcro per un pattern **Event-driven** (o Observer).
 Il produttore dello stato (Core) non conosce i consumatori, consentendo un totale disaccoppiamento e l'aggiunta futura
-di qualsiasi tipo di componente interessato alla simulazione (es. server di telemetria esterni).
+di qualsiasi tipo di componente che necessiti dei dati della simulazione.
 
 ## Architettura dell'Interfaccia Utente (MVVM)
 
@@ -154,12 +157,12 @@ con un flusso dati unidirezionale.
 
 ## Configurazione e Validazione tramite DSL
 
-La costruzione degli scenari (entità, topologia e regole) sfrutta la **Scala 3 DSL**:
+La costruzione degli scenari (entità, topologia e regole) sfrutta un DSL interno basato su costrutti Scala 3:
 - **Context Functions e Builder Pattern:** Iniezione implicita del contesto tramite `?=>`, favorendo una sintassi ad
   albero (es. `simulation { house: ... }`).
 - **Infix Extension Methods:** Permettono una notazione naturale e immutabile (es. `capacity 10.kwh`), concatenando
   parametri opzionali fluidamente.
-- **Validazione Sicura Accumulativa:** Il costrutto logico si basa sul funtore applicativo `ValidatedNec` di **Cats**,
+- **Validazione Sicura Cumulativa:** la validazione si basa su `ValidatedNec` di **Cats**,
   in grado di ispezionare tutti i parametri di un'entità e accumulare una lista completa degli eventuali errori
   semantici/sintattici omettendo l'utilizzo di eccezioni.
 
