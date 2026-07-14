@@ -6,7 +6,7 @@ L'esposizione è supportata da frammenti di codice esplicativi.
 
 ## Statistiche
 
-Ho sviluppato il sottosistema di **raccolta ed elaborazione delle statistiche** (`org.gridsim.statistics`):
+Il modulo di **raccolta ed elaborazione delle statistiche** (`org.gridsim.statistics`):
 
 - **Infrastruttura di Accumulo Funzionale (Fold)**:
   - Astrazione generica di accumulatore a passo singolo: [Fold](/app/src/main/scala/org/gridsim/statistics/Fold.scala).
@@ -43,7 +43,8 @@ trait Fold[-In, +Out]:
 
 #### Due strategie di costruzione
 
-Il companion object espone due *smart constructor* per coprire i due casi ricorrenti nel dominio delle statistiche:
+Il companion object espone due strategie di costruzione principali per coprire i due casi ricorrenti nel dominio delle
+statistiche:
 
 ```scala
 object Fold:
@@ -145,7 +146,7 @@ Un caso rilevante è il campionamento della carica delle batterie, che deve attr
 abitazioni (le cui componenti annidate possono a loro volta includere altre abitazioni):
 
 ```scala
-private def totalBatteryCharge(state: GridEntityState): Energy = state match
+def totalBatteryCharge(state: GridEntityState): Energy = state match
   case b: BatteryState => b.currentCharge
   case h: HouseState    => h.componentStates.foldLeft[Energy](0.kwh)(_ + totalBatteryCharge(_))
   case _                => 0.kwh
@@ -169,9 +170,9 @@ e per lo stesso motivo utilizza `Fold.unfold` anziché `Fold.monoidal`.
 
 ---
 
-## Ambiente e Modello Fisico Solare
+## Ambiente, Modello Fisico Solare e Pannello Fotovoltaico
 
-Ho progettato e sviluppato il modello ambientale e fisico che governa la produzione fotovoltaica:
+Il modello ambientale e fisico che governa la produzione fotovoltaica:
 
 - **Grandezze Fisiche e Geografia**:
   - Posizione geografica di un componente: [GeographicPoint](/app/src/main/scala/org/gridsim/core/common/GeographicPoint.scala).
@@ -184,12 +185,11 @@ Ho progettato e sviluppato il modello ambientale e fisico che governa la produzi
   - Entità statica e stato dinamico del pannello: [SolarPanel](/app/src/main/scala/org/gridsim/core/model/SolarPanel.scala).
   - Strategia di calcolo della produzione elettrica: [SolarPanelStrategy](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelStrategy.scala).
   - Evoluzione temporale del pannello: [SolarPanelEvolution](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelEvolution.scala).
-  - Adattatore verso il dispatcher generico di evoluzione: [SolarPanelEvolutionHandler](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelEvolutionHandler.scala).
 
-### Grandezze Fisiche a Prova di Errore
+### Grandezze Fisiche a prova di errore
 
 Coerentemente con l'approccio adottato nel resto del dominio (opaque type per `Power`/`Energy`), `Irradiance` è
-modellata come opaque type con smart constructor validante:
+modellata come opaque type con factory constructor validante:
 
 ```scala
 opaque type Irradiance = Double
@@ -214,7 +214,7 @@ given TempValidator[Celsius] with
   def validate(v: Double): Temperature[Celsius] = celsius(v)
 ```
 
-Il parametro fantasma `U <: TemperatureUnit` rende `Temperature[Celsius]` e `Temperature[Kelvin]` tipi distinti
+Il parametro covariante `U <: TemperatureUnit` rende `Temperature[Celsius]` e `Temperature[Kelvin]` tipi distinti
 per il compilatore, pur condividendo la medesima rappresentazione a runtime (`Double`), evitando qualunque
 overhead di boxing.
 
@@ -268,7 +268,7 @@ tick, requisito necessario per una simulazione realistica.
 `currentDateTime` è derivato (non memorizzato) da `startDateTime` e `time`, evitando la possibilità che le due
 grandezze divergano.
 
-### Produzione Fotovoltaica: Strategy + GridEvolution + Handler
+### Produzione Fotovoltaica: Strategy + GridEvolution
 
 La produzione elettrica del pannello segue la stessa composizione a tre livelli già utilizzata per le batterie
 (Strategy Pattern, type class `GridEvolution`, adattatore verso il dispatcher generico), applicata nel package
@@ -318,12 +318,6 @@ final case class SolarPanelEvolutionHandler() extends EntityEvolutionHandler:
   override def evolve(request: EvolutionRequest): (SolarPanelState, Flow[Energy]) = /* ... */
 ```
 
-Il pannello non richiede dipendenze esterne (a differenza della casa, che necessita di un `ConsumptionResolver`), per
-cui il suo `EvolutionContext[Unit]` porta solo il `delta` del tick. `supports` verifica la coppia stato/entità senza
-eseguire alcuna evoluzione, rispettando il contratto imposto da `EntityEvolutionHandler`; l'handler viene poi registrato
-in `EntityEvolutionDispatcher.default` insieme a quello delle abitazioni, senza che il dispatcher generico debba
-conoscere l'esistenza dei pannelli fotovoltaici.
-
 ---
 
 ## Interfaccia Grafica delle Statistiche e Registrazione degli Observer
@@ -349,8 +343,8 @@ reattivo della simulazione:
 
 Ogni statistica prodotta dal motore delle statistiche è resa a schermo tramite una coppia ViewModel/View indipendente,
 seguendo il medesimo pattern MVVM adottato nel resto della GUI.
-Il ViewModel espone esclusivamente proprietà reattive testuali già formattate, mentre la View si limita a legarle
-dichiarativamente attraverso il binding si scalafx:
+
+Il ViewModel espone esclusivamente proprietà reattive testuali già formattate:
 
 ```scala
 class BatteriesChargeStatisticViewModel:
@@ -363,6 +357,8 @@ class BatteriesChargeStatisticViewModel:
     totalText.value = s"Total: ${stats.totalCharge.show}"
     maxText.value = s"Max: ${stats.maxCharge.show}"
 ```
+
+Invece la View si limita a legarle dichiarativamente attraverso il binding di scalafx:
 
 ```scala
 class BatteriesChargeStatisticView(viewModel: BatteriesChargeStatisticViewModel) extends VBox with ViewFX:
@@ -409,6 +405,29 @@ stesso stream di eventi in modo del tutto disaccoppiato l'uno dall'altro, coeren
 Event-driven Publish-Subscribe adottato dal `Dispatcher` (descritto nel design di dettaglio) — il motore di
 simulazione non conosce né la GUI né il modulo statistiche, e i due osservatori non conoscono l'esistenza
 l'uno dell'altro.
+
+---
+
+## Formattazione centralizzata dei dati
+
+Per evitare duplicazioni nella presentazione delle informazioni, la conversione dei valori del dominio in
+rappresentazioni testuali è stata centralizzata nel package `org.gridsim.formatting`.
+
+Le regole di formattazione di:
+- energia;
+- potenza;
+- percentuali;
+- date;
+- orari;
+- numeri decimali;
+
+sono definite una sola volta e riutilizzate da tutti i ViewModel.
+
+In questo modo la GUI non contiene logica di conversione locale e ogni componente visualizza lo stesso tipo di dato in
+maniera coerente, rispettando il principio Don't Repeat Yourself (DRY).
+
+La centralizzazione della formattazione rende inoltre immediato modificare il formato di visualizzazione senza
+intervenire sui singoli pannelli della GUI.
 
 ---
 
