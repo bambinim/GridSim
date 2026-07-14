@@ -292,4 +292,4 @@ object BatteryEnergyExchange:
 
 ---
 
-[Implementazione](../06-implementation.md)
+[Implementazione](06-implementation.md)

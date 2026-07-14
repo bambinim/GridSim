@@ -1,6 +1,6 @@
-# Design Architetturale
+# 4 Design Architetturale
 
-## 1. Obiettivi e criteri di progettazione
+## Obiettivi e criteri di progettazione
 
 GridSim è un simulatore a tempo discreto per micro-grid energetiche.
 Il sistema modella una rete come un grafo di entità energetiche e collegamenti fisici, configura scenari tramite una DSL
@@ -15,9 +15,7 @@ L’architettura è stata definita per soddisfare quattro qualità principali:
 - **Reattività della GUI**: evitando che la pianificazione dei tick o la distribuzione degli aggiornamenti blocchino il
   thread di presentazione.
 
----
-
-## 2. Divisione in Macro-Componenti e Stile Architetturale
+## Divisione in Macro-Componenti e Stile Architetturale
 
 La struttura del sistema si articola in quattro macro-componenti principali indipendenti per garantire coesione e basso
 accoppiamento:
@@ -40,9 +38,7 @@ documento di design di dettaglio):
 - **MVVM (Model-View-ViewModel)**: per strutturare l'interfaccia utente separando grafiche, stato reattivo e modelli di
   dominio.
 
----
-
-## 3. Vista architetturale di contesto
+## Vista architetturale di contesto
 
 Il diagramma seguente mostra i principali sottosistemi e il flusso generale dei comandi (da Utente a Core) e dei dati
 (da Core a GUI):
@@ -102,9 +98,7 @@ flowchart LR
     GUI -->|richiesta metriche| StatisticsRepository
 ```
 
----
-
-### 3.1. Componenti principali e scambio dei dati
+### Componenti principali e scambio dei dati
 
 La seguente tabella riassume in maniera generica le responsabilità dei blocchi illustrati nel diagramma di contesto:
 

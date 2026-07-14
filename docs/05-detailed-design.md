@@ -1,14 +1,14 @@
-# Design di Dettaglio
+# 5 Design di Dettaglio
 
 Questa sezione approfondisce le scelte rilevanti di design, i pattern di progettazione adottati e l'organizzazione
 interna del codice per i vari moduli descritti nel Design Architetturale.
 
-## 1. Pattern di Progettazione nel Core (Domain e Simulation)
+## Pattern di Progettazione nel Core (Domain e Simulation)
 
 Il design dell'Engine segue rigidamente i principi della programmazione funzionale, separando i puri dati dalla logica
 di dominio.
 
-### 1.1 Functional Core, Imperative Shell
+### Functional Core, Imperative Shell
 
 L'architettura "Functional core, imperative shell" separa nettamente il calcolo puro della simulazione (il *Functional
 Core*) dalla gestione degli effetti collaterali esterni (la *Shell* imperativa).
@@ -24,7 +24,7 @@ La **Shell Imperativa** (il livello di runtime) funge invece da "contenitore" pe
 effectful: pianifica l'esecuzione dei thread, ascolta i comandi della GUI (avvio, pausa, arresto) e pubblica gli
 aggiornamenti di stato in uscita, richiamando ciclicamente la funzione pura del motore.
 
-### 1.2 Strutture Dati Principali (Modelli di Scambio)
+### Strutture Dati Principali (Modelli di Scambio)
 
 Per supportare questa separazione, il sistema disaccoppia i macro-componenti basando la comunicazione interna su tre
 oggetti dati immutabili e fondamentali:
@@ -38,7 +38,7 @@ oggetti dati immutabili e fondamentali:
   raggruppano in modo coerente e read-only le informazioni di stato e di flusso per poterle trasmettere all'esterno
   verso la GUI e l'engine statistico (tramite l'observability).
 
-### 1.3 Modelli Dati Interni (GridEntity)
+### Modelli Dati Interni (GridEntity)
 
 - **Modelli Statici e Dinamici:** Oltre alla macro-separazione tra `SimulationModel` e `SimulationState`, anche
   internamente viene mantenuta una rigorosa distinzione tra la configurazione statica di un'entità (es. `House`,
@@ -46,7 +46,7 @@ oggetti dati immutabili e fondamentali:
 - **Astrazione Unificata:** Tutti gli elementi implementano astrazioni comuni (`GridEntity`, `GridEntityState`),
   permettendo al motore di trattarli uniformemente in collezioni.
 
-### 1.4 Logica di Dominio (Pattern e Funzionalità Scala 3)
+### Logica di Dominio (Pattern e Funzionalità Scala 3)
 
 Le operazioni matematiche e le logiche evolutive sono isolate e fortemente polimorfiche, sfruttando diverse feature
 tipiche di Scala:
@@ -59,7 +59,7 @@ tipiche di Scala:
 - **Extension Methods:** Impiegati per arricchire i record di stato puri con le capacità evolutive tramite il pattern
   type class `GridEvolution` (es. `def evolve(...)`), estraendo i comportamenti in oggetti separati.
 
-### 1.5 Orchestrazione (State Monad)
+### Orchestrazione (State Monad)
 
 Il sequenziamento delle operazioni all'interno della `DefaultSimulationEngine` è orchestrato mediante la monade
 `State[SimulationState, A]` offerta dalla libreria **Cats**.
@@ -89,20 +89,18 @@ classDiagram
     DefaultSimulationEngine --> PowerFlowSolver : usa
 ```
 
----
-
-## 2. Gestione dello Stato e Ciclo Temporale (Simulation Loop)
+## Gestione dello Stato e Ciclo Temporale (Simulation Loop)
 
 La simulazione evolve attraverso transizioni pure orchestrate da un loop esterno.
 
-### 2.1 La Singola Transizione di Stato (Il Tick)
+### La Singola Transizione di Stato (Il Tick)
 
 La transizione calcolata dall'engine segue uno stretto ordine logico:
 1. **Aggiornamento dell'Ambiente:** Modifica dell'ora solare, temperatura e radianza.
 2. **Evoluzione delle Entità:** Delegata all'`EntityEvolutionDispatcher`, ogni entità calcola il nuovo stato interno e l'energia netta. Viene rispettato l'ordine locale (es. un'abitazione consuma prima localmente, poi bilancia l'accumulatore e infine scambia energia con la rete).
 3. **Risoluzione dei Flussi sui Cavi:** Il solver distribuisce la potenza sulla rete fisica basandosi sui flussi netti dei nodi.
 
-### 2.2 Ciclo di vita e Interazioni
+### Ciclo di vita e Interazioni
 
 Il seguente diagramma di sequenza mostra l'interazione tra i componenti nel corso dell'esecuzione della simulazione, dal
 caricamento al loop periodico dei tick.
@@ -132,7 +130,7 @@ sequenceDiagram
     end
 ```
 
-### 2.3 Osservabilità e Flussi Reattivi (Pattern Observer)
+### Osservabilità e Flussi Reattivi (Pattern Observer)
 
 Al termine di ogni tick, l'engine non effettua alcun push di dati. I nuovi stati `SimulationState` prodotti vengono
 presi in carico dal lato runtime e incanalati in flussi asincroni continui. Un **Dispatcher** smista sezioni dello stato
@@ -140,9 +138,7 @@ su canali reattivi, agendo da fulcro per un pattern **Event-driven Publish-Subsc
 Il produttore dello stato (Core) non conosce i consumatori, consentendo un totale disaccoppiamento e l'aggiunta futura
 di qualsiasi tipo di componente interessato alla simulazione (es. server di telemetria esterni).
 
----
-
-## 3. Architettura dell'Interfaccia Utente (MVVM)
+## Architettura dell'Interfaccia Utente (MVVM)
 
 L'interfaccia grafica si integra ai canali reattivi del Dispatcher applicando il pattern **Model-View-ViewModel (MVVM)**
 con un flusso dati unidirezionale.
@@ -156,9 +152,7 @@ con un flusso dati unidirezionale.
   sottoscrizioni asincrone ai canali della simulazione e le distribuisce ai ViewModel, rimuovendo così ogni conoscenza
   diretta dei task asincroni dalle View.
 
----
-
-## 4. Configurazione e Validazione tramite DSL
+## Configurazione e Validazione tramite DSL
 
 La costruzione degli scenari (entità, topologia e regole) sfrutta la **Scala 3 DSL**:
 - **Context Functions e Builder Pattern:** Iniezione implicita del contesto tramite `?=>`, favorendo una sintassi ad
@@ -169,8 +163,58 @@ La costruzione degli scenari (entità, topologia e regole) sfrutta la **Scala 3 
   in grado di ispezionare tutti i parametri di un'entità e accumulare una lista completa degli eventuali errori
   semantici/sintattici omettendo l'utilizzo di eccezioni.
 
+## Modulo di Statistiche (Statistics Engine)
+
+Il modulo `Statistics` traduce a livello di codice la separazione architetturale già descritta: è isolato dal Core e
+riceve in ingresso i medesimi `SimulationSnapshot` pubblicati dal Dispatcher di Observability, senza alcuna
+conoscenza della loro origine.
+
+### Fold: Accumulatore Puro a Passo Singolo
+
+L'astrazione centrale è `Fold[In, Out]`, una macchina di Moore funzionale: uno stato interno opaco (`type State`),
+una funzione di transizione pura (`step`) e una proiezione finale (`extract`). Ogni statistica è modellata come
+un'istanza di `Fold`, indipendentemente da come accumula i propri dati internamente.
+
+```mermaid
+classDiagram
+    class Fold~In,Out~ {
+        <<trait>>
+        type State
+        +initial: State
+        +step(state: State, in: In): State
+        +extract(state: State): Out
+        +map(f: Out => B): Fold~In,B~
+        +contramap(f: NewIn => In): Fold~NewIn,Out~
+    }
+```
+
+Questa scelta consente due strategie di implementazione alternative, entrambe esposte come *smart constructor* sul
+companion object:
+- `Fold.monoidal`: per statistiche il cui accumulo è associativo e neutro rispetto a un elemento vuoto (es. somme,
+  massimi, conteggi). Lo stato interno è semplicemente il `Monoid[A]` fornito da Cats, ricavando l'intera macchina "a
+  costo zero" dalla sola funzione di campionamento.
+- `Fold.unfold`: per il caso generale, dove l'accumulo non è esprimibile come combinazione associativa (es. una
+  cronologia FIFO a finestra mobile, o un contatore di tick con timestamp di calendario).
+
+### Composizione a passo singolo (StatisticsEngine)
+
+Le singole statistiche vengono composte in un'unica pipeline tramite `StatisticsEngine.build`, che unisce N fold
+indipendenti in un singolo `Fold[In, StatsBoard]`: ad ogni tick, ogni snapshot della simulazione viene attraversato
+una sola volta, aggiornando in parallelo logico tutti gli accumulatori registrati, anziché eseguire N passate
+separate sullo stream.
+
+### Registro tipizzato ed eterogeneo (StatKey / StatsBoard)
+
+Per evitare una dipendenza rigida tra motore e statistiche concrete, la corrispondenza tra chiave e tipo di
+risultato è espressa da un enum `StatKey[A]`, mentre il risultato aggregato è incapsulato in `StatsBoard`,
+un *opaque type* su `Map[StatKey[?], Any]`.
+
+Questo pattern (Registry + typed heterogeneous container) rende il modulo aperto all'estensione: aggiungere una
+nuova statistica richiede unicamente un nuovo caso in `StatKey`, un nuovo `Fold` e una riga in
+`StatisticsRegistry.allStatistics`, senza toccare `StatisticsEngine` né il codice che consuma `StatsBoard`.
+
 ---
 
 [Sommario](index.md) |
 [Capitolo precedente](04-architectural_design.md) |
-[Capitolo successivo](06-testing.md)
+[Capitolo successivo](06-implementation/06-implementation.md)

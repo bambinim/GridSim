@@ -1,4 +1,6 @@
-# Processo di sviluppo adottato
+# 2 Processo di sviluppo adottato
+
+Descrizione del processo di sviluppo adottato per lo sviluppo del progetto.
 
 ## Introduzione
 

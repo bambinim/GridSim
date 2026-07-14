@@ -1,4 +1,4 @@
-# Requisiti
+# 3 Requisiti
 
 Questo capitolo ha come scopo quello di descrivere dettagliatamente tutti i requisiti del software implementato. La quasi totalità dei requisiti sono rimasti invariati sin dalle prime fasi del progetto, mentre alcuni sono stati leggermente modificati o eliminati. È bene precisare che qualunque requisito sottoelencato è stato selezionato in quanto verificabile.
 
@@ -18,6 +18,7 @@ In particolare il simulatore funzionerà come segue:
 - L'energia in eccesso o in difetto non compensata internamente alla micro-grid viene scambiata con la Rete Esterna (External Grid), operante come sorgente o pozzo infinito.
 
 ## Requisiti utente
+
 In particolare l'utente può usufruire dei seguenti aspetti:
 
 - **2. Utente**
@@ -49,6 +50,7 @@ In particolare l'utente può usufruire dei seguenti aspetti:
     - Avanzamento manuale passo-passo.
 
 ## Requisiti funzionali
+
 Il simulatore prodotto dovrà:
 
 - **Funzionali**

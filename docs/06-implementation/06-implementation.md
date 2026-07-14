@@ -1,12 +1,12 @@
-# Implementazione
+# 6 Implementazione
 
-...
+Descrizione degli aspetti implementativi del progetto relativamente al linguaggio utilizzato, Scala.
 
 ## Personale
 
-- [Enrico Marchionni](enrymarch10/enrymarch10.md)
+- [Enrico Marchionni](enrymarch10.md)
 - [Matteo Bambini]()
-- [Michele Nardini](michelenardini/michelenardini.md)
+- [Michele Nardini](michelenardini.md)
 
 ---
 

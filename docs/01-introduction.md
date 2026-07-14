@@ -1,4 +1,4 @@
-# Introduzione
+# 1 Introduzione
 
 In questo progetto si intende realizzare un sistema software per la simulazione e l'analisi di una micro-grid energetica,
 modellata come una rete di entità interconnesse in grado di produrre, consumare e scambiare energia elettrica.
