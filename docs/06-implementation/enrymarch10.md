@@ -490,14 +490,14 @@ al limite) — per poi far collassare l'implementazione su quelle proprietà.
   regressione contro bug di wiring, ad esempio un fold registrato due volte o una chiave associata al fold
   sbagliato).
 
-### Ambiente e Modello Solare
+### Ambiente, Modello Solare e Pannelli Fotovoltaici
 
-I test di questa area combinano proprietà astronomiche note (equinozi, solstizi, casi limite polari) a verifiche
-di validazione e di composizione, per statistiche identiche a quelle già adottate nel modulo `statistics`: leggi di
-identità/associatività dove applicabile, e casi limite espliciti su ogni smart constructor.
+I test di questa area combinano proprietà astronomiche note (equinozi, solstizi, casi limite polari) a verifiche di
+validazione e di composizione, leggi di identità/associatività dove applicabile, e casi limite espliciti su ogni
+costruttore.
 
-- **`GeographicPointSpec` / `IrradianceSpec` / `TemperaturesSpec`**: verificano gli smart constructor dei rispettivi
-  opaque/phantom type — accettazione dei valori validi, rifiuto dei valori fuori dominio (latitudine/longitudine
+- **`GeographicPointSpec` / `IrradianceSpec` / `TemperaturesSpec`**: verificano i costruttori dei rispettivi
+  *opaque type* — accettazione dei valori validi, rifiuto dei valori fuori dominio (latitudine/longitudine
   fuori range, irraggiamento negativo, temperature sotto lo zero assoluto per ciascuna delle tre unità), e la
   correttezza delle conversioni e degli operatori di confronto/aritmetica esposti come extension method.
 - **`SolarModelSpec`**: esercita in isolamento ciascuna formula astronomica pura, verificandone il comportamento nei
