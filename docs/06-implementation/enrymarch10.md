@@ -155,7 +155,7 @@ Aggiungere una nuova statistica richiede solo un nuovo caso `StatKey`, un nuovo 
 `allStatistics`: né `StatisticsEngine`, né i consumatori di `StatsBoard` (GUI, observability) devono essere
 modificati.
 
-### Statistiche Concrete: Pattern e Motivazioni
+### Statistiche concrete: Pattern e Motivazioni
 
 #### Statistiche monoidali (`FlowStatistic`, `BatteriesChargeStatistic`, `CablesOverloadStatistic`)
 
@@ -191,7 +191,7 @@ ignorerebbe silenziosamente le batterie annidate in un'abitazione contenuta a su
 ogni abitazione di primo livello contribuisce come un unico campione aggregato (e non come N campioni separati) a
 `maxCharge`/`totalCharge`.
 
-#### Statistiche a stato non-monoidale (`NetFlowHistoryStatistic`, `SimulationTimeStatistic`)
+#### Statistiche non-monoidali (`NetFlowHistoryStatistic`, `SimulationTimeStatistic`)
 
 `NetFlowHistoryStatistic` mantiene una finestra FIFO limitata (`capacity`) di campioni recenti: l'operazione di
 "scarto del campione più vecchio" non è associativa nel senso richiesto da un monoide, per cui la statistica è
@@ -203,7 +203,7 @@ e per lo stesso motivo utilizza `Fold.unfold` anziché `Fold.monoidal`.
 
 ---
 
-## Ambiente, Modello Fisico Solare e Pannello Fotovoltaico
+## Ambiente, modello fisico solare e pannello fotovoltaico
 
 Il modello ambientale e fisico che governa la produzione fotovoltaica:
 
@@ -220,7 +220,7 @@ Il modello ambientale e fisico che governa la produzione fotovoltaica:
   - Evoluzione temporale del pannello: [SolarPanelEvolution.scala](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelEvolution.scala).
   - Validazione del pannello: [SolarPanelValidator.scala](/app/src/main/scala/org/gridsim/core/validation/SolarPanelValidator.scala)
 
-### Grandezze Fisiche a prova di errore
+### Grandezze fisiche a prova di errore
 
 Coerentemente con l'approccio adottato nel resto del dominio (opaque type per `Power`/`Energy`), `Irradiance` è
 modellata come opaque type con factory constructor validante:
@@ -260,7 +260,7 @@ Le conversioni (`toKelvin`, `toFahrenheit`, ...) sono funzioni pure esposte come
 `AnyTemperature` (alias di `Temperature[Celsius]`) permette di normalizzare un valore di provenienza eterogenea
 senza perdere la sicurezza di tipo altrove nel sistema.
 
-### Modello Astronomico e Ambiente
+### Modello astronomico e ambiente
 
 `SolarModel` isola in un oggetto `private[model]` un insieme di formule astronomiche pure e indipendenti tra loro
 (declinazione solare, lunghezza del giorno, elevazione a mezzogiorno solare, irraggiamento a cielo sereno), ciascuna
@@ -302,7 +302,7 @@ tick, requisito necessario per una simulazione realistica.
 `currentDateTime` è derivato (non memorizzato) da `startDateTime` e `time`, evitando la possibilità che le due
 grandezze divergano.
 
-### Produzione Fotovoltaica: Strategy + GridEvolution
+### Produzione fotovoltaica: Strategy + GridEvolution
 
 La produzione elettrica del pannello segue la stessa composizione a tre livelli già utilizzata per le batterie
 (Strategy Pattern, type class `GridEvolution`, adattatore verso il dispatcher generico), applicata nel package
@@ -354,7 +354,7 @@ final case class SolarPanelEvolutionHandler() extends EntityEvolutionHandler:
 
 ---
 
-## Interfaccia Grafica delle Statistiche e Registrazione degli Observer
+## Interfaccia Grafica delle statistiche e registrazione degli Observer
 
 Ho sviluppato la presentazione a schermo delle statistiche e il collegamento del modulo `statistics` al ciclo di vita
 reattivo della simulazione:
@@ -373,7 +373,7 @@ reattivo della simulazione:
 - **Registrazione degli Observer**:
   - Wiring dell'observer grafico e dell'observer statistico nel runtime: [RunningSimulationFactory.scala](/app/src/main/scala/org/gridsim/gui/runtime/RunningSimulationFactory.scala).
 
-### Presentazione delle Statistiche (MVVM)
+### Presentazione delle statistiche (MVVM)
 
 Ogni statistica prodotta dal motore delle statistiche è resa a schermo tramite una coppia ViewModel/View indipendente,
 seguendo il medesimo pattern MVVM adottato nel resto della GUI.
@@ -490,7 +490,7 @@ al limite) — per poi far collassare l'implementazione su quelle proprietà.
   regressione contro bug di wiring, ad esempio un fold registrato due volte o una chiave associata al fold
   sbagliato).
 
-### Ambiente, Modello Solare e Pannelli Fotovoltaici
+### Ambiente, modello solare e pannelli fotovoltaici
 
 I test di questa area combinano proprietà astronomiche note (equinozi, solstizi, casi limite polari) a verifiche di
 validazione e di composizione, leggi di identità/associatività dove applicabile, e casi limite espliciti su ogni
