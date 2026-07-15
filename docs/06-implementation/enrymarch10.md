@@ -40,7 +40,7 @@ L'estensione del sistema richiede infatti solamente:
 - la definizione della nuova statistica;
 - la relativa registrazione nel `StatisticsRegistry`.
 
-`StatisticsEngine` rimane quindi chiuso alle modifiche ma aperto all'estensione, seguendo il principio Open/Closed.
+`StatisticsEngine` rimane quindi chiuso alle modifiche ma aperto all'estensione, seguendo l'Open/Closed Principle.
 
 ### Accumulo funzionale a passo singolo (`Fold`)
 
