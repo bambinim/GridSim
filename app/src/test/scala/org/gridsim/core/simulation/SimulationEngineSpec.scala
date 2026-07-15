@@ -108,10 +108,11 @@ class SimulationEngineSpec extends AnyFlatSpec with Matchers:
     )
     val expectedLoads = Map(dummyCable -> Energy(1.5))
 
-    val entity = TestEntity("node-1")
+    val entity1 = TestEntity("node-1")
+    val entity2 = TestEntity("node-2")
     val state = TestEntityState("node-1")
     val graph = GridGraph(
-      nodes = List(entity),
+      nodes = List(entity1, entity2),
       cables = List(dummyCable)
     )
     val model = SimulationModel(graph)

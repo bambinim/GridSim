@@ -7,6 +7,7 @@ import org.gridsim.core.common.*
 import org.gridsim.core.model.GridEntity
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
+import cats.syntax.all.*
 
 case class GridEntityStub(id: String) extends GridEntity
 
@@ -87,3 +88,76 @@ class GridSpec extends AnyFlatSpec with Matchers:
     val nodes = List(ExternalGrid("grid"))
     val cables = List(Cable(CableConnections("grid", "h1"), 10.kw))
     GridGraph(nodes, cables) shouldBe GridGraph(nodes, cables)
+
+  // ─── GridGraph Validation ──────────────────────────────────────────────
+
+  "A GridGraph" should "be a valid graph when the topology is correct" in:
+    val nodes = List(ExternalGrid("grid"), GridEntityStub("h1"))
+    val cables = List(Cable(CableConnections("grid", "h1"), 100.kw))
+    val result = GridGraph.make(nodes, cables)
+    result.isValid shouldBe true
+    result.toOption.get shouldBe GridGraph(nodes, cables)
+
+  it should "be invalid if there is no ExternalGrid" in:
+    val nodes = List(GridEntityStub("h1"), GridEntityStub("h2"))
+    val cables = List(Cable(CableConnections("h1", "h2"), 100.kw))
+    val result = GridGraph.make(nodes, cables)
+    result.isInvalid shouldBe true
+    result.fold(_.toList.map(_.show), _ => fail()) should contain(
+      "[ERROR] Topology validation failed: The grid must contain at least one ExternalGrid."
+    )
+
+  it should "be invalid if cables reference unknown nodes" in:
+    val nodes = List(ExternalGrid("grid"), GridEntityStub("h1"))
+    val cables = List(
+      Cable(CableConnections("grid", "h1"), 100.kw),
+      Cable(CableConnections("h1", "h2"), 100.kw)
+    )
+    val result = GridGraph.make(nodes, cables)
+    result.isInvalid shouldBe true
+    result.fold(_.toList.map(_.show), _ => fail()) should contain(
+      "[ERROR] Topology validation failed: Cable references unknown node: h2"
+    )
+
+  it should "be invalid if there are disconnected nodes" in:
+    val nodes =
+      List(ExternalGrid("grid"), GridEntityStub("h1"), GridEntityStub("h2"))
+    val cables = List(Cable(CableConnections("grid", "h1"), 100.kw))
+    val result = GridGraph.make(nodes, cables)
+    result.isInvalid shouldBe true
+    result.fold(_.toList.map(_.show), _ => fail()) should contain(
+      "[ERROR] Topology validation failed: Node is not connected to any cable: h2"
+    )
+
+  it should "be invalid if there are self loops" in:
+    val nodes = List(ExternalGrid("grid"), GridEntityStub("h1"))
+    val cables = List(
+      Cable(CableConnections("grid", "h1"), 100.kw),
+      Cable(CableConnections("h1", "h1"), 100.kw)
+    )
+    val result = GridGraph.make(nodes, cables)
+    result.isInvalid shouldBe true
+    result.fold(_.toList.map(_.show), _ => fail()) should contain(
+      "[ERROR] Topology validation failed: Self-loop found on node: h1"
+    )
+
+  it should "be invalid if nodes are unreachable from the external grid" in:
+    val nodes = List(
+      ExternalGrid("grid"),
+      GridEntityStub("h1"),
+      GridEntityStub("h2"),
+      GridEntityStub("h3")
+    )
+    val cables = List(
+      Cable(CableConnections("grid", "h1"), 100.kw),
+      Cable(CableConnections("h2", "h3"), 100.kw)
+    )
+    val result = GridGraph.make(nodes, cables)
+    result.isInvalid shouldBe true
+    val errors = result.fold(_.toList.map(_.show), _ => fail())
+    errors should contain(
+      "[ERROR] Topology validation failed: Node is not reachable starting from an external grid: h2"
+    )
+    errors should contain(
+      "[ERROR] Topology validation failed: Node is not reachable starting from an external grid: h3"
+    )

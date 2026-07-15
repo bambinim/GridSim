@@ -34,22 +34,25 @@ case class SimulationBuilder(
     (entities, topBlk, delta).tupled.andThen { case (ent, tb, dt) =>
       val topCtx = new TopologyBuilderContext()
       tb(using topCtx, ent.map(_._1))
-      val model = SimulationModel(
-        GridGraph(
+      GridGraph
+        .make(
           ent.map(_._1) ++ List(ExternalGrid(SimulationBuilder.EG)),
           topCtx.cables
         )
-      )
-      val state = SimulationState(
-        Environment(0.seconds),
-        ent.map(e => e._1.id -> e._2).toMap
-      )
-      SimulationSetup
-        .make(state, model)
-        .bimap(
-          _.map(e => e: DSLError),
-          { case (s, m) => (m, s) }
-        )
+        .leftMap(_.map(e => e: DSLError))
+        .andThen { graph =>
+          val model = SimulationModel(graph)
+          val state = SimulationState(
+            Environment(0.seconds),
+            ent.map(e => e._1.id -> e._2).toMap
+          )
+          SimulationSetup
+            .make(state, model)
+            .bimap(
+              _.map(e => e: DSLError),
+              { case (s, m) => (m, s) }
+            )
+        }
     }
 
 private[dsl] class SimulationBuilderContext:
