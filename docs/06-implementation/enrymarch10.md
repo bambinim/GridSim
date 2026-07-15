@@ -187,6 +187,7 @@ Il modello ambientale e fisico che governa la produzione fotovoltaica:
   - Entità statica e stato dinamico del pannello: [SolarPanel.scala](/app/src/main/scala/org/gridsim/core/model/SolarPanel.scala).
   - Strategia di calcolo della produzione elettrica: [SolarPanelStrategy.scala](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelStrategy.scala).
   - Evoluzione temporale del pannello: [SolarPanelEvolution.scala](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelEvolution.scala).
+  - Validazione del pannello: [SolarPanelValidator.scala](/app/src/main/scala/org/gridsim/core/validation/SolarPanelValidator.scala)
 
 ### Grandezze Fisiche a prova di errore
 
