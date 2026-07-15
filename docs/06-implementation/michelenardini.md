@@ -1,6 +1,8 @@
 # Relazione sull'Implementazione - Michele Nardini
 
-Il presente capitolo descrive in dettaglio le scelte progettuali, i pattern funzionali e le componenti chiave del simulatore **GridSim** sviluppate da Michele Nardini. L'esposizione adotta un rigore accademico e formale, supportato da frammenti di codice esplicativi che documentano l'adozione dell'immutabilità dello stato, del determinismo simulativo, dell'estensibilità tramite dispatching dinamico e della robustezza dell'infrastruttura di visualizzazione e controllo (GUI).
+Il presente capitolo descrive in dettaglio le scelte strategiche, i pattern funzionali e le componenti chiave del
+codice Scala sviluppato da me, Enrico Marchionni.
+L'esposizione è supportata da frammenti di codice esplicativi.
 
 ---
 

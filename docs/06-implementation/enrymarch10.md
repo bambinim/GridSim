@@ -4,23 +4,25 @@ Il presente capitolo descrive in dettaglio le scelte strategiche, i pattern funz
 codice Scala sviluppato da me, Enrico Marchionni.
 L'esposizione è supportata da frammenti di codice esplicativi.
 
+---
+
 ## Statistiche
 
 Il modulo di **raccolta ed elaborazione delle statistiche** (`org.gridsim.statistics`):
 
 - **Infrastruttura di Accumulo Funzionale (Fold)**:
-  - Astrazione generica di accumulatore a passo singolo: [Fold](/app/src/main/scala/org/gridsim/statistics/Fold.scala).
+  - Astrazione generica di accumulatore a passo singolo: [Fold.scala](/app/src/main/scala/org/gridsim/statistics/Fold.scala).
 - **Motore e Registro delle Statistiche (Engine)**:
-  - Composizione di più statistiche in un'unica pipeline a passata singola: [StatisticsEngine](/app/src/main/scala/org/gridsim/statistics/StatisticsEngine.scala).
-  - Registro tipizzato e pluggable delle statistiche attive: [StatisticsRegistry](/app/src/main/scala/org/gridsim/statistics/StatisticsRegistry.scala).
+  - Composizione di più statistiche in un'unica pipeline a passata singola: [StatisticsEngine.scala](/app/src/main/scala/org/gridsim/statistics/StatisticsEngine.scala).
+  - Registro tipizzato e pluggable delle statistiche attive: [StatisticsRegistry.scala](/app/src/main/scala/org/gridsim/statistics/StatisticsRegistry.scala).
 - **Statistiche Concrete**:
-  - Bilancio energetico import/export della rete: [FlowStatistic](/app/src/main/scala/org/gridsim/statistics/FlowStatistic.scala).
-  - Cronologia a finestra mobile del flusso netto: [NetFlowHistoryStatistic](/app/src/main/scala/org/gridsim/statistics/NetFlowHistoryStatistic.scala).
-  - Carica aggregata degli accumulatori, incluse le batterie annidate nelle abitazioni: [BatteriesChargeStatistic](/app/src/main/scala/org/gridsim/statistics/BatteriesChargeStatistic.scala).
-  - Rilevamento del sovraccarico dei cavi della rete: [CablesOverloadStatistic](/app/src/main/scala/org/gridsim/statistics/CablesOverloadStatistic.scala).
-  - Avanzamento temporale e calendario della simulazione: [SimulationTimeStatistic](/app/src/main/scala/org/gridsim/statistics/SimulationTimeStatistic.scala).
+  - Bilancio energetico import/export della rete: [FlowStatistic.scala](/app/src/main/scala/org/gridsim/statistics/FlowStatistic.scala).
+  - Cronologia a finestra mobile del flusso netto: [NetFlowHistoryStatistic.scala](/app/src/main/scala/org/gridsim/statistics/NetFlowHistoryStatistic.scala).
+  - Carica aggregata degli accumulatori, incluse le batterie annidate nelle abitazioni: [BatteriesChargeStatistic.scala](/app/src/main/scala/org/gridsim/statistics/BatteriesChargeStatistic.scala).
+  - Rilevamento del sovraccarico dei cavi della rete: [CablesOverloadStatistic.scala](/app/src/main/scala/org/gridsim/statistics/CablesOverloadStatistic.scala).
+  - Avanzamento temporale e calendario della simulazione: [SimulationTimeStatistic.scala](/app/src/main/scala/org/gridsim/statistics/SimulationTimeStatistic.scala).
 
-### Accumulo funzionale a passo singolo (Fold)
+### Accumulo funzionale a passo singolo (`Fold`)
 
 La raccolta delle statistiche deve avvenire senza mantenere in memoria l'intera storia della simulazione e senza
 introdurre stato mutabile condiviso tra i vari osservatori. A tale scopo è stata definita l'astrazione `Fold[In, Out]`
@@ -72,7 +74,7 @@ accumulo è associativo e dotato di elemento neutro (somme, conteggi, massimi): 
 cronologia FIFO a capacità limitata (`NetFlowHistoryStatistic`) o un contatore che dipende dall'ordine di arrivo
 degli eventi (`SimulationTimeStatistic`).
 
-### Composizione a passata singola (StatisticsEngine e StatsBoard)
+### Composizione a passata singola (`StatisticsEngine` e `StatsBoard`)
 
 Con più statistiche attive contemporaneamente, la soluzione naïve richiederebbe di attraversare lo stream degli
 `SimulationSnapshot` una volta per ciascuna. `StatisticsEngine.build`, in
@@ -124,7 +126,7 @@ modificati.
 
 ### Statistiche Concrete: Pattern e Motivazioni
 
-#### Statistiche monoidali (FlowStatistic, BatteriesChargeStatistic, CablesOverloadStatistic)
+#### Statistiche monoidali (`FlowStatistic`, `BatteriesChargeStatistic`, `CablesOverloadStatistic`)
 
 Queste statistiche condividono lo stesso schema: un `sample: In => A` puro che estrae un singolo campione dallo
 snapshot corrente, combinato da un'istanza `given Monoid[A]` che definisce come due campioni si aggregano.
@@ -158,7 +160,7 @@ ignorerebbe silenziosamente le batterie annidate in un'abitazione contenuta a su
 ogni abitazione di primo livello contribuisce come un unico campione aggregato (e non come N campioni separati) a
 `maxCharge`/`totalCharge`.
 
-#### Statistiche a stato non-monoidale (NetFlowHistoryStatistic, SimulationTimeStatistic)
+#### Statistiche a stato non-monoidale (`NetFlowHistoryStatistic`, `SimulationTimeStatistic`)
 
 `NetFlowHistoryStatistic` mantiene una finestra FIFO limitata (`capacity`) di campioni recenti: l'operazione di
 "scarto del campione più vecchio" non è associativa nel senso richiesto da un monoide, per cui la statistica è
@@ -175,16 +177,16 @@ e per lo stesso motivo utilizza `Fold.unfold` anziché `Fold.monoidal`.
 Il modello ambientale e fisico che governa la produzione fotovoltaica:
 
 - **Grandezze Fisiche e Geografia**:
-  - Posizione geografica di un componente: [GeographicPoint](/app/src/main/scala/org/gridsim/core/common/GeographicPoint.scala).
-  - Irraggiamento solare (W/m²): [Irradiance](/app/src/main/scala/org/gridsim/core/common/Irradiance.scala).
-  - Temperatura multi-unità con sicurezza a tempo di compilazione: [Temperatures](/app/src/main/scala/org/gridsim/core/common/Temperatures.scala).
+  - Posizione geografica di un componente: [GeographicPoint.scala](/app/src/main/scala/org/gridsim/core/common/GeographicPoint.scala).
+  - Irraggiamento solare (W/m²): [Irradiance.scala](/app/src/main/scala/org/gridsim/core/common/Irradiance.scala).
+  - Temperatura multi-unità con sicurezza a tempo di compilazione: [Temperatures.scala](/app/src/main/scala/org/gridsim/core/common/Temperatures.scala).
 - **Ambiente e Formule Astronomiche**:
-  - Stato meteorologico e temporale della simulazione: [Environment](/app/src/main/scala/org/gridsim/core/model/Environment.scala).
-  - Formule astronomiche pure (declinazione solare, alba/tramonto, irraggiamento a cielo sereno): [SolarModel](/app/src/main/scala/org/gridsim/core/model/SolarModel.scala).
+  - Stato meteorologico e temporale della simulazione: [Environment.scala](/app/src/main/scala/org/gridsim/core/model/Environment.scala).
+  - Formule astronomiche pure (declinazione solare, alba/tramonto, irraggiamento a cielo sereno): [SolarModel.scala](/app/src/main/scala/org/gridsim/core/model/SolarModel.scala).
 - **Pannello Fotovoltaico**:
-  - Entità statica e stato dinamico del pannello: [SolarPanel](/app/src/main/scala/org/gridsim/core/model/SolarPanel.scala).
-  - Strategia di calcolo della produzione elettrica: [SolarPanelStrategy](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelStrategy.scala).
-  - Evoluzione temporale del pannello: [SolarPanelEvolution](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelEvolution.scala).
+  - Entità statica e stato dinamico del pannello: [SolarPanel.scala](/app/src/main/scala/org/gridsim/core/model/SolarPanel.scala).
+  - Strategia di calcolo della produzione elettrica: [SolarPanelStrategy.scala](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelStrategy.scala).
+  - Evoluzione temporale del pannello: [SolarPanelEvolution.scala](/app/src/main/scala/org/gridsim/core/behaviour/producer/SolarPanelEvolution.scala).
 
 ### Grandezze Fisiche a prova di errore
 
@@ -326,18 +328,18 @@ Ho sviluppato la presentazione a schermo delle statistiche e il collegamento del
 reattivo della simulazione:
 
 - **Vista delle Statistiche (MVVM)**:
-  - ViewModel dedicati a ciascuna statistica: [FlowStatisticViewModel](/app/src/main/scala/org/gridsim/gui/viewmodel/FlowStatisticViewModel.scala),
-    [BatteriesChargeStatisticViewModel](/app/src/main/scala/org/gridsim/gui/viewmodel/BatteriesChargeStatisticViewModel.scala),
-    [CableOverloadStatisticViewModel](/app/src/main/scala/org/gridsim/gui/viewmodel/CableOverloadStatisticViewModel.scala),
-    [SimulationTimeStatisticViewModel](/app/src/main/scala/org/gridsim/gui/viewmodel/SimulationTimeStatisticViewModel.scala),
-    [NetFlowChartStatisticViewModel](/app/src/main/scala/org/gridsim/gui/viewmodel/NetFlowChartStatisticViewModel.scala).
-  - Viste ScalaFX corrispondenti: [FlowStatisticView](/app/src/main/scala/org/gridsim/gui/view/FlowStatisticView.scala),
-    [BatteriesChargeStatisticView](/app/src/main/scala/org/gridsim/gui/view/BatteriesChargeStatisticView.scala),
-    [CableOverloadStatisticView](/app/src/main/scala/org/gridsim/gui/view/CableOverloadStatisticView.scala),
-    [SimulationTimeStatisticView](/app/src/main/scala/org/gridsim/gui/view/SimulationTimeStatisticView.scala),
-    [NetFlowChartStatisticView](/app/src/main/scala/org/gridsim/gui/view/NetFlowChartStatisticView.scala).
+  - ViewModel dedicati a ciascuna statistica: [FlowStatisticViewModel.scala](/app/src/main/scala/org/gridsim/gui/viewmodel/FlowStatisticViewModel.scala),
+    [BatteriesChargeStatisticViewModel.scala](/app/src/main/scala/org/gridsim/gui/viewmodel/BatteriesChargeStatisticViewModel.scala),
+    [CableOverloadStatisticViewModel.scala](/app/src/main/scala/org/gridsim/gui/viewmodel/CableOverloadStatisticViewModel.scala),
+    [SimulationTimeStatisticViewModel.scala](/app/src/main/scala/org/gridsim/gui/viewmodel/SimulationTimeStatisticViewModel.scala),
+    [NetFlowChartStatisticViewModel.scala](/app/src/main/scala/org/gridsim/gui/viewmodel/NetFlowChartStatisticViewModel.scala).
+  - Viste ScalaFX corrispondenti: [FlowStatisticView.scala](/app/src/main/scala/org/gridsim/gui/view/FlowStatisticView.scala),
+    [BatteriesChargeStatisticView.scala](/app/src/main/scala/org/gridsim/gui/view/BatteriesChargeStatisticView.scala),
+    [CableOverloadStatisticView.scala](/app/src/main/scala/org/gridsim/gui/view/CableOverloadStatisticView.scala),
+    [SimulationTimeStatisticView.scala](/app/src/main/scala/org/gridsim/gui/view/SimulationTimeStatisticView.scala),
+    [NetFlowChartStatisticView.scala](/app/src/main/scala/org/gridsim/gui/view/NetFlowChartStatisticView.scala).
 - **Registrazione degli Observer**:
-  - Wiring dell'observer grafico e dell'observer statistico nel runtime: [RunningSimulationFactory](/app/src/main/scala/org/gridsim/gui/runtime/RunningSimulationFactory.scala).
+  - Wiring dell'observer grafico e dell'observer statistico nel runtime: [RunningSimulationFactory.scala](/app/src/main/scala/org/gridsim/gui/runtime/RunningSimulationFactory.scala).
 
 ### Presentazione delle Statistiche (MVVM)
 
@@ -358,7 +360,7 @@ class BatteriesChargeStatisticViewModel:
     maxText.value = s"Max: ${stats.maxCharge.show}"
 ```
 
-Invece la View si limita a legarle dichiarativamente attraverso il binding di scalafx:
+Invece la View si limita a legarle dichiarativamente attraverso il binding di ScalaFX:
 
 ```scala
 class BatteriesChargeStatisticView(viewModel: BatteriesChargeStatisticViewModel) extends VBox with ViewFX:
@@ -377,7 +379,7 @@ statistico.
 Il collegamento tra il motore di simulazione e i consumatori (GUI e statistiche) avviene tramite il pattern
 Observer/Publish-Subscribe descritto a livello architetturale.
 Ho solo dovuto registrare i due observer applicativi nel runtime GUI, in
-[RunningSimulationFactory.createSimpleSimulation](/app/src/main/scala/org/gridsim/gui/runtime/RunningSimulationFactory.scala):
+[RunningSimulationFactory.scala](/app/src/main/scala/org/gridsim/gui/runtime/RunningSimulationFactory.scala):
 
 ```scala
 val guiObserver = Observer[IO, SimulationData.SimulationSnapshot](snapshotSignal.set)

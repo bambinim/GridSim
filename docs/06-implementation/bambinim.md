@@ -1,5 +1,11 @@
 # Matteo Bambini
 
+Il presente capitolo descrive in dettaglio le scelte strategiche, i pattern funzionali e le componenti chiave del
+codice Scala sviluppato da me, Matteo Bambini.
+L'esposizione è supportata da frammenti di codice esplicativi.
+
+---
+
 ## DSL (Domain Specific Language)
 
 Il modulo DSL fornisce un layer sintattico dichiarativo per configurare e istanziare l'intera simulazione (modelli fisici e stato iniziale), astraendo e nascondendo la complessità di assemblaggio e di validazione formale delle entità.
@@ -317,3 +323,7 @@ Il componente si occupa unicamente della renderizzazione e manipolazione del Doc
 - **Feedback Cromatico Dinamico**: Al momento del trigger `onUpdate` asincrono (eseguito rigorosamente sul thread grafico con `Platform.runLater`), la View esamina lo stato aggiornato dal ViewModel per sovrascrivere dinamicamente le classi CSS (`setStyleInline`) degli elementi visuali:
   - **Entità (Nodi)**: Contorno marcato in rosso acceso `#e74c3c` in caso di `Deficit` energetico, altrimenti verde `#2ecc71`.
   - **Cavi (Archi)**: Modificati dinamicamente in rosso se si verifica un sovraccarico fisico (potenza transitante superiore alla `maxCapacity` limite nel delta di tempo), altrimenti ricolorati di nero.
+
+---
+
+[Implementazione](06-implementation.md)
