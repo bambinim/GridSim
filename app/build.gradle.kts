@@ -23,7 +23,21 @@ repositories {
     mavenCentral()
 }
 
-val javafxPlatforms = listOf("win", "mac", "mac-aarch64", "linux", "linux-aarch64")
+val osName = System.getProperty("os.name").lowercase()
+val osArch = System.getProperty("os.arch").lowercase()
+val javaFxPlatform = when {
+    osName.contains("win") -> "win"
+    osName.contains("mac") -> if (osArch == "aarch64" || osArch == "arm64") "mac-aarch64" else "mac"
+    osName.contains("linux") -> if (osArch == "aarch64" || osArch == "arm64") "linux-aarch64" else "linux"
+    else -> "mac"
+}
+
+val targetArch = project.findProperty("targetArch")?.toString() ?: "local"
+val targetPlatforms = when (targetArch) {
+    "amd64" -> listOf("win", "mac", "linux")
+    "aarch64" -> listOf("mac-aarch64", "linux-aarch64")
+    else -> listOf(javaFxPlatform)
+}
 
 dependencies {
     // Use Scala 3 library
@@ -36,7 +50,7 @@ dependencies {
 
     // ScalaFX for GUI components
     implementation(libs.scalafx)
-    javafxPlatforms.forEach { platform ->
+    targetPlatforms.forEach { platform ->
         implementation(variantOf(libs.javafx.base) { classifier(platform) })
         implementation(variantOf(libs.javafx.graphics) { classifier(platform) })
         implementation(variantOf(libs.javafx.controls) { classifier(platform) })
@@ -75,7 +89,8 @@ tasks.jar {
 }
 
 tasks.named<Jar>("shadowJar") {
-    archiveFileName.set("${rootProject.name}.jar")
+    val suffix = if (targetArch == "local") "" else "-$targetArch"
+    archiveFileName.set("${rootProject.name}${suffix}.jar")
 }
 
 tasks.register("ciAssemble") {
@@ -95,4 +110,26 @@ tasks.register<JavaExec>("runGraphView") {
     description = "Run the standalone Graph View test application"
     mainClass = "org.gridsim.gui.app.GraphViewApp"
     classpath = sourceSets["main"].runtimeClasspath
+}
+
+val gradlew = if (osName.contains("win")) "${rootProject.projectDir}\\gradlew.bat" else "${rootProject.projectDir}/gradlew"
+
+tasks.register<Exec>("buildAmd64Jar") {
+    group = "build"
+    description = "Build a fat jar for all amd64 platforms (Windows, Linux, Mac Intel)"
+    workingDir = rootProject.projectDir
+    commandLine(gradlew, ":app:shadowJar", "-PtargetArch=amd64")
+}
+
+tasks.register<Exec>("buildAarch64Jar") {
+    group = "build"
+    description = "Build a fat jar for all aarch64 platforms (Mac Apple Silicon, Linux ARM)"
+    workingDir = rootProject.projectDir
+    commandLine(gradlew, ":app:shadowJar", "-PtargetArch=aarch64")
+}
+
+tasks.register("buildAllJars") {
+    group = "build"
+    description = "Build fat jars for both amd64 and aarch64 platforms"
+    dependsOn("buildAmd64Jar", "buildAarch64Jar")
 }
