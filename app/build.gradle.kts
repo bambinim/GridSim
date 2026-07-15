@@ -76,7 +76,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.gridsim.gui.app.GuiApp"
+    mainClass = "org.gridsim.gui.app.Launcher"
 }
 
 tasks.jar {
