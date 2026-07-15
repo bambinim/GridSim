@@ -13,7 +13,7 @@ plugins {
     application
     
     // Apply the shadow plugin to build fat jars
-    id("com.gradleup.shadow") version "8.3.0"
+    id("com.gradleup.shadow") version "8.3.11"
 }
 
 version = "1.0.0"
