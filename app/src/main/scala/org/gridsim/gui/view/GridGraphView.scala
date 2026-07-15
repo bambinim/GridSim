@@ -58,102 +58,109 @@ class GridGraphView(viewModel: GridGraphViewModel)
   graphView
     .sceneProperty()
     .addListener((_, _, newScene) => {
-      if (newScene != null && !initialized) {
-        initialized = true
-        Platform.runLater {
-          graphView.init()
-          // Disable physics layout so positions are fixed
-          graphView.setAutomaticLayout(true)
+      if (newScene != null) {
+        if (!initialized) {
+          initialized = true
+          Platform.runLater {
+            graphView.init()
+            // Disable physics layout so positions are fixed
+            graphView.setAutomaticLayout(true)
 
-          viewModel.uiGraph.vertices().forEach { v =>
-            if viewModel.isExternalGrid(v.element()) then
-              val vertexNode = graphView
-                .getStylableVertex(v)
-                .asInstanceOf[SmartGraphVertexNode[String]]
-              vertexNode.addStyleClass("external-grid")
+            viewModel.uiGraph.vertices().forEach { v =>
+              if viewModel.isExternalGrid(v.element()) then
+                val vertexNode = graphView
+                  .getStylableVertex(v)
+                  .asInstanceOf[SmartGraphVertexNode[String]]
+                vertexNode.addStyleClass("external-grid")
 
-              val text = new Text("EG")
-              text.getStyleClass.add("external-grid-text")
+                val text = new Text("EG")
+                text.getStyleClass.add("external-grid-text")
 
-              // Avoid cyclic bounds dependency by not binding to layoutBoundsProperty
-              text
-                .xProperty()
-                .bind(
-                  Bindings.createDoubleBinding(
-                    () => vertexNode.centerXProperty().get() - 10,
-                    vertexNode.centerXProperty()
+                // Avoid cyclic bounds dependency by not binding to layoutBoundsProperty
+                text
+                  .xProperty()
+                  .bind(
+                    Bindings.createDoubleBinding(
+                      () => vertexNode.centerXProperty().get() - 10,
+                      vertexNode.centerXProperty()
+                    )
                   )
-                )
-              text
-                .yProperty()
-                .bind(
-                  Bindings.createDoubleBinding(
-                    () => vertexNode.centerYProperty().get() + 5,
-                    vertexNode.centerYProperty()
+                text
+                  .yProperty()
+                  .bind(
+                    Bindings.createDoubleBinding(
+                      () => vertexNode.centerYProperty().get() + 5,
+                      vertexNode.centerYProperty()
+                    )
                   )
-                )
-              vertexNode.getChildren().add(text)
-          }
-
-          viewModel.onUpdate = () =>
-            Platform.runLater {
-              viewModel.uiGraph.vertices().forEach { v =>
-                val stylableNode = graphView.getStylableVertex(v)
-                viewModel.entityFlow(v.element()) match
-                  case Some(Flow.Deficit(_)) =>
-                    stylableNode.setStyleInline(
-                      "-fx-stroke: #e74c3c; -fx-stroke-width: 3;"
-                    ) // red
-                  case _ =>
-                    stylableNode.setStyleInline(
-                      "-fx-stroke: #2ecc71; -fx-stroke-width: 3;"
-                    ) // green
-              }
-
-              val overloadedIds =
-                viewModel
-                  .overloadedConnections()
-                  .map(_.hashCode().toHexString)
-                  .toSet
-              viewModel.uiGraph.edges().forEach { e =>
-                val stylableEdge = graphView.getStylableEdge(e)
-                if overloadedIds.contains(e.element()) then
-                  stylableEdge.setStyleInline(
-                    "-fx-stroke: #e74c3c; -fx-stroke-width: 2;"
-                  ) // red
-                else
-                  stylableEdge.setStyleInline(
-                    "-fx-stroke: black; -fx-stroke-width: 2;"
-                  ) // black
-              }
-
-              graphView.update()
+                vertexNode.getChildren().add(text)
             }
 
-          // Add single-click actions for nodes and edges
-          viewModel.uiGraph.vertices().forEach { v =>
-            val node =
-              graphView.getStylableVertex(v).asInstanceOf[javafx.scene.Node]
-            node.setOnMouseClicked(ev => {
-              if (ev.getClickCount == 1) {
-                viewModel.nodeClicked(v.element())
-              }
-            })
-          }
+            viewModel.onUpdate = () =>
+              Platform.runLater {
+                if (graphView.getScene != null) {
+                  viewModel.uiGraph.vertices().forEach { v =>
+                    val stylableNode = graphView.getStylableVertex(v)
+                    viewModel.entityFlow(v.element()) match
+                      case Some(Flow.Deficit(_)) =>
+                        stylableNode.setStyleInline(
+                          "-fx-stroke: #e74c3c; -fx-stroke-width: 3;"
+                        ) // red
+                      case _ =>
+                        stylableNode.setStyleInline(
+                          "-fx-stroke: #2ecc71; -fx-stroke-width: 3;"
+                        ) // green
+                  }
 
-          viewModel.uiGraph.edges().forEach { e =>
-            val edgeNode =
-              graphView.getStylableEdge(e).asInstanceOf[javafx.scene.Node]
-            edgeNode.setOnMouseClicked(ev => {
-              if (ev.getClickCount == 1) {
-                viewModel
-                  .edgeClicked(
-                    e.vertices()(0).element(),
-                    e.vertices()(1).element()
-                  )
+                  val overloadedIds =
+                    viewModel
+                      .overloadedConnections()
+                      .map(_.hashCode().toHexString)
+                      .toSet
+                  viewModel.uiGraph.edges().forEach { e =>
+                    val stylableEdge = graphView.getStylableEdge(e)
+                    if overloadedIds.contains(e.element()) then
+                      stylableEdge.setStyleInline(
+                        "-fx-stroke: #e74c3c; -fx-stroke-width: 2;"
+                      ) // red
+                    else
+                      stylableEdge.setStyleInline(
+                        "-fx-stroke: black; -fx-stroke-width: 2;"
+                      ) // black
+                  }
+
+                  graphView.update()
+                }
               }
-            })
+
+            // Add single-click actions for nodes and edges
+            viewModel.uiGraph.vertices().forEach { v =>
+              val node =
+                graphView.getStylableVertex(v).asInstanceOf[javafx.scene.Node]
+              node.setOnMouseClicked(ev => {
+                if (ev.getClickCount == 1) {
+                  viewModel.nodeClicked(v.element())
+                }
+              })
+            }
+
+            viewModel.uiGraph.edges().forEach { e =>
+              val edgeNode =
+                graphView.getStylableEdge(e).asInstanceOf[javafx.scene.Node]
+              edgeNode.setOnMouseClicked(ev => {
+                if (ev.getClickCount == 1) {
+                  viewModel
+                    .edgeClicked(
+                      e.vertices()(0).element(),
+                      e.vertices()(1).element()
+                    )
+                }
+              })
+            }
           }
+        } else {
+          // If already initialized and re-attached to a scene, trigger update
+          viewModel.onUpdate()
         }
       }
     })
