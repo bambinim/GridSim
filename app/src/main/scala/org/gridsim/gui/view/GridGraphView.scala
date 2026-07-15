@@ -63,7 +63,7 @@ class GridGraphView(viewModel: GridGraphViewModel)
         Platform.runLater {
           graphView.init()
           // Disable physics layout so positions are fixed
-          graphView.setAutomaticLayout(false)
+          graphView.setAutomaticLayout(true)
 
           viewModel.uiGraph.vertices().forEach { v =>
             if viewModel.isExternalGrid(v.element()) then

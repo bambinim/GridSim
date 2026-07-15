@@ -13,7 +13,8 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 class GridGraphViewModel(
     graph: GridGraph,
-    selection: ObjectProperty[Selection]
+    selection: ObjectProperty[Selection],
+    onSelectionChanged: () => Unit = () => ()
 ):
   private var cableLoads: Map[Cable, Energy] = Map.empty
   private var entityFlows: Map[String, Flow[Energy]] = Map.empty
@@ -23,10 +24,12 @@ class GridGraphViewModel(
   def nodeClicked(entityId: String): Unit =
     graph.nodes.find(_.id == entityId).foreach { ent =>
       selection.value = Selection.SelectedNode(ent)
+      onSelectionChanged()
     }
 
   def edgeClicked(from: String, to: String): Unit =
     selection.value = Selection.SelectedCable(CableConnections(from, to))
+    onSelectionChanged()
 
   def entityFlow(id: String): Option[Flow[Energy]] = entityFlows.get(id)
 
