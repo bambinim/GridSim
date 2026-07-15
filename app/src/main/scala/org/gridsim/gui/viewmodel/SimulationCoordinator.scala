@@ -44,6 +44,14 @@ class SimulationCoordinator(
     () => running.controller.configuration.delta
   )
 
+  private val initialState = running.controller.currentState
+  entityDetailsViewModel.update(
+    initialState.entityStates,
+    initialState.entityFlows,
+    initialState.cableLoads,
+    initialState.environment
+  )
+
   /** ViewModel controlling simulation commands like play, pause, step, and
     * stop.
     */
@@ -56,6 +64,12 @@ class SimulationCoordinator(
   val batteryChargeStatisticViewModel = BatteriesChargeStatisticViewModel()
   val cableOverloadStatisticViewModel = CableOverloadStatisticViewModel()
   val simulationTimeStatisticViewModel = SimulationTimeStatisticViewModel()
+
+  /** Invoked on the JavaFX thread after all statistics view-models have been
+    * updated. The view installs this callback to refresh layouts whose tab is
+    * already selected (and therefore produces no tab-selection event).
+    */
+  var onStatisticsUpdated: () => Unit = () => ()
 
   running.statisticsSignal.discrete
     .map(StatisticsRegistry.engine.extract)
@@ -75,6 +89,7 @@ class SimulationCoordinator(
           simulationTimeStatisticViewModel.update(
             board.get(StatKey.SimTimeStatKey)
           )
+          onStatisticsUpdated()
         }
       }
     )
@@ -82,16 +97,12 @@ class SimulationCoordinator(
     .drain
     .unsafeRunAndForget()
 
-  selectedEntity.onChange { (_, _, _) =>
-    renderCurrent()
-  }
-
   /** ViewModel managing the graph visualization. */
-  val graphViewModel = GridGraphViewModel(running.model.grid, selectedEntity)
-
-  selectedEntity.onChange { (_, _, _) =>
-    renderCurrent()
-  }
+  val graphViewModel = GridGraphViewModel(
+    running.model.grid,
+    selectedEntity,
+    () => renderCurrentNow()
+  )
 
   running.snapshotSignal.discrete
     .evalMap(snapshot =>
@@ -114,20 +125,18 @@ class SimulationCoordinator(
   /** Forces a render update of selected entity details using the current state
     * stored inside the simulation controller.
     */
-  def renderCurrent(): Unit = {
-    println("renderCurren called")
-    Platform.runLater {
-      println("Entered renderCurrent runLater")
-      val state = running.controller.currentState
+  def renderCurrent(): Unit =
+    if Platform.isFxApplicationThread then renderCurrentNow()
+    else Platform.runLater(renderCurrentNow())
 
-      entityDetailsViewModel.update(
-        state.entityStates,
-        state.entityFlows,
-        state.cableLoads,
-        state.environment
-      )
-    }
-  }
+  private def renderCurrentNow(): Unit =
+    val state = running.controller.currentState
+    entityDetailsViewModel.update(
+      state.entityStates,
+      state.entityFlows,
+      state.cableLoads,
+      state.environment
+    )
 
   private def updateWith(
       environment: Environment,

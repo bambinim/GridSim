@@ -10,6 +10,7 @@ import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Parent
 import scalafx.scene.control.{Label, Separator, ScrollPane}
 import scalafx.scene.layout.{GridPane, HBox, VBox}
+import javafx.application.Platform
 
 /** View panel for displaying detailed information about a selected grid entity.
   *
@@ -63,6 +64,16 @@ class EntityDetailsView(viewModel: EntityDetailsViewModel)
     else
       val card = createEntityCard(state, isNested = false)
       contentContainer.children.add(card)
+
+    // The details are rebuilt from inside a JavaFX property callback. In this
+    // situation the ScrollPane does not always schedule a new layout pulse on
+    // the first graph click; interacting with any control (for example Play)
+    // causes that pending layout to happen. Explicitly invalidate the CSS and
+    // layout here so the selection is painted without requiring another event.
+    contentContainer.delegate.applyCss()
+    contentContainer.delegate.requestLayout()
+    delegate.requestLayout()
+    Platform.requestNextPulse()
 
   private def createEntityCard(entity: DetailsEntity, isNested: Boolean): VBox =
     new VBox(10) {
