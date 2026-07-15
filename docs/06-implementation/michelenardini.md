@@ -1,7 +1,7 @@
 # Relazione sull'Implementazione - Michele Nardini
 
 Il presente capitolo descrive in dettaglio le scelte strategiche, i pattern funzionali e le componenti chiave del
-codice Scala sviluppato da me, Enrico Marchionni.
+codice Scala sviluppato da me, Michele Nardini.
 L'esposizione è supportata da frammenti di codice esplicativi.
 
 ---
