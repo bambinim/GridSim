@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page.title | default: site.title | default: "Project Documentation" }}</title>
 
   <!-- GitHub Markdown CSS for clean, readable styling (Light theme) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-light.min.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-light.min.css">
   <style>
     .markdown-body {
       box-sizing: border-box;
@@ -15,13 +17,25 @@
       margin: 0 auto;
       padding: 45px;
     }
+
     @media (max-width: 767px) {
       .markdown-body {
         padding: 15px;
       }
     }
   </style>
+  <!-- MathJax for LaTeX formulas -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
+
 <body class="markdown-body">
 
   <!-- Jekyll injects your README.md content exactly here -->
@@ -51,4 +65,5 @@
   </script>
 
 </body>
+
 </html>
