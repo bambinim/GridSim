@@ -1,7 +1,3 @@
----
-layout: default
----
-
 # GridSim
 
 Project written in Scala for the course
