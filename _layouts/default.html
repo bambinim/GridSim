@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page.title | default: site.title | default: "Project Documentation" }}</title>
+  
+  <!-- GitHub Markdown CSS for clean, readable styling -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown.min.css">
+  <style>
+    .markdown-body {
+      box-sizing: border-box;
+      min-width: 200px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 45px;
+    }
+    @media (max-width: 767px) {
+      .markdown-body {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body class="markdown-body">
+
+  <!-- Jekyll injects your README.md content exactly here -->
+  {{ content }}
+
+  <!-- Mermaid JS script -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs'\;
+    mermaid.initialize({ startOnLoad: false });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const codeBlocks = document.querySelectorAll("code.language-mermaid");
+      
+      codeBlocks.forEach((block) => {
+        const div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = block.textContent;
+        
+        const pre = block.parentElement;
+        if (pre && pre.tagName === 'PRE') {
+          pre.parentNode.replaceChild(div, pre);
+        }
+      });
+
+      await mermaid.run();
+    });
+  </script>
+
+</body>
+</html>
