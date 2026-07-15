@@ -22,12 +22,43 @@ Il modulo di **raccolta ed elaborazione delle statistiche** (`org.gridsim.statis
   - Rilevamento del sovraccarico dei cavi della rete: [CablesOverloadStatistic.scala](/app/src/main/scala/org/gridsim/statistics/CablesOverloadStatistic.scala).
   - Avanzamento temporale e calendario della simulazione: [SimulationTimeStatistic.scala](/app/src/main/scala/org/gridsim/statistics/SimulationTimeStatistic.scala).
 
+### Composizione delle statistiche
+
+`StatisticsEngine` non contiene logica specifica delle singole statistiche.
+
+Ogni statistica è registrata attraverso una descrizione composta da:
+- una chiave identificativa (`StatKey`);
+- un accumulatore personalizzato;
+- il tipo del risultato prodotto.
+
+Durante ogni tick lo `StatisticsEngine` attraversa una sola volta lo snapshot ricevuto e aggiorna tutti gli accumulatori
+registrati.
+Questo approccio evita elaborazioni multiple sugli stessi dati e permette di aggiungere nuove statistiche senza
+modificare il funzionamento del motore.
+
+L'estensione del sistema richiede infatti solamente:
+- la definizione della nuova statistica;
+- la relativa registrazione nel `StatisticsRegistry`.
+
+`StatisticsEngine` rimane quindi chiuso alle modifiche ma aperto all'estensione, seguendo il principio Open/Closed.
+
 ### Accumulo funzionale a passo singolo (`Fold`)
 
+Per rappresentare l'evoluzione delle statistiche è stata introdotta l'astrazione `Fold`, che modella un accumulatore
+funzionale capace di aggiornare il proprio stato ad ogni Snapshot e produrre il valore statistico corrente.
+
+Questa astrazione consente di implementare statistiche molto diverse tra loro mantenendo la stessa interfaccia:
+- statistiche cumulative, come somme, medie o conteggi;
+- statistiche che mantengono una cronologia limitata dei dati;
+- statistiche che richiedono uno stato interno più articolato.
+
+Dal punto di vista architetturale, `Fold` rappresenta quindi il contratto comune seguito da tutte le statistiche, mentre
+i dettagli dell'accumulazione rimangono completamente nascosti allo `StatisticsEngine`.
+
 La raccolta delle statistiche deve avvenire senza mantenere in memoria l'intera storia della simulazione e senza
-introdurre stato mutabile condiviso tra i vari osservatori. A tale scopo è stata definita l'astrazione `Fold[In, Out]`
-in [Fold.scala](/app/src/main/scala/org/gridsim/statistics/Fold.scala), concettualmente
-una macchina di Moore: uno stato interno opaco, una funzione di transizione pura e una funzione di proiezione finale.
+introdurre stato mutabile condiviso tra i vari osservatori.
+L'astrazione `Fold[In, Out]` in [Fold.scala](/app/src/main/scala/org/gridsim/statistics/Fold.scala), concettualmente una macchina di Moore: uno stato interno opaco, una
+funzione di transizione pura e una funzione di proiezione finale.
 
 ```scala
 trait Fold[-In, +Out]:
