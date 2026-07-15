@@ -13,7 +13,7 @@ class StatisticsView(val coordinator: SimulationCoordinator):
   private val cableOverloadStatView = new CableOverloadStatisticView(coordinator.cableOverloadStatisticViewModel)
   private val simulationTimeStatView = new SimulationTimeStatisticView(coordinator.simulationTimeStatisticViewModel)
   private val netFlowChartView = new NetFlowChartStatisticView(coordinator.netFlowChartStatisticViewModel)
-  
+
   private def statSection(title: String, content: Parent): VBox =
     val titleLabel = new Label(title) {
       styleClass += "details-panel-title-main"
@@ -33,10 +33,10 @@ class StatisticsView(val coordinator: SimulationCoordinator):
   private val statisticsStack = new VBox(12) {
     styleClass += "details-panel-details-view"
     children = Seq(
-      statSection("Simulation Time", simulationTimeStatView),
-      statSection("Flow", flowStatView),
+      statSection("Time", simulationTimeStatView),
+      statSection("Grid Flow", flowStatView),
       statSection("Battery Charge", batteryChargeStatView),
-      statSection("Cable Overload", cableOverloadStatView)
+      statSection("Cables Overloaded", cableOverloadStatView)
     )
   }
 
