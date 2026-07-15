@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page.title | default: site.title | default: "Project Documentation" }}</title>
 
-  <!-- GitHub Markdown CSS for clean, readable styling -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown.min.css">
+  <!-- GitHub Markdown CSS for clean, readable styling (Light theme) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.0/github-markdown-light.min.css">
   <style>
     .markdown-body {
       box-sizing: border-box;
@@ -22,10 +22,6 @@
     }
   </style>
 </head>
-<script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: true });
-</script>
 <body class="markdown-body">
 
   <!-- Jekyll injects your README.md content exactly here -->
@@ -33,7 +29,7 @@
 
   <!-- Mermaid JS script -->
   <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs'\;
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
     mermaid.initialize({ startOnLoad: false });
 
     document.addEventListener("DOMContentLoaded", async () => {
