@@ -1,11 +1,11 @@
 # 6 Implementazione
 
-Descrizione degli aspetti implementativi del progetto relativamente al linguaggio utilizzato, Scala.
+Descrizione degli aspetti implementativi di GridSim relativamente al linguaggio di programmazione Scala.
 
 ## Personale
 
 - [Enrico Marchionni](enrymarch10.md)
-- [Matteo Bambini]()
+- [Matteo Bambini](bambinim.md)
 - [Michele Nardini](michelenardini.md)
 
 ---
