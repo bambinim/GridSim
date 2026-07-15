@@ -251,3 +251,44 @@ Il componente si occupa unicamente della renderizzazione e manipolazione del Doc
 - **Feedback Cromatico Dinamico**: Al momento del trigger `onUpdate` asincrono (eseguito rigorosamente sul thread grafico con `Platform.runLater`), la View esamina lo stato aggiornato dal ViewModel per sovrascrivere dinamicamente le classi CSS (`setStyleInline`) degli elementi visuali:
   - **Entità (Nodi)**: Contorno marcato in rosso acceso `#e74c3c` in caso di `Deficit` energetico, altrimenti verde `#2ecc71`.
   - **Cavi (Archi)**: Modificati dinamicamente in rosso se si verifica un sovraccarico fisico (potenza transitante superiore alla `maxCapacity` limite nel delta di tempo), altrimenti ricolorati di nero.
+
+---
+
+## Observability
+
+Il package `org.gridsim.core.observability` definisce l'astrazione per l'esportazione dei dati di simulazione, progettata per disaccoppiare totalmente il motore puramente funzionale dai consumatori finali (come la GUI o il motore delle statistiche). L'architettura del modulo è volutamente agnostica rispetto al meccanismo di trasporto sottostante: i consumatori possono ricevere i dati tramite canali locali, broker di messaggi o stream reattivi, garantendo l'espandibilità del sistema in ottica futura, come ad esempio rendere la simulazione distribuibile su più sistemi.
+
+### 1. `SimulationData` e la Type Class `Sliceable`
+Per evitare che i consumatori ricevano necessariamente l'intero stato globale della simulazione, i dati in uscita sono modellati tramite un Algebraic Data Type (ADT) `enum SimulationData`. Questo tipo espone diverse proiezioni (o "slice") dello stato (ad esempio `EnvironmentData`, `EntityFlowsData`, `CableLoadsData` o un aggregato completo `SimulationSnapshot`).
+L'estrazione del dato dal mega-stato `SimulationState` non avviene tramite conversioni hard-coded, bensì in modo polimorfico grazie alla type class `Sliceable[A]`. Questa feature estensibile di Scala 3 permette di definire, tramite `given sliceableSimulationState`, come "tagliare" dinamicamente un determinato frammento dello stato in base al tipo richiesto (riconosciuto a runtime tramite una `ClassTag`).
+
+### 2. Sottoscrizione tipizzata con `Observer`
+Gli observer (i consumatori dei dati) sono definiti mediante la case class `Observer[F[_]]`, dove `F` rappresenta l'involucro degli effetti (il tipo monadico). L'iscrizione avviene sfruttando uno *smart constructor* che accetta come unico parametro la callback. Ricorrendo implicitamente alle `ClassTag`, il costruttore inferisce automaticamente quale tipologia di `SimulationData` interessa al consumatore ed esegue i cast a runtime in modo protetto, esponendo verso l'esterno un'API elegante e rigorosamente type-safe:
+```scala
+def apply[F[_], T <: SimulationData](
+    onUpdate: T => F[Unit]
+)(using tag: scala.reflect.ClassTag[T]): Observer[F] =
+  Observer(
+    tag.runtimeClass.asInstanceOf[Class[_ <: SimulationData]],
+    data => onUpdate(data.asInstanceOf[T])
+  )
+```
+Grazie a questa inferenza, istanziare un consumatore (ad esempio, per osservare unicamente i cambiamenti dell'ambiente tramite l'effetto `IO`) risulta estremamente pulito dal lato client:
+```scala
+val obs = Observer[IO, SimulationData.EnvironmentData] { data => IO.println(data.environment) }
+```
+
+### 3. Astrazione di Dispatching (`DataDispatcher`)
+L'interfaccia centrale per l'esportazione dei dati è rappresentata dal trait `DataDispatcher[F[_]]`. Esso definisce un singolo metodo `dispatch` incaricato di ricevere e distribuire l'intero stato della simulazione e il delta temporale a tutti gli observer registrati:
+```scala
+trait DataDispatcher[F[_]]:
+  def dispatch(state: SimulationState, delta: FiniteDuration): F[Unit]
+```
+La semplicità di questa interfaccia garantisce che il core della simulazione non debba preoccuparsi di *come* i dati verranno smistati, lasciando totale libertà all'implementazione concreta.
+
+#### 3.1. Dettaglio Implementativo: Publish-Subscribe con `Fs2DataDispatcher`
+L'attuale implementazione concreta del `DataDispatcher` si basa sul pattern Publish-Subscribe sfruttando nativamente la libreria di streaming funzionale **FS2** (`fs2.concurrent.Topic`). Essendo un puro dettaglio implementativo, tale meccanismo non intacca le astrazioni descritte sopra.
+Al momento dell'inizializzazione, lo smart constructor del dispatcher:
+1. Crea un `Topic` FS2 indipendente per ogni tipo di evento/dato definito in `SimulationData`.
+2. Iscrive ciascun `Observer` al proprio topic di interesse, registrando una sottoscrizione (`subscribe`) e avviando un Fiber asincrono in background (`.start`) per l'ascolto concorrente.
+3. Ad ogni tick, quando il motore termina l'aggiornamento e restituisce il nuovo stato, il metodo `dispatch` estrae i frammenti (`slice`) e li pubblica simultaneamente (tramite `publish1`) ai rispettivi topic, smaltendo l'aggiornamento in modo non bloccante.
