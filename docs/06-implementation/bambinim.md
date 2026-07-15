@@ -1,8 +1,16 @@
 # Matteo Bambini
 
-Il presente capitolo descrive in dettaglio le scelte strategiche, i pattern funzionali e le componenti chiave del
-codice Scala sviluppato da me, Matteo Bambini.
-L'esposizione è supportata da frammenti di codice esplicativi.
+Questo documento descrive le scelte progettuali e i dettagli implementativi relativi ai moduli e alle funzionalità principali sviluppate da Matteo Bambini.
+
+## Panoramica dei Contributi
+
+Di seguito l'elenco dei principali moduli e componenti architetturali curati in questa implementazione:
+- **DSL (Domain Specific Language)**: Sviluppo del layer dichiarativo per la configurazione del dominio, implementato tramite *Context Functions*, *Extension Methods* e il sistema di validazione basato su *Cats*.
+- **Modello Topologico della Rete**: Progettazione delle strutture dati per rappresentare il grafo della micro-grid (`GridGraph`, `CableConnections`).
+- **Power Flow Solver**: Sviluppo del layer per il calcolo dei flussi fisici, comprensivo dei solutori specifici per le diverse topologie (`SimplePowerFlowSolver` e `KirchhoffPowerFlowSolver`).
+- **Observability**: Creazione dell'infrastruttura reattiva agnostica (`Observer`, `DataDispatcher`) per la trasmissione dei dati e dell'implementazione tramite il paradigma pattern *Publish-Subscribe* utilizzando la libreria *FS2*.
+- **Visualizzazione del Grafo (GUI)**: Integrazione dell'infrastruttura nell'interfaccia utente tramite *JavaFXSmartGraph*, applicando il pattern MVVM per un binding reattivo e per il feedback visivo dinamico sulle portate.
+- **Testing**: Implementazione di *unit test* rigorosi (tramite *ScalaTest*) a copertura di tutti i componenti architetturali citati (dal DSL ai calcoli matematici del *Power Flow Solver*, fino all'architettura reattiva di *Observability*), fatta esclusione unicamente per i moduli legati all'interfaccia grafica (*View* e *ViewModel*).
 
 ---
 
