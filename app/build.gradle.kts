@@ -23,18 +23,7 @@ repositories {
     mavenCentral()
 }
 
-val javafxPlatform = when {
-    org.gradle.internal.os.OperatingSystem.current().isWindows -> "win"
-    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> {
-        val arch = System.getProperty("os.arch").lowercase()
-        if (arch == "aarch64" || arch == "arm64") "mac-aarch64" else "mac"
-    }
-    org.gradle.internal.os.OperatingSystem.current().isLinux -> {
-        val arch = System.getProperty("os.arch").lowercase()
-        if (arch == "aarch64" || arch == "arm64") "linux-aarch64" else "linux"
-    }
-    else -> throw GradleException("Unsupported operating system for JavaFX")
-}
+val javafxPlatforms = listOf("win", "mac", "mac-aarch64", "linux", "linux-aarch64")
 
 dependencies {
     // Use Scala 3 library
@@ -47,12 +36,14 @@ dependencies {
 
     // ScalaFX for GUI components
     implementation(libs.scalafx)
-    implementation(variantOf(libs.javafx.base) { classifier(javafxPlatform) })
-    implementation(variantOf(libs.javafx.graphics) { classifier(javafxPlatform) })
-    implementation(variantOf(libs.javafx.controls) { classifier(javafxPlatform) })
-    implementation(variantOf(libs.javafx.media) { classifier(javafxPlatform) })
-    implementation(variantOf(libs.javafx.web) { classifier(javafxPlatform) })
-    implementation(variantOf(libs.javafx.swing) { classifier(javafxPlatform) })
+    javafxPlatforms.forEach { platform ->
+        implementation(variantOf(libs.javafx.base) { classifier(platform) })
+        implementation(variantOf(libs.javafx.graphics) { classifier(platform) })
+        implementation(variantOf(libs.javafx.controls) { classifier(platform) })
+        implementation(variantOf(libs.javafx.media) { classifier(platform) })
+        implementation(variantOf(libs.javafx.web) { classifier(platform) })
+        implementation(variantOf(libs.javafx.swing) { classifier(platform) })
+    }
 
     // This dependency is used by the application.
     implementation(libs.guava)
