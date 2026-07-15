@@ -11,7 +11,12 @@ plugins {
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    
+    // Apply the shadow plugin to build fat jars
+    id("com.gradleup.shadow") version "8.3.11"
 }
+
+version = "1.0.0"
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -76,6 +81,10 @@ application {
 
 tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named<Jar>("shadowJar") {
+    archiveFileName.set("${rootProject.name}.jar")
 }
 
 tasks.register("ciAssemble") {
